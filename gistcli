@@ -1,0 +1,64 @@
+#! /usr/bin/python
+
+#########################################################################################	
+#				gistcli - version 1.1					#
+#				written by : pranavk				 	#
+#########################################################################################
+ 
+
+import urllib2
+import sys
+import json
+from optparse import OptionParser
+
+EoSTDIN='.\n' # As soon as only this character is present in the whole line, script stops taking input further more from the stdin.
+parser=OptionParser()
+
+parser.add_option("-p","--private",dest="privacyPub",action="store_false",default="true",help="(Optional) Defaults to True i.e if not specified, gist will be marked as public. If flag '-p' is specified, gist will be marked as private.")
+parser.add_option("-f","--file",dest="filename",help="Takes data from the input file. Not needed in case pipeline is used.")
+parser.add_option("-d","--desc",dest="desc",default="gistcli - Paste",help="(Optional) Add description to the gist.")
+
+
+(options,args)=parser.parse_args()
+
+filename=options.filename
+desc=options.desc
+privacyPub=options.privacyPub
+
+fileData=''
+if filename==None:
+	if not sys.stdin.isatty():	#Checks if the input is pipelined or not. sys.stdin.isatty() returns True in case of Pipeline.
+		fileData=sys.stdin.read()
+	else:#Following else block will read the data from stdin.
+#FIXME: When taking data from the stdin terminal, the arrow keys do not work to move the cursor arround, rather they print their own ascii values on the terminal. So its a limitation where you can't use arrow keys to move the cursor, you have to type in one go or delete using backspace till you reach your mistake.
+		try:
+			print 'Enter your input below. To end just enter "."(quotes for clarity). Remember only "." should be there in whole line.\n'
+			while True:
+				line=sys.stdin.readline()
+				if not line==EoSTDIN:
+					fileData+=line
+				else:
+					print '\nDone\nPosting it as a gist...please wait\n'
+					break
+		except KeyboardInterrupt:
+			print "Interrupted. Exiting now..."
+			sys.exit(1)
+else:		
+	fileData=open(filename).read()
+
+
+#Making JSON wrapper for the content to be sent.
+jsonObj={"description": desc,"public": privacyPub,"files": {"file1.txt": {"content": fileData}}}
+jsonObj=json.dumps(jsonObj)
+
+#TODO: Only anonymous gists are supported till now. Support will be extended to user gists after adding authentication.
+try:	
+	data=urllib2.urlopen('https://api.github.com/gists',jsonObj)
+except:
+	print "Some HTTP Error Occurred. Please try after some time."
+	sys.exit(1)
+
+data=data.read()
+jsonResponseData=json.loads(data)
+url=jsonResponseData['html_url']
+print url
