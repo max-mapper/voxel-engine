@@ -1,8 +1,7 @@
 DEPS = deps/three.js \
 	deps/PointerLockControls.js \
 	deps/askForPointerLock.js \
-	deps/ImprovedNoise.js \
-	deps/utils.js \
+	deps/Stats.js \
 	deps/Detector.js
 
 all: concat

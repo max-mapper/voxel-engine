@@ -36482,153 +36482,159 @@ THREE.ShaderSprite = {
  * @author mrdoob / http://mrdoob.com/
  */
 
-THREE.PointerLockControls = function ( game ) {
+THREE.PointerLockControls = function ( camera ) {
 
-  var scope = this;
-  this.game = game
+	var scope = this;
 
-  var pitchObject = new THREE.Object3D();
-  pitchObject.add( game.camera );
+	var pitchObject = new THREE.Object3D();
+	pitchObject.add( camera );
 
-  var yawObject = new THREE.Object3D();
-  yawObject.position.y = 10;
-  yawObject.add( pitchObject );
+	var yawObject = new THREE.Object3D();
+	yawObject.position.y = 10;
+	yawObject.add( pitchObject );
 
-  var moveForward = false;
-  var moveBackward = false;
-  var moveLeft = false;
-  var moveRight = false;
+	var moveForward = false;
+	var moveBackward = false;
+	var moveLeft = false;
+	var moveRight = false;
 
-  var canJump = false;
+	var isOnObject = false;
+	var canJump = false;
 
-  var velocity = new THREE.Vector3();
+	var velocity = new THREE.Vector3();
 
-  var PI_2 = Math.PI / 2;
+	var PI_2 = Math.PI / 2;
 
-  var onMouseMove = function ( event ) {
+	var onMouseMove = function ( event ) {
 
-    if ( scope.enabled === false ) return;
+		if ( scope.enabled === false ) return;
 
-    var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-    var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+		var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+		var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
-    yawObject.rotation.y -= movementX * 0.002;
-    pitchObject.rotation.x -= movementY * 0.002;
+		yawObject.rotation.y -= movementX * 0.002;
+		pitchObject.rotation.x -= movementY * 0.002;
 
-    pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
+		pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
 
-  };
+	};
 
-  var onKeyDown = function ( event ) {
+	var onKeyDown = function ( event ) {
 
-    switch ( event.keyCode ) {
+		switch ( event.keyCode ) {
 
-      case 38: // up
-      case 87: // w
-        moveForward = true;
-        break;
+			case 38: // up
+			case 87: // w
+				moveForward = true;
+				break;
 
-      case 37: // left
-      case 65: // a
-        moveLeft = true; break;
+			case 37: // left
+			case 65: // a
+				moveLeft = true; break;
 
-      case 40: // down
-      case 83: // s
-        moveBackward = true;
-        break;
+			case 40: // down
+			case 83: // s
+				moveBackward = true;
+				break;
 
-      case 39: // right
-      case 68: // d
-        moveRight = true;
-        break;
+			case 39: // right
+			case 68: // d
+				moveRight = true;
+				break;
 
-      case 32: // space
-        console.log(canJump)
-        if ( canJump === true ) velocity.y += 10;
-        canJump = false;
-        break;
+			case 32: // space
+				if ( canJump === true ) velocity.y += 10;
+				canJump = false;
+				break;
 
-    }
+		}
 
-  };
+	};
 
-  var onKeyUp = function ( event ) {
+	var onKeyUp = function ( event ) {
 
-    switch( event.keyCode ) {
+		switch( event.keyCode ) {
 
-      case 38: // up
-      case 87: // w
-        moveForward = false;
-        break;
+			case 38: // up
+			case 87: // w
+				moveForward = false;
+				break;
 
-      case 37: // left
-      case 65: // a
-        moveLeft = false;
-        break;
+			case 37: // left
+			case 65: // a
+				moveLeft = false;
+				break;
 
-      case 40: // down
-      case 83: // a
-        moveBackward = false;
-        break;
+			case 40: // down
+			case 83: // a
+				moveBackward = false;
+				break;
 
-      case 39: // right
-      case 68: // d
-        moveRight = false;
-        break;
+			case 39: // right
+			case 68: // d
+				moveRight = false;
+				break;
 
-    }
+		}
 
-  };
+	};
 
-  document.addEventListener( 'mousemove', onMouseMove, false );
-  document.addEventListener( 'keydown', onKeyDown, false );
-  document.addEventListener( 'keyup', onKeyUp, false );
+	document.addEventListener( 'mousemove', onMouseMove, false );
+	document.addEventListener( 'keydown', onKeyDown, false );
+	document.addEventListener( 'keyup', onKeyUp, false );
 
-  this.enabled = false;
+	this.enabled = false;
 
-  this.getObject = function () {
-    return yawObject;
-  };
+	this.getObject = function () {
 
-  this.update = function ( delta ) {
+		return yawObject;
 
-    if ( scope.enabled === false ) return;
-    
-    var baseVel = .4;
-    var jumpSpeed = .8;
+	};
 
-    
-    delta *= 50;
-      
-    // var speedRatio = delta / game.idealSpeed
-    // var iterationCount = Math.round(10 * speedRatio);
-    // while (iterationCount-- > 0) {
+	this.isOnObject = function ( boolean ) {
 
-      velocity.x += ( - velocity.x ) * 0.08 * delta;
-      velocity.z += ( - velocity.z ) * 0.08 * delta;
+		isOnObject = boolean;
+		canJump = boolean;
 
-      velocity.y -= 1 * delta;
+	};
 
-      if ( moveForward ) velocity.z -= 0.12 * delta;
-      if ( moveBackward ) velocity.z += 0.12 * delta;
+	this.update = function ( delta ) {
 
-      if ( moveLeft ) velocity.x -= 0.12 * delta;
-      if ( moveRight ) velocity.x += 0.12 * delta;
-      
-      this.game.axes.map(function(axis) {
-        var yawMethod = 'translate' + axis.toUpperCase()
-        yawObject[yawMethod]( velocity[axis] )
-        if (game.collides()) {
-          yawObject[yawMethod]( -velocity[axis] )
-          if (axis === 'y') {
-            velocity.y = 0
-            canJump = true
-          }
-        }
-      })
-      
-    // }    
-  };
+		if ( scope.enabled === false ) return;
+
+		delta *= 0.1;
+
+		velocity.x += ( - velocity.x ) * 0.08 * delta;
+		velocity.z += ( - velocity.z ) * 0.08 * delta;
+
+		velocity.y -= 0.25 * delta;
+
+		if ( moveForward ) velocity.z -= 0.12 * delta;
+		if ( moveBackward ) velocity.z += 0.12 * delta;
+
+		if ( moveLeft ) velocity.x -= 0.12 * delta;
+		if ( moveRight ) velocity.x += 0.12 * delta;
+
+		if ( isOnObject === true ) {
+
+			velocity.y = Math.max( 0, velocity.y );
+
+		}
+
+		yawObject.translateX( velocity.x );
+		yawObject.translateY( velocity.y ); 
+		yawObject.translateZ( velocity.z );
+
+		if ( yawObject.position.y < 10 ) {
+
+			velocity.y = 0;
+			yawObject.position.y = 10;
+
+			canJump = true;
+
+		}
+
+	};
 
 };// http://www.html5rocks.com/en/tutorials/pointerlock/intro/
 
@@ -36698,143 +36704,68 @@ function askForPointerLock(controls) {
   }
   
 }
-// http://mrl.nyu.edu/~perlin/noise/
+// stats.js r8 - http://github.com/mrdoob/stats.js
+var Stats=function(){var h,a,n=0,o=0,i=Date.now(),u=i,p=i,l=0,q=1E3,r=0,e,j,f,b=[[16,16,48],[0,255,255]],m=0,s=1E3,t=0,d,k,g,c=[[16,48,16],[0,255,0]];h=document.createElement("div");h.style.cursor="pointer";h.style.width="80px";h.style.opacity="0.9";h.style.zIndex="10001";h.addEventListener("mousedown",function(a){a.preventDefault();n=(n+1)%2;n==0?(e.style.display="block",d.style.display="none"):(e.style.display="none",d.style.display="block")},!1);e=document.createElement("div");e.style.textAlign=
+"left";e.style.lineHeight="1.2em";e.style.backgroundColor="rgb("+Math.floor(b[0][0]/2)+","+Math.floor(b[0][1]/2)+","+Math.floor(b[0][2]/2)+")";e.style.padding="0 0 3px 3px";h.appendChild(e);j=document.createElement("div");j.style.fontFamily="Helvetica, Arial, sans-serif";j.style.fontSize="9px";j.style.color="rgb("+b[1][0]+","+b[1][1]+","+b[1][2]+")";j.style.fontWeight="bold";j.innerHTML="FPS";e.appendChild(j);f=document.createElement("div");f.style.position="relative";f.style.width="74px";f.style.height=
+"30px";f.style.backgroundColor="rgb("+b[1][0]+","+b[1][1]+","+b[1][2]+")";for(e.appendChild(f);f.children.length<74;)a=document.createElement("span"),a.style.width="1px",a.style.height="30px",a.style.cssFloat="left",a.style.backgroundColor="rgb("+b[0][0]+","+b[0][1]+","+b[0][2]+")",f.appendChild(a);d=document.createElement("div");d.style.textAlign="left";d.style.lineHeight="1.2em";d.style.backgroundColor="rgb("+Math.floor(c[0][0]/2)+","+Math.floor(c[0][1]/2)+","+Math.floor(c[0][2]/2)+")";d.style.padding=
+"0 0 3px 3px";d.style.display="none";h.appendChild(d);k=document.createElement("div");k.style.fontFamily="Helvetica, Arial, sans-serif";k.style.fontSize="9px";k.style.color="rgb("+c[1][0]+","+c[1][1]+","+c[1][2]+")";k.style.fontWeight="bold";k.innerHTML="MS";d.appendChild(k);g=document.createElement("div");g.style.position="relative";g.style.width="74px";g.style.height="30px";g.style.backgroundColor="rgb("+c[1][0]+","+c[1][1]+","+c[1][2]+")";for(d.appendChild(g);g.children.length<74;)a=document.createElement("span"),
+a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left",a.style.backgroundColor="rgb("+c[0][0]+","+c[0][1]+","+c[0][2]+")",g.appendChild(a);return{domElement:h,update:function(){i=Date.now();m=i-u;s=Math.min(s,m);t=Math.max(t,m);k.textContent=m+" MS ("+s+"-"+t+")";var a=Math.min(30,30-m/200*30);g.appendChild(g.firstChild).style.height=a+"px";u=i;o++;if(i>p+1E3)l=Math.round(o*1E3/(i-p)),q=Math.min(q,l),r=Math.max(r,l),j.textContent=l+" FPS ("+q+"-"+r+")",a=Math.min(30,30-l/
+100*30),f.appendChild(f.firstChild).style.height=a+"px",p=i,o=0}}};
 
-var ImprovedNoise = function () {
-
-	var p = [151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,
-		 23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,
-		 174,20,125,136,171,168,68,175,74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,
-		 133,230,220,105,92,41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,
-		 89,18,169,200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,5,
-		 202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,170,213,119,
-		 248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,98,108,110,79,113,224,232,
-		 178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,145,235,249,
-		 14,239,107,49,192,214,31,181,199,106,157,184,84,204,176,115,121,50,45,127,4,150,254,138,236,205,
-		 93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180];
-
-	for (var i=0; i < 256 ; i++) {
-
-		p[256+i] = p[i];
-
-	}
-
-	function fade(t) {
-
-		return t * t * t * (t * (t * 6 - 15) + 10);
-
-	}
-
-	function lerp(t, a, b) {
-
-		return a + t * (b - a);
-
-	}
-
-	function grad(hash, x, y, z) {
-
-		var h = hash & 15;
-		var u = h < 8 ? x : y, v = h < 4 ? y : h == 12 || h == 14 ? x : z;
-		return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);
-
-	}
-
-	return {
-
-		noise: function (x, y, z) {
-
-			var floorX = ~~x, floorY = ~~y, floorZ = ~~z;
-
-			var X = floorX & 255, Y = floorY & 255, Z = floorZ & 255;
-
-			x -= floorX;
-			y -= floorY;
-			z -= floorZ;
-
-			var xMinus1 = x -1, yMinus1 = y - 1, zMinus1 = z - 1;
-
-			var u = fade(x), v = fade(y), w = fade(z);
-
-			var A = p[X]+Y, AA = p[A]+Z, AB = p[A+1]+Z, B = p[X+1]+Y, BA = p[B]+Z, BB = p[B+1]+Z;
-
-			return lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z), 
-							grad(p[BA], xMinus1, y, z)),
-						lerp(u, grad(p[AB], x, yMinus1, z),
-							grad(p[BB], xMinus1, yMinus1, z))),
-					lerp(v, lerp(u, grad(p[AA+1], x, y, zMinus1),
-							grad(p[BA+1], xMinus1, y, z-1)),
-						lerp(u, grad(p[AB+1], x, yMinus1, zMinus1),
-							grad(p[BB+1], xMinus1, yMinus1, zMinus1))));
-
-		}
-	}
-}
-var utils = {
-  times: function(num, fn) {
-    var i, _results;
-    i = 0;
-    _results = [];
-    while (i < num) {
-      _results.push(fn(i++));
-    }
-    return _results;
-  }
-}
 /**
  * @author alteredq / http://alteredqualia.com/
  * @author mr.doob / http://mrdoob.com/
  */
 
-var Detector = {
+Detector = {
 
-	canvas: !! window.CanvasRenderingContext2D,
-	webgl: ( function () { try { return !! window.WebGLRenderingContext && !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' ); } catch( e ) { return false; } } )(),
-	workers: !! window.Worker,
-	fileapi: window.File && window.FileReader && window.FileList && window.Blob,
+	canvas : !! window.CanvasRenderingContext2D,
+	webgl : ( function () { try { return !! window.WebGLRenderingContext && !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' ); } catch( e ) { return false; } } )(),
+	workers : !! window.Worker,
+	fileapi : window.File && window.FileReader && window.FileList && window.Blob,
 
-	getWebGLErrorMessage: function () {
+	getWebGLErrorMessage : function () {
 
-		var element = document.createElement( 'div' );
-		element.id = 'webgl-error-message';
-		element.style.fontFamily = 'monospace';
-		element.style.fontSize = '13px';
-		element.style.fontWeight = 'normal';
-		element.style.textAlign = 'center';
-		element.style.background = '#fff';
-		element.style.color = '#000';
-		element.style.padding = '1.5em';
-		element.style.width = '400px';
-		element.style.margin = '5em auto 0';
+		var domElement = document.createElement( 'div' );
+
+		domElement.style.fontFamily = 'monospace';
+		domElement.style.fontSize = '13px';
+		domElement.style.textAlign = 'center';
+		domElement.style.background = '#eee';
+		domElement.style.color = '#000';
+		domElement.style.padding = '1em';
+		domElement.style.width = '475px';
+		domElement.style.margin = '5em auto 0';
 
 		if ( ! this.webgl ) {
 
-			element.innerHTML = window.WebGLRenderingContext ? [
-				'Your graphics card does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br />',
-				'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.'
+			domElement.innerHTML = window.WebGLRenderingContext ? [
+				'Your graphics card does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">WebGL</a>.<br />',
+				'Find out how to get it <a href="http://get.webgl.org/">here</a>.'
 			].join( '\n' ) : [
-				'Your browser does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br/>',
-				'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.'
+				'Your browser does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">WebGL</a>.<br/>',
+				'Find out how to get it <a href="http://get.webgl.org/">here</a>.'
 			].join( '\n' );
 
 		}
 
-		return element;
+		return domElement;
 
 	},
 
-	addGetWebGLMessage: function ( parameters ) {
+	addGetWebGLMessage : function ( parameters ) {
 
-		var parent, id, element;
+		var parent, id, domElement;
 
 		parameters = parameters || {};
 
 		parent = parameters.parent !== undefined ? parameters.parent : document.body;
 		id = parameters.id !== undefined ? parameters.id : 'oldie';
 
-		element = Detector.getWebGLErrorMessage();
-		element.id = id;
+		domElement = Detector.getWebGLErrorMessage();
+		domElement.id = id;
 
-		parent.appendChild( element );
+		parent.appendChild( domElement );
 
 	}
 
