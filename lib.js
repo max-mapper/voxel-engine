@@ -46,14 +46,15 @@ var Floor = (function() {
     this.controls = this.createControls()
     this.addLights(this.scene)
     new Floor(this, 50000, 50000).addToScene(this.scene)
+    new VoxelMesh(voxel.geometry['Valley']).addToScene(this.scene)
     this.addStats()
     window.addEventListener( 'resize', this.onWindowResize.bind(this), false )
   }
 
   Game.prototype.onWindowResize = function() {
-  	this.camera.aspect = window.innerWidth / window.innerHeight
-  	this.camera.updateProjectionMatrix()
-  	this.renderer.setSize( window.innerWidth, window.innerHeight )
+    this.camera.aspect = window.innerWidth / window.innerHeight
+    this.camera.updateProjectionMatrix()
+    this.renderer.setSize( window.innerWidth, window.innerHeight )
   }
 
   Game.prototype.loadTexture = function(name) {
@@ -79,12 +80,12 @@ var Floor = (function() {
 
   Game.prototype.createRenderer = function() {
     if( Detector.webgl ){
-			renderer = new THREE.WebGLRenderer({
+      renderer = new THREE.WebGLRenderer({
         antialias: true
       })
-		} else {
-		  renderer = new THREE.CanvasRenderer()
-		}
+    } else {
+      renderer = new THREE.CanvasRenderer()
+    }
     renderer.setSize(this.width, this.height)
     renderer.setClearColorHex(0xBFD1E5, 1.0)
     renderer.clear()
@@ -94,30 +95,92 @@ var Floor = (function() {
   
   Game.prototype.addStats = function() {
     stats = new Stats()
-		stats.domElement.style.position	= 'absolute'
-		stats.domElement.style.bottom	= '0px'
-		document.body.appendChild( stats.domElement )
+    stats.domElement.style.position  = 'absolute'
+    stats.domElement.style.bottom  = '0px'
+    document.body.appendChild( stats.domElement )
   }
 
   Game.prototype.addLights = function(scene) {
     var ambientLight, directionalLight
     ambientLight = new THREE.AmbientLight(0xaaaaaa)
     scene.add(ambientLight)
-    directionalLight = new THREE.DirectionalLight(0xffffff, 1)
-    directionalLight.position.set(1, 1, 0.5)
-    directionalLight.position.normalize()
-    return scene.add(directionalLight)
+    var light	= new THREE.DirectionalLight( Math.random() * 0xffffff )
+    light.position.set( Math.random(), Math.random(), Math.random() ).normalize()
+    scene.add( light )
   };
   
   Game.prototype.tick = function() {
     requestAnimationFrame( this.tick.bind(this) )
     this.controls.update( Date.now() - this.time )
     this.renderer.render(this.scene, this.camera)
-		stats.update()
-		this.time = Date.now()
+    stats.update()
+    this.time = Date.now()
   }
 
   return Game
+
+})()
+;var VoxelMesh = (function() {
+
+  function VoxelMesh(data, scaleFactor) {
+    var w = scaleFactor || 25
+    var geometry  = new THREE.Geometry();    
+
+    var mesher = voxel.meshers.greedy
+    var result = mesher( data.voxels, data.dims )
+
+    geometry.vertices.length = 0
+    geometry.faces.length = 0
+
+    for (var i = 0; i < result.vertices.length; ++i) {
+      var q = result.vertices[i]
+      geometry.vertices.push(new THREE.Vector3(q[0]*w, q[1]*w, q[2]*w))
+    }
+    
+    for (var i = 0; i < result.faces.length; ++i) {
+      var q = result.faces[i]
+      if (q.length === 5) {
+        var f = new THREE.Face4(q[0], q[1], q[2], q[3])
+        f.color = new THREE.Color(q[4])
+        f.vertexColors = [f.color,f.color,f.color,f.color]
+        geometry.faces.push(f)
+      } else if (q.length == 4) {
+        var f = new THREE.Face3(q[0], q[1], q[2])
+        f.color = new THREE.Color(q[3])
+        f.vertexColors = [f.color,f.color,f.color]
+        geometry.faces.push(f)
+      }
+    }
+
+    geometry.computeFaceNormals()
+
+    geometry.verticesNeedUpdate = true
+    geometry.elementsNeedUpdate = true
+    geometry.normalsNeedUpdate = true
+
+    geometry.computeBoundingBox()
+    geometry.computeBoundingSphere()
+
+    var bb = geometry.boundingBox
+
+    // Create surface mesh
+    var material  = new THREE.MeshNormalMaterial()
+    var surfacemesh  = new THREE.Mesh( geometry, material )
+
+    surfacemesh.doubleSided = false
+
+    // surfacemesh.position.x = -(bb.max.x + bb.min.x) / 2.0
+    // surfacemesh.position.y = -(bb.max.y + bb.min.y) / 2.0
+    // surfacemesh.position.z = -(bb.max.z + bb.min.z) / 2.0
+    
+    this.surfacemesh = surfacemesh
+  }
+  
+  VoxelMesh.prototype.addToScene = function(scene) {
+    scene.add( this.surfacemesh )
+  }
+
+  return VoxelMesh
 
 })()
 ;
