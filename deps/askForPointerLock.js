@@ -1,6 +1,6 @@
 // http://www.html5rocks.com/en/tutorials/pointerlock/intro/
 
-function askForPointerLock() {
+function askForPointerLock(controls) {
   var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
 
   var element = document.body;
