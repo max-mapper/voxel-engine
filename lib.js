@@ -50,7 +50,7 @@ var Floor = (function() {
     this.downRay.ray.direction.set( 0, -1, 0 )
     this.floor = new Floor(this, 50000, 50000)
     this.floor.addToScene(this.scene)
-    this.voxelMesh = new VoxelMesh(voxel.geometry['Hilly Terrain'])
+    this.voxelMesh = new VoxelMesh([128, 32, 128])
     this.voxelMesh.addToScene(this.scene)
     this.moveToPosition(this.startingPosition)
     this.addStats()
@@ -153,10 +153,11 @@ var Floor = (function() {
 })()
 ;var VoxelMesh = (function() {
 
-  function VoxelMesh(data, scaleFactor) {
+  function VoxelMesh(dimensions, scaleFactor) {
     var w = scaleFactor || 25
     var geometry  = new THREE.Geometry();    
-
+    
+    var data = this.generateTerrain(dimensions)
     var mesher = voxel.meshers.greedy
     var result = mesher( data.voxels, data.dims )
 
@@ -209,6 +210,26 @@ var Floor = (function() {
   
   VoxelMesh.prototype.addToScene = function(scene) {
     scene.add( this.surfaceMesh )
+  }
+
+  VoxelMesh.prototype.generateTerrain = function(dimensions) {
+    return voxel.generate([0, 0, 0], dimensions, function(i,j,k) {
+      var h0 = 3.0 * Math.sin(Math.PI * i / 12.0 - Math.PI * k * 0.1) + 27;    
+      if(j > h0+1) {
+        return 0;
+      }
+      if(h0 <= j) {
+        return 0x23dd31;
+      }
+      var h1 = 2.0 * Math.sin(Math.PI * i * 0.25 - Math.PI * k * 0.3) + 20;
+      if(h1 <= j) {
+        return 0x964B00;
+      }
+      if(2 < j) {
+        return Math.random() < 0.1 ? 0x222222 : 0xaaaaaa;
+      }
+      return 0xff0000;
+    });
   }
 
   return VoxelMesh
