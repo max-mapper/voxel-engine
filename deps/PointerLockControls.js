@@ -6,10 +6,10 @@ THREE.PointerLockControls = function ( camera ) {
 
 	var scope = this;
 
-	var pitchObject = new THREE.Object3D();
+	var pitchObject = this.pitchObject = new THREE.Object3D();
 	pitchObject.add( camera );
 
-	var yawObject = new THREE.Object3D();
+	var yawObject = this.yawObject = new THREE.Object3D();
 	yawObject.position.y = 10;
 	yawObject.add( pitchObject );
 
@@ -104,12 +104,6 @@ THREE.PointerLockControls = function ( camera ) {
 	document.addEventListener( 'keyup', onKeyUp, false );
 
 	this.enabled = false;
-
-	this.getObject = function () {
-
-		return yawObject;
-
-	};
 
 	this.isOnObject = function ( boolean ) {
 

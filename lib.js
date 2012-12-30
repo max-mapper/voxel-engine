@@ -36,6 +36,7 @@ var Floor = (function() {
     this.texturePath = './textures/'
     this.container = '#container'
     this.cubeSize = 50
+    this.startingPosition = new THREE.Vector3(-98.89020230577458, 10, -79.80375383087735)
     this.textures = {}
     this.materials = {}
     this.height = window.innerHeight
@@ -45,10 +46,30 @@ var Floor = (function() {
     this.renderer = this.createRenderer()
     this.controls = this.createControls()
     this.addLights(this.scene)
-    new Floor(this, 50000, 50000).addToScene(this.scene)
-    new VoxelMesh(voxel.geometry['Valley']).addToScene(this.scene)
+    this.downRay = new THREE.Raycaster()
+    this.downRay.ray.direction.set( 0, -1, 0 )
+    this.floor = new Floor(this, 50000, 50000)
+    this.floor.addToScene(this.scene)
+    this.voxelMesh = new VoxelMesh(voxel.geometry['Valley'])
+    this.voxelMesh.addToScene(this.scene)
+    this.moveToPosition(this.startingPosition)
+    this.turnAroundCamera()
     this.addStats()
     window.addEventListener( 'resize', this.onWindowResize.bind(this), false )
+    this.tick()
+  }
+  
+  Game.prototype.moveToPosition = function(position) {
+    var pos = this.controls.yawObject.position
+    pos.x = position.x
+    pos.y = position.y
+    pos.z = position.z
+  }
+  
+  Game.prototype.turnAroundCamera = function() {
+    // ghetto way to turn around the initial control camera direction
+    this.controls.pitchObject.rotation.x = 0.16599999999999998
+    this.controls.yawObject.rotation.y = -2.3739999999999997
   }
 
   Game.prototype.onWindowResize = function() {
@@ -62,7 +83,7 @@ var Floor = (function() {
     this.textures[name].magFilter = THREE.NearestFilter
     this.materials[name] = new THREE.MeshLambertMaterial({map: this.textures[name], ambient: 0xbbbbbb})
     return this.textures[name]
-  };
+  }
 
   Game.prototype.createCamera = function() {
     var camera;
@@ -70,13 +91,13 @@ var Floor = (function() {
     camera.lookAt(new THREE.Vector3(0, 0, 0))
     this.scene.add(camera)
     return camera
-  };
+  }
   
   Game.prototype.createControls = function() {
     var controls = new THREE.PointerLockControls(this.camera)
-    this.scene.add( controls.getObject() )
+    this.scene.add( controls.yawObject )
     return controls
-  };
+  }
 
   Game.prototype.createRenderer = function() {
     if( Detector.webgl ){
@@ -111,10 +132,27 @@ var Floor = (function() {
   
   Game.prototype.tick = function() {
     requestAnimationFrame( this.tick.bind(this) )
+    this.raycast()
     this.controls.update( Date.now() - this.time )
     this.renderer.render(this.scene, this.camera)
     stats.update()
     this.time = Date.now()
+  }
+  
+  Game.prototype.raycast = function() {
+    this.controls.isOnObject( false );
+
+		this.downRay.ray.origin.copy( this.controls.yawObject.position );
+		this.downRay.ray.origin.y -= 10;
+
+		var intersections = this.downRay.intersectObject( this.voxelMesh.surfaceMesh );
+
+		if ( intersections.length > 0 ) {
+			var distance = intersections[ 0 ].distance;
+			if ( distance > 0 && distance < 10 ) {
+				this.controls.isOnObject( true );
+			}
+		}
   }
 
   return Game
@@ -165,19 +203,19 @@ var Floor = (function() {
 
     // Create surface mesh
     var material  = new THREE.MeshNormalMaterial()
-    var surfacemesh  = new THREE.Mesh( geometry, material )
+    var surfaceMesh  = new THREE.Mesh( geometry, material )
 
-    surfacemesh.doubleSided = false
+    surfaceMesh.doubleSided = false
 
-    // surfacemesh.position.x = -(bb.max.x + bb.min.x) / 2.0
-    // surfacemesh.position.y = -(bb.max.y + bb.min.y) / 2.0
-    // surfacemesh.position.z = -(bb.max.z + bb.min.z) / 2.0
+    // surfaceMesh.position.x = -(bb.max.x + bb.min.x) / 2.0
+    // surfaceMesh.position.y = -(bb.max.y + bb.min.y) / 2.0
+    // surfaceMesh.position.z = -(bb.max.z + bb.min.z) / 2.0
     
-    this.surfacemesh = surfacemesh
+    this.surfaceMesh = surfaceMesh
   }
   
   VoxelMesh.prototype.addToScene = function(scene) {
-    scene.add( this.surfacemesh )
+    scene.add( this.surfaceMesh )
   }
 
   return VoxelMesh
