@@ -3,7 +3,8 @@ DEPS = deps/three.js \
 	deps/askForPointerLock.js \
 	deps/Stats.js \
 	deps/Detector.js \
-	deps/voxel-browser.js
+	deps/voxel-browserified.js \
+	deps/voxel-mesh-browserified.js
 
 all: concat
  

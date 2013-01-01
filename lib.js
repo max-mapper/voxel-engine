@@ -1,3 +1,5 @@
+var Mesh = require('voxel-mesh')
+
 function Chunker(game) {
   this.game = game
   this.chunks = {}
@@ -18,14 +20,12 @@ Chunker.prototype.generateMissingChunks = function(position) {
         var chunkIndex = "" + cx + "|" + cy + "|" + cz
         if (!this.chunks[chunkIndex]) {
           var low = [cx * size, cy * size, cz * size]
-          // var highX = low[0] > 0 ? low[0] + size : low[0] - size
-          // var highY = low[1] > 0 ? low[1] + size : low[1] - size
-          // var highZ = low[2] > 0 ? low[2] + size : low[2] - size
           var high = [low[0] + size, low[1] + size, low[2] + size]
           var chunk = voxel.generate(low, high, this.game.voxelSource.getVoxel)
           var mesh = new Mesh(chunk, size)
           this.chunks[chunkIndex] = chunk
           this.meshes[chunkIndex] = mesh
+          mesh.createWireMesh()
           mesh.setPosition(low[0] * size, low[1] * size, low[2] * size)
           mesh.addToScene(this.game.scene)
         }
@@ -202,79 +202,6 @@ var Floor = (function() {
   }
 
   return Game
-
-})()
-;var Mesh = (function() {
-
-  function Mesh(data, scaleFactor) {
-    this.data = data
-    var w = scaleFactor || 10
-    var geometry  = new THREE.Geometry();    
-    
-    var mesher = voxel.meshers.greedy
-    var result = mesher( data.voxels, data.dims )
-    this.meshed = result
-
-    geometry.vertices.length = 0
-    geometry.faces.length = 0
-
-    for (var i = 0; i < result.vertices.length; ++i) {
-      var q = result.vertices[i]
-      geometry.vertices.push(new THREE.Vector3(q[0]*w, q[1]*w, q[2]*w))
-    } 
-    
-    for (var i = 0; i < result.faces.length; ++i) {
-      var q = result.faces[i]
-      if (q.length === 5) {
-        var f = new THREE.Face4(q[0], q[1], q[2], q[3])
-        f.color = new THREE.Color(q[4])
-        f.vertexColors = [f.color,f.color,f.color,f.color]
-        geometry.faces.push(f)
-      } else if (q.length == 4) {
-        var f = new THREE.Face3(q[0], q[1], q[2])
-        f.color = new THREE.Color(q[3])
-        f.vertexColors = [f.color,f.color,f.color]
-        geometry.faces.push(f)
-      }
-    }
-    
-    geometry.computeFaceNormals()
-
-    geometry.verticesNeedUpdate = true
-    geometry.elementsNeedUpdate = true
-    geometry.normalsNeedUpdate = true
-
-    geometry.computeBoundingBox()
-    geometry.computeBoundingSphere()
-
-    var bb = geometry.boundingBox
-
-    var material  = new THREE.MeshNormalMaterial()
-    var surfaceMesh  = new THREE.Mesh( geometry, material )
-
-    surfaceMesh.doubleSided = false
-    
-    var wirematerial = new THREE.MeshBasicMaterial({
-        color : 0xffffff
-      , wireframe : true
-    });
-    wiremesh = new THREE.Mesh(geometry, wirematerial);
-    wiremesh.doubleSided = true;
-    
-    this.wireMesh = wiremesh
-    this.surfaceMesh = surfaceMesh
-  }
-  
-  Mesh.prototype.addToScene = function(scene) {
-    // scene.add( this.surfaceMesh )
-    scene.add( this.wireMesh )
-  }
-  
-  Mesh.prototype.setPosition = function(x, y, z) {
-    this.wireMesh.position = new THREE.Vector3(x, y, z)
-  }
-
-  return Mesh
 
 })()
 ;
