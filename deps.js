@@ -36485,7 +36485,6 @@ THREE.ShaderSprite = {
 THREE.PointerLockControls = function ( camera ) {
 
 	var scope = this;
-
 	var pitchObject = this.pitchObject = new THREE.Object3D();
 	pitchObject.add( camera );
 
@@ -36543,7 +36542,7 @@ THREE.PointerLockControls = function ( camera ) {
 				break;
 
 			case 32: // space
-				if ( canJump === true ) velocity.y += 10;
+				if ( canJump === true ) velocity.y += 40;
 				canJump = false;
 				break;
 
@@ -37157,10 +37156,10 @@ process.binding = function (name) {
 
 });
 
-require.define("/node_modules/voxel/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/voxel/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports.meshers = {
+require.define("/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports.meshers = {
   culled: require('./meshers/culled').mesher,
   greedy: require('./meshers/greedy').mesher,
   monotone: require('./meshers/monotone').mesher,
@@ -37168,6 +37167,7 @@ require.define("/node_modules/voxel/index.js",function(require,module,exports,__
 }
 
 module.exports.geometry = {}
+module.exports.generator = {}
 module.exports.generate = generate
 
 // from https://github.com/mikolalysenko/mikolalysenko.github.com/blob/master/MinecraftMeshes2/js/testdata.js#L4
@@ -37183,150 +37183,32 @@ function generate(l, h, f) {
   return {voxels:v, dims:d};
 }
 
-var colorTab = [
-  0xff0000,
-  0x00ff00,
-  0x0000ff,
-  0xff00ff,
-  0xffff00,
-  0x00ffff,
-  0x000001,
-  0xffffff
-];
-
-for(var i=1,c=0; i<=16; i<<=1,++c) {
-  module.exports.geometry[i + 'x' + i + 'x' + i] = generate([0,0,0], [i,i,i], function() { return colorTab[c]; });
+// shape and terrain generator functions
+module.exports.generator['Sphere'] = function(i,j,k) {
+  return i*i+j*j+k*k <= 16*16 ? 0x113344 : 0;
 }
 
-module.exports.geometry['Sphere'] = generate([-16,-16,-16], [16,16,16], function(i,j,k) {
-  return i*i+j*j+k*k <= 16*16 ? 0x113344 : 0;
-});
-
-module.exports.geometry['I-Shape'] = generate([0,-1,-1], [1,2,2], function(i,j,k) {
-  if((j === -1 && k === 0) ||
-     (j ===  1 && k === 0) ) {
-    return 0;   
-  }
-  return 1;
-});
-
-module.exports.geometry['Tiny Button'] = generate([-1,-1,-1],[1,2,2], function(i,j,k) {
-  if(i === 0) {
-    return (j === 0 && k === 0) ? 0xff0000 : 0;
-  }
-  return 1;
-});
-
-
-module.exports.geometry['Noise'] = generate([0,0,0], [16,16,16], function(i,j,k) {
+module.exports.generator['Noise'] = function(i,j,k) {
   return Math.random() < 0.1 ? Math.random() * 0xffffff : 0;
-});
+}
 
-module.exports.geometry['Dense Noise'] = generate([0,0,0], [16,16,16], function(i,j,k) {
+module.exports.generator['Dense Noise'] = function(i,j,k) {
   return Math.round(Math.random() * 0xffffff);
-});
+}
 
-module.exports.geometry['16 Color Noise'] = generate([0,0,0], [16,16,16], function(i,j,k) {
-  return Math.random() < 0.1 ? colorTab[Math.floor(Math.random() * colorTab.length)] : 0;
-});
-
-module.exports.geometry['Hole'] = generate([0,0,0], [16,16,1], function(i,j,k) {
-  return Math.abs(i-7) > 3 || Math.abs(j-7) > 3 ? 1 : 0;
-});
-
-module.exports.geometry['Boss'] = generate([0,0,0], [16,16,4], function(i,j,k) {
-  if(k === 0) {
-    return 0x0000ff;
-  } else if(Math.abs(i-4) < 2 && Math.abs(j-5) < 2 && k< 2) {
-    return 0x00ff00;
-  } else if(10 <= i && i < 14 && 2 <= j && j < 15) {
-    return 0xff0000;
-  }
-  return 0;
-});
-
-module.exports.geometry['T-Shape'] = generate([0,0,0], [16,16,3], function(i,j,k) {
-  return (( 6 <= i && i < 10 && 2 <= j && j < 13) ||
-    ( 2 <= i && i < 14 && 8 <= j && j < 13)) ? 0xcc00dd : 0;
-});
-
-module.exports.geometry['HollowCube'] = generate([0,0,0], [16,16,16], function(i,j,k) {
-  if(i < 1) {
-    return 0xff0000;
-  } else if(i >= 15) {
-    return 0x00ffff;
-  } else if(j < 1) {
-    return 0x00ff00;
-  } else if(j >= 15) {
-    return 0xff00ff;
-  } else if(k < 1) {
-    return 0x0000ff;
-  } else if(k >= 15) {
-    return 0xffff00;
-  } else {
-    return 0;
-  }
-});
-
-
-module.exports.geometry['Clover'] = generate([0,0,0], [17,17,1], function(i,j,k) {
-  if(i == 0 && Math.abs(j-8) <= 2) {
-    return 0;
-  } else if(i == 16 && Math.abs(j-8) <= 2) {
-    return 0;
-  } else if(j == 0 && Math.abs(i-8) <= 2) {
-    return 0;
-  } else if(j == 16 && Math.abs(i-8) <= 2) {
-    return 0;
-  } else {
-    return 0x10de60;
-  }
-});
-
-module.exports.geometry['Triangle'] = generate([0,0,0], [17,17,1], function(i,j,k) {
-  return (i < j) ? 0xff00ff : 0;
-});
-
-
-module.exports.geometry['Saw'] = generate([0,0,0], [17,3,1], function(i,j,k) {
-  if( j > 0 || !!(i & 1) ) {
-    return 0x00ffff;
-  }
-  return 0;
-});
-
-module.exports.geometry['4Dots']  = generate([0,0,0], [7,7,1], function(i,j,k) {
-  if( (i == 2 && j == 1) ||
-      (i == 5 && j == 2) ||
-      (i == 1 && j == 4) ||
-      (i == 4 && j == 5) ) {
-    return 0x00ff;    
-  }
-  return 0xeedd00;
-});
-
-module.exports.geometry['Checker'] = generate([0,0,0], [8,8,8], function(i,j,k) {
+module.exports.generator['Checker'] = function(i,j,k) {
   return !!((i+j+k)&1) ? (((i^j^k)&2) ? 1 : 0xffffff) : 0;
-});
+}
 
-
-module.exports.geometry["Matt's Example"]  = generate([0,0,0], [4,5,1], function(i,j,k) {
-  if( (i == 1 && j == 1) ||
-      (i == 2 && j == 3) ) {
-    return 0xee5533;
-  }
-  return 0x128844;
-});
-
-module.exports.geometry['Hill'] = generate([-16, 0, -16], [16,16,16], function(i,j,k) {
+module.exports.generator['Hill'] = function(i,j,k) {
   return j <= 16 * Math.exp(-(i*i + k*k) / 64) ? 0x118822 : 0;
-});
+}
 
-module.exports.geometry['Valley'] = generate([0,0,0], [32,32,32], function(i,j,k) {
+module.exports.generator['Valley'] = function(i,j,k) {
   return j <= (i*i + k*k) * 31 / (32*32*2) + 1 ? 0x118822 : 0;
-});
+}
 
-module.exports.geometry['Hilly Terrain'] = generate([0, 0, 0], [32,32,32], function(i,j,k) {
+module.exports.generator['Hilly Terrain'] = function(i,j,k) {
   var h0 = 3.0 * Math.sin(Math.PI * i / 12.0 - Math.PI * k * 0.1) + 27;    
   if(j > h0+1) {
     return 0;
@@ -37342,12 +37224,25 @@ module.exports.geometry['Hilly Terrain'] = generate([0, 0, 0], [32,32,32], funct
     return Math.random() < 0.1 ? 0x222222 : 0xaaaaaa;
   }
   return 0xff0000;
+}
+
+// convenience function that uses the above functions to prebake some simple voxel geometries
+module.exports.generateExamples = function() {
+  return {
+    'Sphere': generate([-16,-16,-16], [16,16,16], module.exports.generator['Sphere']),
+    'Noise': generate([0,0,0], [16,16,16], module.exports.generator['Noise']),
+    'Dense Noise': generate([0,0,0], [16,16,16], module.exports.generator['Dense Noise']),
+    'Checker': generate([0,0,0], [8,8,8], module.exports.generator['Checker']),
+    'Hill': generate([-16, 0, -16], [16,16,16], module.exports.generator['Hill']),
+    'Valley': generate([0,0,0], [32,32,32], module.exports.generator['Valley']),
+    'Hilly Terrain': generate([0, 0, 0], [32,32,32], module.exports.generator['Hilly Terrain'])
+  }
+}
+
+
 });
 
-module.exports.geometry['Empty'] = { voxels : [], dims : [0,0,0] };
-});
-
-require.define("/node_modules/voxel/meshers/culled.js",function(require,module,exports,__dirname,__filename,process,global){//Naive meshing (with face culling)
+require.define("/meshers/culled.js",function(require,module,exports,__dirname,__filename,process,global){//Naive meshing (with face culling)
 function CulledMesh(volume, dims) {
   //Precalculate direction vectors for convenience
   var dir = new Array(3);
@@ -37400,7 +37295,7 @@ if(exports) {
 
 });
 
-require.define("/node_modules/voxel/meshers/greedy.js",function(require,module,exports,__dirname,__filename,process,global){var GreedyMesh = (function() {
+require.define("/meshers/greedy.js",function(require,module,exports,__dirname,__filename,process,global){var GreedyMesh = (function() {
 //Cache buffer internally
 var mask = new Int32Array(4096);
 
@@ -37501,7 +37396,7 @@ if(exports) {
 
 });
 
-require.define("/node_modules/voxel/meshers/monotone.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+require.define("/meshers/monotone.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
 
 var MonotoneMesh = (function(){
 
@@ -37755,7 +37650,7 @@ if(exports) {
 
 });
 
-require.define("/node_modules/voxel/meshers/stupid.js",function(require,module,exports,__dirname,__filename,process,global){//The stupidest possible way to generate a Minecraft mesh (I think)
+require.define("/meshers/stupid.js",function(require,module,exports,__dirname,__filename,process,global){//The stupidest possible way to generate a Minecraft mesh (I think)
 function StupidMesh(volume, dims) {
   var vertices = [], faces = [], x = [0,0,0], n = 0;
   for(x[2]=0; x[2]<dims[2]; ++x[2])
@@ -37792,8 +37687,8 @@ if(exports) {
 
 });
 
-require.define("/voxel/test.js",function(require,module,exports,__dirname,__filename,process,global){voxel = require('voxel')
+require.define("/test.js",function(require,module,exports,__dirname,__filename,process,global){voxel = require('./')
 });
-require("/voxel/test.js");
+require("/test.js");
 })();
 

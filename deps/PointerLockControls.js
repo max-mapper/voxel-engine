@@ -5,7 +5,6 @@
 THREE.PointerLockControls = function ( camera ) {
 
 	var scope = this;
-
 	var pitchObject = this.pitchObject = new THREE.Object3D();
 	pitchObject.add( camera );
 
@@ -63,7 +62,7 @@ THREE.PointerLockControls = function ( camera ) {
 				break;
 
 			case 32: // space
-				if ( canJump === true ) velocity.y += 10;
+				if ( canJump === true ) velocity.y += 40;
 				canJump = false;
 				break;
 

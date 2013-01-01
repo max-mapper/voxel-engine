@@ -1,3 +1,49 @@
+function Chunker(game) {
+  this.game = game
+  this.chunks = {}
+  this.meshes = {}
+}
+
+Chunker.prototype.generateMissingChunks = function(position) {
+  var current = this.chunkAtPosition(position)
+  var x = current[0]
+  var y = current[1]
+  var z = current[2]
+  var size = this.game.voxelSource.chunkSize
+  var dist = this.game.chunkDistance
+  
+  for (var cx = (x - dist); cx !== (x + dist); ++cx) {
+    for (var cy = (y - dist); cy !== (y + dist); ++cy) {
+      for (var cz = (z - dist); cz !== (z + dist); ++cz) {
+        var chunkIndex = "" + cx + "|" + cy + "|" + cz
+        if (!this.chunks[chunkIndex]) {
+          var low = [cx * size, cy * size, cz * size]
+          // var highX = low[0] > 0 ? low[0] + size : low[0] - size
+          // var highY = low[1] > 0 ? low[1] + size : low[1] - size
+          // var highZ = low[2] > 0 ? low[2] + size : low[2] - size
+          var high = [low[0] + size, low[1] + size, low[2] + size]
+          var chunk = voxel.generate(low, high, this.game.voxelSource.getVoxel)
+          var mesh = new Mesh(chunk, size)
+          this.chunks[chunkIndex] = chunk
+          this.meshes[chunkIndex] = mesh
+          mesh.setPosition(low[0] * size, low[1] * size, low[2] * size)
+          mesh.addToScene(this.game.scene)
+        }
+      }
+    }
+  }
+  return this.chunks
+}
+
+Chunker.prototype.chunkAtPosition = function(position) {
+  var chunkSize = this.game.voxelSource.chunkSize
+  var cubeSize = this.game.cubeSize
+  return [
+    Math.floor(position.x / cubeSize / chunkSize + 0.5),
+    Math.floor(position.y / cubeSize / chunkSize + 0.5),
+    Math.floor(position.z / cubeSize / chunkSize + 0.5)
+  ]
+};
 var Floor = (function() {
 
   function Floor(game, width, height) {
@@ -32,11 +78,14 @@ var Floor = (function() {
 })()
 ;var Game = (function() {
 
-  function Game() {
+  function Game(voxelSource) {
+    var self = this
+    this.voxelSource = voxelSource
     this.texturePath = './textures/'
     this.container = '#container'
-    this.cubeSize = 50
-    this.startingPosition = new THREE.Vector3(697.9982429650095,850.6249999999999,467.99816400063776)
+    this.cubeSize = 10
+    this.chunkDistance = 2
+    this.startingPosition = new THREE.Vector3(0,0,0)
     this.textures = {}
     this.materials = {}
     this.height = window.innerHeight
@@ -45,16 +94,19 @@ var Floor = (function() {
     this.camera = this.createCamera(scene)
     this.renderer = this.createRenderer()
     this.controls = this.createControls()
+
     this.addLights(this.scene)
     this.downRay = new THREE.Raycaster()
     this.downRay.ray.direction.set( 0, -1, 0 )
-    this.floor = new Floor(this, 50000, 50000)
-    this.floor.addToScene(this.scene)
-    this.voxelMesh = new VoxelMesh([128, 32, 128])
-    this.voxelMesh.addToScene(this.scene)
+    // this.floor = new Floor(this, 50000, 50000)
+    // this.floor.addToScene(this.scene)
     this.moveToPosition(this.startingPosition)
+    this.chunks = new Chunker(this)
+    var chunks = this.chunks.generateMissingChunks(this.startingPosition)
+    
     this.addStats()
     window.addEventListener( 'resize', this.onWindowResize.bind(this), false )
+    
     this.tick()
   }
   
@@ -125,7 +177,7 @@ var Floor = (function() {
   
   Game.prototype.tick = function() {
     requestAnimationFrame( this.tick.bind(this) )
-    this.raycast()
+    // this.raycast()
     this.controls.update( Date.now() - this.time )
     this.renderer.render(this.scene, this.camera)
     stats.update()
@@ -146,20 +198,22 @@ var Floor = (function() {
 				this.controls.isOnObject( true );
 			}
 		}
+		
   }
 
   return Game
 
 })()
-;var VoxelMesh = (function() {
+;var Mesh = (function() {
 
-  function VoxelMesh(dimensions, scaleFactor) {
-    var w = scaleFactor || 25
+  function Mesh(data, scaleFactor) {
+    this.data = data
+    var w = scaleFactor || 10
     var geometry  = new THREE.Geometry();    
     
-    var data = this.generateTerrain(dimensions)
     var mesher = voxel.meshers.greedy
     var result = mesher( data.voxels, data.dims )
+    this.meshed = result
 
     geometry.vertices.length = 0
     geometry.faces.length = 0
@@ -167,7 +221,7 @@ var Floor = (function() {
     for (var i = 0; i < result.vertices.length; ++i) {
       var q = result.vertices[i]
       geometry.vertices.push(new THREE.Vector3(q[0]*w, q[1]*w, q[2]*w))
-    }
+    } 
     
     for (var i = 0; i < result.faces.length; ++i) {
       var q = result.faces[i]
@@ -183,7 +237,7 @@ var Floor = (function() {
         geometry.faces.push(f)
       }
     }
-
+    
     geometry.computeFaceNormals()
 
     geometry.verticesNeedUpdate = true
@@ -195,44 +249,32 @@ var Floor = (function() {
 
     var bb = geometry.boundingBox
 
-    // Create surface mesh
     var material  = new THREE.MeshNormalMaterial()
     var surfaceMesh  = new THREE.Mesh( geometry, material )
 
     surfaceMesh.doubleSided = false
-
-    // surfaceMesh.position.x = -(bb.max.x + bb.min.x) / 2.0
-    // surfaceMesh.position.y = -(bb.max.y + bb.min.y) / 2.0
-    // surfaceMesh.position.z = -(bb.max.z + bb.min.z) / 2.0
     
+    var wirematerial = new THREE.MeshBasicMaterial({
+        color : 0xffffff
+      , wireframe : true
+    });
+    wiremesh = new THREE.Mesh(geometry, wirematerial);
+    wiremesh.doubleSided = true;
+    
+    this.wireMesh = wiremesh
     this.surfaceMesh = surfaceMesh
   }
   
-  VoxelMesh.prototype.addToScene = function(scene) {
-    scene.add( this.surfaceMesh )
+  Mesh.prototype.addToScene = function(scene) {
+    // scene.add( this.surfaceMesh )
+    scene.add( this.wireMesh )
+  }
+  
+  Mesh.prototype.setPosition = function(x, y, z) {
+    this.wireMesh.position = new THREE.Vector3(x, y, z)
   }
 
-  VoxelMesh.prototype.generateTerrain = function(dimensions) {
-    return voxel.generate([0, 0, 0], dimensions, function(i,j,k) {
-      var h0 = 3.0 * Math.sin(Math.PI * i / 12.0 - Math.PI * k * 0.1) + 27;    
-      if(j > h0+1) {
-        return 0;
-      }
-      if(h0 <= j) {
-        return 0x23dd31;
-      }
-      var h1 = 2.0 * Math.sin(Math.PI * i * 0.25 - Math.PI * k * 0.3) + 20;
-      if(h1 <= j) {
-        return 0x964B00;
-      }
-      if(2 < j) {
-        return Math.random() < 0.1 ? 0x222222 : 0xaaaaaa;
-      }
-      return 0xff0000;
-    });
-  }
-
-  return VoxelMesh
+  return Mesh
 
 })()
 ;
