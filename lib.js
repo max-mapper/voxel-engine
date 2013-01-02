@@ -170,11 +170,25 @@ var Floor = (function() {
   };
   
   Game.prototype.tick = function() {
+    var self = this
     requestAnimationFrame( this.tick.bind(this) )
     var dt = Date.now() - this.time
     if (!this.time) dt = 1
     var cam = this.camera.position
-    this.controls.update( dt )
+ 
+    this.controls.update(dt, function (pos) {
+      var cast = new THREE.Raycaster(pos, new THREE.Vector3(0, 1, 0))
+      var ckey = self.chunks.chunkAtPosition(pos).join('|')
+      var chunk = self.chunks.chunks[ckey]
+      if (!chunk) return
+      var x = Math.round(pos.x % 32)
+      var y = Math.round(pos.y % 32)
+      var z = Math.round(pos.z % 32)
+      
+      var v = chunk.voxels[x + y*32 + z*32*32]
+      if (v) console.dir(v)
+    })
+ 
     this.renderer.render(this.scene, this.camera)
     stats.update()
     this.time = Date.now()
