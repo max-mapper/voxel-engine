@@ -2,7 +2,7 @@ function ExampleVoxelSource() {
   this.chunkSize = 32
   this.numChunks = 32
 }
-ExampleVoxelSource.prototype.getVoxel = voxel.generator['Hilly Terrain']
+ExampleVoxelSource.prototype.getVoxel = voxel.generator['Valley']
 
 var game = new Game(new ExampleVoxelSource())
 
