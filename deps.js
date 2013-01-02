@@ -36627,7 +36627,7 @@ THREE.PointerLockControls = function ( camera ) {
 
 		}
  
-        if (cb) cb.call(this, yawObject.clone().position);
+        if (cb) cb.call(this, yawObject.clone().position, velocity);
 
 	};
 
