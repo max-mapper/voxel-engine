@@ -9,9 +9,10 @@ DEPS = deps/three.js \
 all: concat
  
 concat:
-	browserify -r voxel-mesh -r gl-matrix > deps/browserify-bundle.js
+	browserify -r voxel-mesh > deps/browserify-bundle.js
 	cat lib/*.js > lib.js
 	cat $(DEPS) > deps.js
 
 watch:
+	make
 	filewatcherthing lib/ make
