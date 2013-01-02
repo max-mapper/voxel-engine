@@ -87,7 +87,8 @@ var Game = (function() {
     this.container = '#container'
     this.cubeSize = 10
     this.chunkDistance = 2
-    this.startingPosition = new THREE.Vector3(0,0,0)
+    this.startingPosition = new THREE.Vector3(0,1000,0)
+    this.worldOrigin = new THREE.Vector3(0,0,0)
     this.textures = {}
     this.materials = {}
     this.height = window.innerHeight
@@ -105,7 +106,7 @@ var Game = (function() {
     this.player = new Player(this)
     this.player.setPosition([this.camera.position.x, this.camera.position.y, this.camera.position.z])
     this.chunks = new Chunker(this)
-    var chunks = this.chunks.generateMissingChunks(this.startingPosition)
+    var chunks = this.chunks.generateMissingChunks(this.worldOrigin)
     
     this.addStats()
     window.addEventListener( 'resize', this.onWindowResize.bind(this), false )

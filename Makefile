@@ -12,3 +12,6 @@ concat:
 	browserify -r voxel-mesh -r gl-matrix > deps/browserify-bundle.js
 	cat lib/*.js > lib.js
 	cat $(DEPS) > deps.js
+
+watch:
+	filewatcherthing lib/ make
