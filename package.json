@@ -5,6 +5,10 @@
     "voxel": "0.0.3",
     "voxel-mesh": "0.0.1"
   },
+  "scripts": {
+    "start": "node server.js",
+    "make": "make"
+  },
   "devDependencies": {
     "ecstatic": "0.3.0"
   }

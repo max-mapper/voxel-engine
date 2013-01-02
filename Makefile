@@ -1,5 +1,4 @@
 DEPS = deps/three.js \
-	deps/PointerLockControls.js \
 	deps/askForPointerLock.js \
 	deps/Stats.js \
 	deps/Detector.js \
