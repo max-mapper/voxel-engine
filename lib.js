@@ -99,10 +99,8 @@ var Floor = (function() {
     this.moveToPosition(this.startingPosition)
     this.chunks = new Chunker(this)
     var chunks = this.chunks.generateMissingChunks(this.worldOrigin)
-    
     this.addStats()
     window.addEventListener( 'resize', this.onWindowResize.bind(this), false )
-    
     this.tick()
   }
   
