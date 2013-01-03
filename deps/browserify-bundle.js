@@ -396,16 +396,17 @@ require.define("/node_modules/voxel-mesh/package.json",function(require,module,e
 
 require.define("voxel-mesh",function(require,module,exports,__dirname,__filename,process,global){var voxel = require('voxel')
 
-module.exports = function(data, scale, mesher) {
-  return new Mesh(data, scale, mesher)
+module.exports = function(data, scaleFactor, mesher) {
+  return new Mesh(data, scaleFactor, mesher)
 }
 
 module.exports.Mesh = Mesh
 
-function Mesh(data, scale, mesher) {
+function Mesh(data, scaleFactor, mesher) {
   this.data = data
-  this.scale = scale || new THREE.Vector3(10,10,10)
   var geometry = this.geometry = new THREE.Geometry()
+  this.scale = scaleFactor || new THREE.Vector3(10, 10, 10)
+  
   mesher = mesher || voxel.meshers.greedy
   var result = mesher( data.voxels, data.dims )
   this.meshed = result
@@ -432,7 +433,7 @@ function Mesh(data, scale, mesher) {
       geometry.faces.push(f)
     }
   }
-  // geometry.scale = scale
+  
   geometry.computeFaceNormals()
 
   geometry.verticesNeedUpdate = true
@@ -450,8 +451,8 @@ Mesh.prototype.createWireMesh = function(hexColor) {
     wireframe : true
   })
   wireMesh = new THREE.Mesh(this.geometry, wireMaterial)
-  wireMesh.doubleSided = true
   wireMesh.scale = this.scale
+  wireMesh.doubleSided = true
   this.wireMesh = wireMesh
   return wireMesh
 }
@@ -460,7 +461,6 @@ Mesh.prototype.createSurfaceMesh = function(material) {
   material = material || new THREE.MeshNormalMaterial()
   var surfaceMesh  = new THREE.Mesh( this.geometry, material )
   surfaceMesh.doubleSided = false
-  surfaceMesh.scale = this.scale
   this.surfaceMesh = surfaceMesh
   return surfaceMesh
 }
