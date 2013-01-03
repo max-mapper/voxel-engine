@@ -419,8 +419,9 @@ function Mesh(data, scaleFactor, mesher) {
     geometry.vertices.push(new THREE.Vector3(q[0], q[1], q[2]))
   } 
   
+  
   for (var i = 0; i < result.faces.length; ++i) {
-    var q = result.faces[i]
+    var q = result.faces[i]    
     if (q.length === 5) {
       var f = new THREE.Face4(q[0], q[1], q[2], q[3])
       f.color = new THREE.Color(q[4])
