@@ -413,7 +413,7 @@ function generate(l, h, f) {
   for(var k=l[2]; k<h[2]; ++k)
   for(var j=l[1]; j<h[1]; ++j)
   for(var i=l[0]; i<h[0]; ++i, ++n) {
-    v[n] = f(i,j,k);
+    v[n] = f(i,j,k);    
   }
   return {voxels:v, dims:d};
 }
