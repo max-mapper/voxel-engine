@@ -928,7 +928,7 @@ var Detector = require('./detector')
 var THREE = require('three')
 var Stats = require('../deps/stats')
 var PointerLockControls = require('./pointer_lock_controls')
-var requestAnimationFrame = require('request-animation-frame').requestAnimationFrame
+var requestAnimationFrame = require('raf')
 var inherits = require('inherits')
 var EventEmitter = require('events').EventEmitter
 
@@ -965,7 +965,9 @@ function Game(opts) {
   window.addEventListener('resize', this.onWindowResize.bind(this), false)
   window.addEventListener('mousedown', this.onMouseDown.bind(this), false)
   window.addEventListener('mouseup', this.onMouseUp.bind(this), false)
-  this.tick()
+  
+  requestAnimationFrame( window ).on('data', this.tick.bind(this))
+  window.raf = requestAnimationFrame
 }
 
 inherits(Game, EventEmitter)
@@ -1213,11 +1215,8 @@ Game.prototype.voxelAtPosition = function(pos, val) {
   return v
 }
 
-Game.prototype.tick = function() {
+Game.prototype.tick = function(dt) {
   var self = this
-  requestAnimationFrame( this.tick.bind(this) )
-  var dt = Date.now() - this.time
-  if (!this.time) dt = 1
   var cam = this.camera.position
 
   this.controls.update(dt, function (pos, velocity) {
@@ -38780,95 +38779,54 @@ module.exports = function ( camera ) {
 
 });
 
-require.define("/node_modules/request-animation-frame/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"shim.js"}
+require.define("/node_modules/raf/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/request-animation-frame/shim.js",function(require,module,exports,__dirname,__filename,process,global){
-module.exports = require('./lib/shim')
+require.define("/node_modules/raf/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = raf
 
-});
+var EE = require('events').EventEmitter
+  , global = typeof window === 'undefined' ? this : window
 
-require.define("/node_modules/request-animation-frame/lib/shim.js",function(require,module,exports,__dirname,__filename,process,global){(function() {
-  var max, now, _ref, _ref2;
-
-  now = (_ref = Date.now) != null ? _ref : function() {
-    return new Date().getTime();
-  };
-
-  max = Math.max;
-
-  _ref2 = (function() {
-    var cancel, isNative, last, request, vendor, _i, _len, _ref2;
-    last = 0;
-    request = typeof window !== "undefined" && window !== null ? window.requestAnimationFrame : void 0;
-    cancel = typeof window !== "undefined" && window !== null ? window.cancelAnimationFrame : void 0;
-    _ref2 = ["webkit", "moz", "o", "ms"];
-    for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-      vendor = _ref2[_i];
-      if (cancel == null) {
-        cancel = (typeof window !== "undefined" && window !== null ? window["" + vendor + "cancelAnimationFrame"] : void 0) || (typeof window !== "undefined" && window !== null ? window["" + vendor + "cancelRequestAnimationFrame"] : void 0);
-      }
-      if ((request != null ? request : request = typeof window !== "undefined" && window !== null ? window["" + vendor + "RequestAnimationFrame"] : void 0)) {
-        break;
-      }
-    }
-    isNative = request != null;
-    request = request != null ? request : function(callback, timeout) {
-      var cur, id, time;
-      if (timeout == null) timeout = 16;
-      cur = now();
-      time = max(0, timeout + last - cur);
-      id = setTimeout(function() {
-        return typeof callback === "function" ? callback(cur + time) : void 0;
-      }, time);
-      last = cur + time;
-      return id;
-    };
-    request.isNative = isNative;
-    isNative = cancel != null;
-    cancel = cancel != null ? cancel : function(id) {
-      return clearTimeout(id);
-    };
-    cancel.isNative = isNative;
-    return [request, cancel];
-  })(), this.requestAnimationFrame = _ref2[0], this.cancelAnimationFrame = _ref2[1];
-
-}).call(this);
-
-});
-
-require.define("/node_modules/inherits/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"./inherits.js"}
-});
-
-require.define("/node_modules/inherits/inherits.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = inherits
-
-function inherits (c, p, proto) {
-  proto = proto || {}
-  var e = {}
-  ;[c.prototype, proto].forEach(function (s) {
-    Object.getOwnPropertyNames(s).forEach(function (k) {
-      e[k] = Object.getOwnPropertyDescriptor(s, k)
-    })
+var _raf =
+  global.requestAnimationFrame ||
+  global.webkitRequestAnimationFrame ||
+  global.mozRequestAnimationFrame ||
+  global.msRequestAnimationFrame ||
+  global.oRequestAnimationFrame ||
+  (global.setImmediate ? function(fn, el) {
+    setImmediate(fn)
+  } :
+  function(fn, el) {
+    setTimeout(fn, 0)
   })
-  c.prototype = Object.create(p.prototype, e)
-  c.super = p
+
+function raf(el) {
+  var now = raf.now()
+    , ee = new EE
+
+  ee.pause = function() { ee.paused = true }
+  ee.resume = function() { ee.paused = false }
+
+  _raf(iter, el)
+
+  return ee
+
+  function iter(timestamp) {
+    var _now = raf.now()
+      , dt = _now - now
+    
+    now = _now
+
+    ee.emit('data', dt)
+
+    if(!ee.paused) {
+      _raf(iter, el)
+    }
+  }
 }
 
-//function Child () {
-//  Child.super.call(this)
-//  console.error([this
-//                ,this.constructor
-//                ,this.constructor === Child
-//                ,this.constructor.super === Parent
-//                ,Object.getPrototypeOf(this) === Child.prototype
-//                ,Object.getPrototypeOf(Object.getPrototypeOf(this))
-//                 === Parent.prototype
-//                ,this instanceof Child
-//                ,this instanceof Parent])
-//}
-//function Parent () {}
-//inherits(Child, Parent)
-//new Child
+raf.polyfill = _raf
+raf.now = function() { return Date.now() }
 
 });
 
@@ -39050,6 +39008,41 @@ EventEmitter.prototype.listeners = function(type) {
   }
   return this._events[type];
 };
+
+});
+
+require.define("/node_modules/inherits/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"./inherits.js"}
+});
+
+require.define("/node_modules/inherits/inherits.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = inherits
+
+function inherits (c, p, proto) {
+  proto = proto || {}
+  var e = {}
+  ;[c.prototype, proto].forEach(function (s) {
+    Object.getOwnPropertyNames(s).forEach(function (k) {
+      e[k] = Object.getOwnPropertyDescriptor(s, k)
+    })
+  })
+  c.prototype = Object.create(p.prototype, e)
+  c.super = p
+}
+
+//function Child () {
+//  Child.super.call(this)
+//  console.error([this
+//                ,this.constructor
+//                ,this.constructor === Child
+//                ,this.constructor.super === Parent
+//                ,Object.getPrototypeOf(this) === Child.prototype
+//                ,Object.getPrototypeOf(Object.getPrototypeOf(this))
+//                 === Parent.prototype
+//                ,this instanceof Child
+//                ,this instanceof Parent])
+//}
+//function Parent () {}
+//inherits(Child, Parent)
+//new Child
 
 });
 
