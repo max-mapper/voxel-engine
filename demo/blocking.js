@@ -1,3 +1,5 @@
+var voxel = require('voxel')
+
 function ExampleVoxelSource() {
   this.chunkSize = 32
   this.numChunks = 32
