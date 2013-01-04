@@ -261,7 +261,7 @@ var Floor = (function() {
   function Game(voxelSource) {
     var self = this
     this.voxelSource = voxelSource
-    this.texturePath = '/textures/'
+    this.texturePath = './textures/'
     this.container = '#container'
     this.cubeSize = 25
     this.chunkDistance = 2
