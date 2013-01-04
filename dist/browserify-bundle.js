@@ -430,13 +430,13 @@ function Mesh(data, scaleFactor, mesher) {
     var q = result.faces[i]
     if (q.length === 5) {
       var f = new THREE.Face4(q[0], q[1], q[2], q[3])
-      f.color = new THREE.Color(q[4])
-      f.vertexColors = [f.color,f.color,f.color,f.color]
+      // f.color = new THREE.Color(q[4])
+      // f.vertexColors = [f.color,f.color,f.color,f.color]
       geometry.faces.push(f)
     } else if (q.length == 4) {
       var f = new THREE.Face3(q[0], q[1], q[2])
-      f.color = new THREE.Color(q[3])
-      f.vertexColors = [f.color,f.color,f.color]
+      // f.color = new THREE.Color(q[3])
+      // f.vertexColors = [f.color,f.color,f.color]
       geometry.faces.push(f)
     }
   }

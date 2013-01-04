@@ -220,9 +220,27 @@ Chunker.prototype.chunkAtPosition = function(position) {
 };
 
 Chunker.prototype.applyTextures = function (geom) {
-  geom.faces.forEach(function (face) {
-    face.materialIndex = 0
+  var self = this;
+  
+  var vmap = []
+  for (var i = 0; i < geom.vertices.length; i += 4) {
+    vmap.push([
+      geom.vertices[i+0],
+      geom.vertices[i+1],
+      geom.vertices[i+2],
+      geom.vertices[i+3]
+    ])
+  }
+  
+  geom.faces.forEach(function (face, ix) {
+    if (Math.abs(face.normal.y) === 1) {
+      face.materialIndex = 0
+    }
+    else {
+      face.materialIndex = 1
+    }
   })
+  
 }
 var Floor = (function() {
 
@@ -267,7 +285,8 @@ var Floor = (function() {
     this.chunkDistance = 2
     this.startingPosition = new THREE.Vector3(35,1024,35)
     this.worldOrigin = new THREE.Vector3(0,0,0)
-    this.material = this.loadTextures([ 'grass' ])
+    
+    this.material = this.loadTextures([ 'grass', 'grass_dirt', 'brick' ])
     
     this.height = window.innerHeight
     this.width = window.innerWidth
@@ -348,8 +367,7 @@ var Floor = (function() {
       
       return new THREE.MeshLambertMaterial({
         map: tex,
-        ambient: 0xbbbbbb,
-        vertexColors: THREE.VertexColors
+        ambient: 0xbbbbbb
       })
     }))
   }
