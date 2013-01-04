@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "voxel": "0.0.3",
-    "voxel-mesh": "0.0.2"
+    "voxel-mesh": "0.0.3"
   },
   "scripts": {
     "start": "node server.js",
