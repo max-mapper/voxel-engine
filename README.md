@@ -1,8 +1,8 @@
-# blocking (working title)
+# voxel-engine
 
-## a voxel engine for webgl browsers using three.js
+## a voxel engine in javascript using three.js
 
-work in progress, super hacky!
+**not done, super hacky!**
 
 see also: https://github.com/maxogden/voxel and https://github.com/maxogden/voxel-mesh
 
@@ -10,7 +10,7 @@ see also: https://github.com/maxogden/voxel and https://github.com/maxogden/voxe
 
 ``` js
 var voxel = require('voxel')
-var createGame = require('../')
+var createGame = require('voxel-engine')
 
 var game = createGame({
   chunkSize: 32,
@@ -24,11 +24,20 @@ document.body.addEventListener('click', function() {
 })
 ```
 
-# build
+# get it running
 
 ```
-$ npm install .
-$ make
+cd voxel-engine
+npm install
+npm install browserify -g
+make
+npm start
+```
+
+# compile on file changes
+
+```
+make watch
 ```
 
 ## license

@@ -5,5 +5,6 @@ concat:
 	browserify demo/demo.js > dist/browserify-bundle.js
 
 watch:
-	make
-	filewatcherthing lib/ make
+	mkdir -p dist
+	browserify demo/demo.js -o dist/browserify-bundle.js --watch --debug
+
