@@ -7,6 +7,7 @@ var game = createGame({
   chunks: 32,
   generateVoxel: voxel.generator['Hilly Terrain']
 })
+game.appendTo('#container')
 
 document.addEventListener('DOMContentLoaded', function() {
   document.body.addEventListener('click', function() {
