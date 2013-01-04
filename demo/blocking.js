@@ -1,16 +1,16 @@
 var voxel = require('voxel')
+var terrain = voxel.generator['Hilly Terrain']
 
-function ExampleVoxelSource() {
-  this.chunkSize = 32
-  this.numChunks = 32
-}
-ExampleVoxelSource.prototype.getVoxel = voxel.generator['Hilly Terrain']
+var createGame = require('../lib/game')
 
-var game = new Game(new ExampleVoxelSource())
+var game = createGame({
+  chunkSize: 32,
+  chunks: 32,
+  generateVoxel: terrain.getVoxel.bind(terrain)
+})
 
 document.addEventListener('DOMContentLoaded', function() {
-  document.body.addEventListener( 'click', function ( event ) {
-    askForPointerLock(game.controls)
+  document.body.addEventListener('click', function() {
+    game.requestPointerLock()
   })
 })
-;

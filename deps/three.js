@@ -36478,3 +36478,4 @@ THREE.ShaderSprite = {
 	}
 
 };
+module.exports = THREE
