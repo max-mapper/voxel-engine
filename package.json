@@ -1,9 +1,11 @@
 {
   "name": "blocking",
+  "main": "lib/game.js",
   "version": "0.0.1",
   "dependencies": {
     "voxel": "0.0.3",
-    "voxel-mesh": "0.0.4"
+    "voxel-mesh": "0.0.4",
+    "inherits": "1.0.0"
   },
   "scripts": {
     "start": "node server.js",
