@@ -1,6 +1,6 @@
 var voxel = require('voxel')
 
-var createGame = require('../')
+var createGame = require('../lib/game')
 
 var game = createGame({
   chunkSize: 32,
