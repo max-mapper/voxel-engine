@@ -926,7 +926,7 @@ require.define("/lib/game.js",function(require,module,exports,__dirname,__filena
 var Chunker = require('./chunker')
 var Detector = require('./detector')
 var THREE = require('three')
-var Stats = require('../deps/stats')
+var Stats = require('./stats')
 var PointerLockControls = require('./pointer_lock_controls')
 var requestAnimationFrame = require('raf')
 var inherits = require('inherits')
@@ -938,11 +938,8 @@ function Game(opts) {
   if (!(this instanceof Game)) return new Game(opts)
   var self = this
   if (!opts) opts = {}
-  
   this.generateVoxel = opts.generateVoxel
-  
   this.texturePath = opts.texturePath || '/textures/'
-  
   this.cubeSize = opts.cubeSize || 25
   this.chunkSize = opts.chunkSize || 32
   this.chunkDistance = opts.chunkDistance || 2
@@ -950,7 +947,6 @@ function Game(opts) {
   this.worldOrigin = opts.origin || new THREE.Vector3(0,0,0)
   
   this.material = this.loadTextures([ 'grass', 'grass_dirt', 'brick' ])
-  
   this.height = window.innerHeight
   this.width = window.innerWidth
   this.scene = scene = new THREE.Scene()
@@ -965,9 +961,7 @@ function Game(opts) {
   window.addEventListener('resize', this.onWindowResize.bind(this), false)
   window.addEventListener('mousedown', this.onMouseDown.bind(this), false)
   window.addEventListener('mouseup', this.onMouseUp.bind(this), false)
-  
-  requestAnimationFrame( window ).on('data', this.tick.bind(this))
-  window.raf = requestAnimationFrame
+  requestAnimationFrame(window).on('data', this.tick.bind(this))
 }
 
 inherits(Game, EventEmitter)
@@ -38609,29 +38603,166 @@ var Detector = module.exports = {
 
 });
 
-require.define("/deps/stats.js",function(require,module,exports,__dirname,__filename,process,global){// stats.js r8 - http://github.com/mrdoob/stats.js
-var Stats=function(){var h,a,n=0,o=0,i=Date.now(),u=i,p=i,l=0,q=1E3,r=0,e,j,f,b=[[16,16,48],[0,255,255]],m=0,s=1E3,t=0,d,k,g,c=[[16,48,16],[0,255,0]];h=document.createElement("div");h.style.cursor="pointer";h.style.width="80px";h.style.opacity="0.9";h.style.zIndex="10001";h.addEventListener("mousedown",function(a){a.preventDefault();n=(n+1)%2;n==0?(e.style.display="block",d.style.display="none"):(e.style.display="none",d.style.display="block")},!1);e=document.createElement("div");e.style.textAlign=
-"left";e.style.lineHeight="1.2em";e.style.backgroundColor="rgb("+Math.floor(b[0][0]/2)+","+Math.floor(b[0][1]/2)+","+Math.floor(b[0][2]/2)+")";e.style.padding="0 0 3px 3px";h.appendChild(e);j=document.createElement("div");j.style.fontFamily="Helvetica, Arial, sans-serif";j.style.fontSize="9px";j.style.color="rgb("+b[1][0]+","+b[1][1]+","+b[1][2]+")";j.style.fontWeight="bold";j.innerHTML="FPS";e.appendChild(j);f=document.createElement("div");f.style.position="relative";f.style.width="74px";f.style.height=
-"30px";f.style.backgroundColor="rgb("+b[1][0]+","+b[1][1]+","+b[1][2]+")";for(e.appendChild(f);f.children.length<74;)a=document.createElement("span"),a.style.width="1px",a.style.height="30px",a.style.cssFloat="left",a.style.backgroundColor="rgb("+b[0][0]+","+b[0][1]+","+b[0][2]+")",f.appendChild(a);d=document.createElement("div");d.style.textAlign="left";d.style.lineHeight="1.2em";d.style.backgroundColor="rgb("+Math.floor(c[0][0]/2)+","+Math.floor(c[0][1]/2)+","+Math.floor(c[0][2]/2)+")";d.style.padding=
-"0 0 3px 3px";d.style.display="none";h.appendChild(d);k=document.createElement("div");k.style.fontFamily="Helvetica, Arial, sans-serif";k.style.fontSize="9px";k.style.color="rgb("+c[1][0]+","+c[1][1]+","+c[1][2]+")";k.style.fontWeight="bold";k.innerHTML="MS";d.appendChild(k);g=document.createElement("div");g.style.position="relative";g.style.width="74px";g.style.height="30px";g.style.backgroundColor="rgb("+c[1][0]+","+c[1][1]+","+c[1][2]+")";for(d.appendChild(g);g.children.length<74;)a=document.createElement("span"),
-a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left",a.style.backgroundColor="rgb("+c[0][0]+","+c[0][1]+","+c[0][2]+")",g.appendChild(a);return{domElement:h,update:function(){i=Date.now();m=i-u;s=Math.min(s,m);t=Math.max(t,m);k.textContent=m+" MS ("+s+"-"+t+")";var a=Math.min(30,30-m/200*30);g.appendChild(g.firstChild).style.height=a+"px";u=i;o++;if(i>p+1E3)l=Math.round(o*1E3/(i-p)),q=Math.min(q,l),r=Math.max(r,l),j.textContent=l+" FPS ("+q+"-"+r+")",a=Math.min(30,30-l/
-100*30),f.appendChild(f.firstChild).style.height=a+"px",p=i,o=0}}};
-module.exports = Stats;
+require.define("/lib/stats.js",function(require,module,exports,__dirname,__filename,process,global){/**
+ * @author mrdoob / http://mrdoob.com/
+ */
 
+var Stats = function () {
+
+	var startTime = Date.now(), prevTime = startTime;
+	var ms = 0, msMin = Infinity, msMax = 0;
+	var fps = 0, fpsMin = Infinity, fpsMax = 0;
+	var frames = 0, mode = 0;
+
+	var container = document.createElement( 'div' );
+	container.id = 'stats';
+	container.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); setMode( ++ mode % 2 ) }, false );
+	container.style.cssText = 'width:80px;opacity:0.9;cursor:pointer';
+
+	var fpsDiv = document.createElement( 'div' );
+	fpsDiv.id = 'fps';
+	fpsDiv.style.cssText = 'padding:0 0 3px 3px;text-align:left;background-color:#002';
+	container.appendChild( fpsDiv );
+
+	var fpsText = document.createElement( 'div' );
+	fpsText.id = 'fpsText';
+	fpsText.style.cssText = 'color:#0ff;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px';
+	fpsText.innerHTML = 'FPS';
+	fpsDiv.appendChild( fpsText );
+
+	var fpsGraph = document.createElement( 'div' );
+	fpsGraph.id = 'fpsGraph';
+	fpsGraph.style.cssText = 'position:relative;width:74px;height:30px;background-color:#0ff';
+	fpsDiv.appendChild( fpsGraph );
+
+	while ( fpsGraph.children.length < 74 ) {
+
+		var bar = document.createElement( 'span' );
+		bar.style.cssText = 'width:1px;height:30px;float:left;background-color:#113';
+		fpsGraph.appendChild( bar );
+
+	}
+
+	var msDiv = document.createElement( 'div' );
+	msDiv.id = 'ms';
+	msDiv.style.cssText = 'padding:0 0 3px 3px;text-align:left;background-color:#020;display:none';
+	container.appendChild( msDiv );
+
+	var msText = document.createElement( 'div' );
+	msText.id = 'msText';
+	msText.style.cssText = 'color:#0f0;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px';
+	msText.innerHTML = 'MS';
+	msDiv.appendChild( msText );
+
+	var msGraph = document.createElement( 'div' );
+	msGraph.id = 'msGraph';
+	msGraph.style.cssText = 'position:relative;width:74px;height:30px;background-color:#0f0';
+	msDiv.appendChild( msGraph );
+
+	while ( msGraph.children.length < 74 ) {
+
+		var bar = document.createElement( 'span' );
+		bar.style.cssText = 'width:1px;height:30px;float:left;background-color:#131';
+		msGraph.appendChild( bar );
+
+	}
+
+	var setMode = function ( value ) {
+
+		mode = value;
+
+		switch ( mode ) {
+
+			case 0:
+				fpsDiv.style.display = 'block';
+				msDiv.style.display = 'none';
+				break;
+			case 1:
+				fpsDiv.style.display = 'none';
+				msDiv.style.display = 'block';
+				break;
+		}
+
+	}
+
+	var updateGraph = function ( dom, value ) {
+
+		var child = dom.appendChild( dom.firstChild );
+		child.style.height = value + 'px';
+
+	}
+
+	return {
+
+		REVISION: 11,
+
+		domElement: container,
+
+		setMode: setMode,
+
+		begin: function () {
+
+			startTime = Date.now();
+
+		},
+
+		end: function () {
+
+			var time = Date.now();
+
+			ms = time - startTime;
+			msMin = Math.min( msMin, ms );
+			msMax = Math.max( msMax, ms );
+
+			msText.textContent = ms + ' MS (' + msMin + '-' + msMax + ')';
+			updateGraph( msGraph, Math.min( 30, 30 - ( ms / 200 ) * 30 ) );
+
+			frames ++;
+
+			if ( time > prevTime + 1000 ) {
+
+				fps = Math.round( ( frames * 1000 ) / ( time - prevTime ) );
+				fpsMin = Math.min( fpsMin, fps );
+				fpsMax = Math.max( fpsMax, fps );
+
+				fpsText.textContent = fps + ' FPS (' + fpsMin + '-' + fpsMax + ')';
+				updateGraph( fpsGraph, Math.min( 30, 30 - ( fps / 100 ) * 30 ) );
+
+				prevTime = time;
+				frames = 0;
+
+			}
+
+			return time;
+
+		},
+
+		update: function () {
+
+			startTime = this.end();
+
+		}
+
+	}
+
+};
+
+module.exports = Stats
 });
 
 require.define("/lib/pointer_lock_controls.js",function(require,module,exports,__dirname,__filename,process,global){var THREE = require('three')
 
 /**
  * @author mrdoob / http://mrdoob.com/
+ * edited by @substack and @maxogden
  */
 
 module.exports = function ( camera ) {
-    var speed = {
-        jump: 3,
-        move: 0.12,
-        fall: 0.3
-    };
+  var speed = this.speed = {
+    jump: 5,
+    move: 0.12,
+    fall: 0.3
+  };
 
 	var scope = this;
 	var pitchObject = this.pitchObject = new THREE.Object3D();
@@ -38763,15 +38894,15 @@ module.exports = function ( camera ) {
 
 		}
 
-        if (cb) cb.call(this, yawObject.position, velocity);
-        
+    if (cb) cb.call(this, yawObject.position, velocity);
+    
 		yawObject.translateX( velocity.x );
 		yawObject.translateY( velocity.y ); 
 		yawObject.translateZ( velocity.z );
 
-        if (velocity.y === 0) {
-            scope.canJump = true;
-        }
+    if (velocity.y === 0) {
+        scope.canJump = true;
+    }
 
 	};
 
