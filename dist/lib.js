@@ -3,6 +3,11 @@
  */
 
 THREE.PointerLockControls = function ( camera ) {
+    var speed = {
+        jump: 3,
+        move: 0.12,
+        fall: 0.3
+    };
 
 	var scope = this;
 	var pitchObject = this.pitchObject = new THREE.Object3D();
@@ -18,7 +23,7 @@ THREE.PointerLockControls = function ( camera ) {
 	var moveRight = false;
 
 	var isOnObject = false;
-	var canJump = false;
+	scope.canJump = false;
 
 	var velocity = new THREE.Vector3();
 
@@ -62,8 +67,8 @@ THREE.PointerLockControls = function ( camera ) {
 				break;
 
 			case 32: // space
-				if ( canJump === true ) velocity.y += 40;
-				canJump = false;
+				if ( scope.canJump === true ) velocity.y += speed.jump;
+				scope.canJump = false;
 				break;
 
 		}
@@ -107,7 +112,7 @@ THREE.PointerLockControls = function ( camera ) {
 	this.isOnObject = function ( boolean ) {
 
 		isOnObject = boolean;
-		canJump = boolean;
+		scope.canJump = boolean;
 
 	};
 
@@ -120,13 +125,13 @@ THREE.PointerLockControls = function ( camera ) {
 		velocity.x += ( - velocity.x ) * 0.08 * delta;
 		velocity.z += ( - velocity.z ) * 0.08 * delta;
 
-		if (this.gravityEnabled) velocity.y -= 0.25 * delta;
+		if (this.gravityEnabled) velocity.y -= speed.fall * delta;
 
-		if ( moveForward ) velocity.z -= 0.12 * delta;
-		if ( moveBackward ) velocity.z += 0.12 * delta;
+		if ( moveForward ) velocity.z -= speed.move * delta;
+		if ( moveBackward ) velocity.z += speed.move * delta;
 
-		if ( moveLeft ) velocity.x -= 0.12 * delta;
-		if ( moveRight ) velocity.x += 0.12 * delta;
+		if ( moveLeft ) velocity.x -= speed.move * delta;
+		if ( moveRight ) velocity.x += speed.move * delta;
 
 		if ( isOnObject === true ) {
 
@@ -134,20 +139,15 @@ THREE.PointerLockControls = function ( camera ) {
 
 		}
 
+        if (cb) cb.call(this, yawObject.position, velocity);
+        
 		yawObject.translateX( velocity.x );
 		yawObject.translateY( velocity.y ); 
 		yawObject.translateZ( velocity.z );
 
-		if ( yawObject.position.y < 10 ) {
-
-			velocity.y = 0;
-			yawObject.position.y = 10;
-
-			canJump = true;
-
-		}
- 
-    if (cb) cb.call(this, yawObject.clone().position, velocity);
+        if (velocity.y === 0) {
+            scope.canJump = true;
+        }
 
 	};
 
@@ -165,30 +165,48 @@ Chunker.prototype.generateMissingChunks = function(position) {
   var x = current[0]
   var y = current[1]
   var z = current[2]
-  var size = this.game.voxelSource.chunkSize
   var dist = this.game.chunkDistance
-  var cubeSize = this.game.cubeSize
-  var scale = new THREE.Vector3(cubeSize, cubeSize, cubeSize)
-  
   for (var cx = (x - dist); cx !== (x + dist); ++cx) {
     for (var cy = (y - dist); cy !== (y + dist); ++cy) {
       for (var cz = (z - dist); cz !== (z + dist); ++cz) {
-        var chunkIndex = "" + cx + "|" + cy + "|" + cz
-        if (!this.chunks[chunkIndex]) {
-          var low = [cx * size, cy * size, cz * size]
-          var high = [low[0] + size, low[1] + size, low[2] + size]
-          var chunk = voxel.generate(low, high, this.game.voxelSource.getVoxel)
-          var mesh = new Mesh(chunk, scale)
-          this.chunks[chunkIndex] = chunk
-          this.meshes[chunkIndex] = mesh
-          mesh.createWireMesh()
-          mesh.setPosition(low[0] * cubeSize, low[1] * cubeSize, low[2] * cubeSize)
-          mesh.addToScene(this.game.scene)
+        if (!this.chunks[[cx, cy, cz].join('|')]) {
+          this.generateChunk(cx,cy,cz)
         }
       }
     }
   }
   return this.chunks
+}
+
+Chunker.prototype.generateChunk = function(x, y, z) {
+  var self = this
+  var chunkIndex = [x, y, z].join('|')
+  var size = this.game.voxelSource.chunkSize
+  var cubeSize = this.game.cubeSize
+  var scale = new THREE.Vector3(cubeSize, cubeSize, cubeSize)
+  var low = [x * size, y * size, z * size]
+  var high = [low[0] + size, low[1] + size, low[2] + size]
+  var meshObj = self.meshes[chunkIndex]
+  var voxels
+  if (meshObj) voxels = meshObj.data.voxels
+  var chunk = voxel.generate(low, high, function(vx,vy,vz) {
+    if (voxels) {
+      var vId = self.game.voxelIndex(vx,vy,vz)
+      vx = (size + vx) % size
+      vy = (size + vy) % size
+      vz = (size + vz) % size
+      return voxels[vx + vy*size + vz*size*size]
+    }
+    return self.game.voxelSource.getVoxel(vx,vy,vz)
+  })
+  var mesh = new Mesh(chunk, scale)
+  this.chunks[chunkIndex] = chunk
+  if (this.meshes[chunkIndex]) this.game.scene.remove(this.meshes[chunkIndex].surfaceMesh)
+  this.meshes[chunkIndex] = mesh
+  mesh.createSurfaceMesh(this.game.material)
+  mesh.setPosition(low[0] * cubeSize, low[1] * cubeSize, low[2] * cubeSize)
+  mesh.addToScene(this.game.scene)
+  this.applyTextures(mesh.geometry)
 }
 
 Chunker.prototype.chunkAtPosition = function(position) {
@@ -200,6 +218,12 @@ Chunker.prototype.chunkAtPosition = function(position) {
   var chunkPos = [Math.floor(cx), Math.floor(cy), Math.floor(cz)]
   return chunkPos
 };
+
+Chunker.prototype.applyTextures = function (geom) {
+  geom.faces.forEach(function (face) {
+    face.materialIndex = 0
+  })
+}
 var Floor = (function() {
 
   function Floor(game, width, height) {
@@ -237,14 +261,14 @@ var Floor = (function() {
   function Game(voxelSource) {
     var self = this
     this.voxelSource = voxelSource
-    this.texturePath = './textures/'
+    this.texturePath = '/textures/'
     this.container = '#container'
-    this.cubeSize = 50
+    this.cubeSize = 25
     this.chunkDistance = 2
     this.startingPosition = new THREE.Vector3(35,1024,35)
     this.worldOrigin = new THREE.Vector3(0,0,0)
-    this.textures = {}
-    this.materials = {}
+    this.material = this.loadTextures([ 'grass' ])
+    
     this.height = window.innerHeight
     this.width = window.innerWidth
     this.scene = scene = new THREE.Scene()
@@ -257,6 +281,7 @@ var Floor = (function() {
     var chunks = this.chunker.generateMissingChunks(this.worldOrigin)
     this.addStats()
     window.addEventListener( 'resize', this.onWindowResize.bind(this), false )
+    window.addEventListener( 'mousedown', this.onMouseDown.bind(this), false )
     this.tick()
   }
   
@@ -272,17 +297,66 @@ var Floor = (function() {
     this.camera.updateProjectionMatrix()
     this.renderer.setSize( window.innerWidth, window.innerHeight )
   }
-
-  Game.prototype.loadTexture = function(name) {
-    this.textures[name] = THREE.ImageUtils.loadTexture(config.texturePath + name + ".png")
-    this.textures[name].magFilter = THREE.NearestFilter
-    this.materials[name] = new THREE.MeshLambertMaterial({map: this.textures[name], ambient: 0xbbbbbb})
-    return this.textures[name]
+  
+  Game.prototype.addMarker = function(position) {
+    var geometry = new THREE.SphereGeometry( 1, 4, 4 );
+		var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
+		var mesh = new THREE.Mesh( geometry, material );
+		mesh.position.copy(position)
+		this.scene.add(mesh)
   }
-
+  
+  Game.prototype.onMouseDown = function(e) {
+    var intersection = this.raycast()
+    if (!intersection) return
+		var hitVoxel = this.voxelAtPosition(intersection, 0)
+		var c = this.chunker.chunkAtPosition(intersection)
+		this.chunker.generateChunk(c[0], c[1], c[2])
+  }
+  
+  Game.prototype.intersectAllMeshes = function(start, direction) {
+    var meshes = []
+    Object.keys(game.chunker.meshes).map(function(key) {
+      meshes.push(game.chunker.meshes[key].surfaceMesh)
+    })
+    var d = direction.subSelf(start).normalize()
+    var ray = new THREE.Raycaster(start, d)
+    var intersections = ray.intersectObjects( meshes )
+    if (intersections.length === 0) return false
+    var intersection = intersections[0]
+    var p = new THREE.Vector3()
+    p.copy(intersection.point)
+    p.x += d.x
+    p.y += d.y
+    p.z += d.z
+    return p
+  }
+  
+  Game.prototype.raycast = function() {
+    var start = this.controls.yawObject.position.clone()
+    var direction = this.camera.matrixWorld.multiplyVector3(new THREE.Vector3(0,0,-1))
+    var intersects = this.intersectAllMeshes(start, direction)
+    return intersects
+  }
+  
+  Game.prototype.loadTextures = function(names) {
+    var self = this;
+    return new THREE.MeshFaceMaterial(names.map(function (name) {
+      var tex = THREE.ImageUtils.loadTexture(self.texturePath + name + ".png")
+      tex.magFilter = THREE.NearestFilter
+      tex.minFilter = THREE.LinearMipMapLinearFilter
+      
+      return new THREE.MeshLambertMaterial({
+        map: tex,
+        ambient: 0xbbbbbb,
+        vertexColors: THREE.VertexColors
+      })
+    }))
+  }
+ 
   Game.prototype.createCamera = function() {
     var camera;
-    camera = new THREE.PerspectiveCamera(45, this.width / this.height, 1, 10000)
+    camera = new THREE.PerspectiveCamera(60, this.width / this.height, 1, 10000)
     camera.lookAt(new THREE.Vector3(0, 0, 0))
     this.scene.add(camera)
     return camera
@@ -325,50 +399,74 @@ var Floor = (function() {
     scene.add( light )
   };
   
-  Game.prototype.highlightCurrentChunk = function() {
+  Game.prototype.currentMesh = function() {
     var cid = game.chunker.chunkAtPosition(game.controls.yawObject.position).join('|')
-    game.chunker.meshes[cid].wireMesh.material.color.setHex(0xff0000)
+    return game.chunker.meshes[cid]
   }
   
-  Game.prototype.voxelInPath = function() {
+  Game.prototype.cameraRotation = function() {
     var xAngle = this.controls.pitchObject.rotation.x
     var yAngle = this.controls.yawObject.rotation.y
-    console.log(xAngle,yAngle)
+    return {x: xAngle, y: yAngle}
   }
   
   Game.prototype.getCollisions = function(position) {
     var self = this
     var p = position.clone()
-    var w = 15 // width of player cube
-    var h = 30 // height of player cube
+    var w = self.cubeSize / 4 // width of player cube
+    var h = self.cubeSize // height of player cube
 
-    // 8 vertices in cube around position
-    var vertices = []
-    vertices.push(new THREE.Vector3(p.x - w, p.y - h, p.z - w))
-    vertices.push(new THREE.Vector3(p.x - w, p.y - h, p.z + w))
-    vertices.push(new THREE.Vector3(p.x + w, p.y - h, p.z - w))
-    vertices.push(new THREE.Vector3(p.x + w, p.y - h, p.z + w))
-    vertices.push(new THREE.Vector3(p.x - w, p.y + h, p.z - w))
-    vertices.push(new THREE.Vector3(p.x - w, p.y + h, p.z + w))
-    vertices.push(new THREE.Vector3(p.x + w, p.y + h, p.z - w))
-    vertices.push(new THREE.Vector3(p.x + w, p.y + h, p.z + w))
+    var vertices = {
+      bottom: [
+        new THREE.Vector3(p.x - w, p.y - h, p.z - w),
+        new THREE.Vector3(p.x - w, p.y - h, p.z + w),
+        new THREE.Vector3(p.x + w, p.y - h, p.z - w),
+        new THREE.Vector3(p.x + w, p.y - h, p.z + w)
+      ],
+      middle: [
+        new THREE.Vector3(p.x - w, p.y, p.z - w),
+        new THREE.Vector3(p.x - w, p.y, p.z + w),
+        new THREE.Vector3(p.x + w, p.y, p.z - w),
+        new THREE.Vector3(p.x + w, p.y, p.z + w)
+      ],
+      top: [
+        new THREE.Vector3(p.x - w, p.y + h, p.z - w),
+        new THREE.Vector3(p.x - w, p.y + h, p.z + w),
+        new THREE.Vector3(p.x + w, p.y + h, p.z - w),
+        new THREE.Vector3(p.x + w, p.y + h, p.z + w)
+      ],
+    }
 
-    var collisions = []
-    vertices.map(function(vertice) {
-      if (self.voxelAtPosition(vertice)) collisions.push(vertice)
-    })
-    return collisions
+    return {
+      bottom: vertices.bottom.map(check).filter(Boolean),
+      middle: vertices.middle.map(check).filter(Boolean),
+      top: vertices.top.map(check).filter(Boolean)
+    }
+    
+    function check(vertex) {
+      return self.voxelAtPosition(vertex) && vertex
+    }
   }
   
-  Game.prototype.voxelAtPosition = function(pos) {
-    var ckey = this.chunker.chunkAtPosition(pos).join('|')
-    var chunk = this.chunker.chunks[ckey]
-    if (!chunk) return false
+  Game.prototype.voxelIndex = function(pos) {
     var size = this.voxelSource.chunkSize
     var x = (size + Math.floor(pos.x / this.cubeSize)) % size
     var y = (size + Math.floor(pos.y / this.cubeSize)) % size
     var z = (size + Math.floor(pos.z / this.cubeSize)) % size
-    var v = chunk.voxels[x + y*size + z*size*size]
+    var vidx = x + y*size + z*size*size
+    return vidx
+  }
+  
+  Game.prototype.voxelAtPosition = function(pos, val) {
+    var ckey = this.chunker.chunkAtPosition(pos).join('|')
+    var chunk = this.chunker.chunks[ckey]
+    if (!chunk) return false
+    var vidx = this.voxelIndex(pos)
+    if (!vidx) return false
+    if (typeof val !== 'undefined') {
+      chunk.voxels[vidx] = val
+    }
+    var v = chunk.voxels[vidx]
     return v
   }
   
@@ -381,13 +479,19 @@ var Floor = (function() {
  
     this.controls.update(dt, function (pos, velocity) {
       var collisions = self.getCollisions(game.controls.yawObject.position)
-      var v = collisions[0]
-      if (v) {
-        if (this.gravityEnabled) console.log('on voxel', v)
+      
+      if (collisions.middle.length) {
+        game.controls.yawObject.translateX(-velocity.x)
+        game.controls.yawObject.translateZ(-velocity.z)
+        velocity.x *= -1
+        velocity.z *= -1
+      }
+      
+      if (collisions.bottom.length) {
         this.gravityEnabled = false
-        velocity.y = 0
-      } else {
-        if (!this.gravityEnabled) console.log('no voxel', v)
+        velocity.y = Math.max(0, velocity.y)
+      }
+      else {
         this.gravityEnabled = true
       }
     })

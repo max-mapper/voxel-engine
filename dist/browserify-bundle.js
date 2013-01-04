@@ -420,6 +420,13 @@ function Mesh(data, scaleFactor, mesher) {
   } 
   
   for (var i = 0; i < result.faces.length; ++i) {
+    geometry.faceVertexUvs[0].push([
+      new THREE.Vector2(0, 0),
+      new THREE.Vector2(0, 1),
+      new THREE.Vector2(1, 1),
+      new THREE.Vector2(1, 0)
+    ])
+    
     var q = result.faces[i]
     if (q.length === 5) {
       var f = new THREE.Face4(q[0], q[1], q[2], q[3])
@@ -460,6 +467,7 @@ Mesh.prototype.createWireMesh = function(hexColor) {
 Mesh.prototype.createSurfaceMesh = function(material) {
   material = material || new THREE.MeshNormalMaterial()
   var surfaceMesh  = new THREE.Mesh( this.geometry, material )
+  surfaceMesh.scale = this.scale
   surfaceMesh.doubleSided = false
   this.surfaceMesh = surfaceMesh
   return surfaceMesh
