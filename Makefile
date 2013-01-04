@@ -1,7 +1,8 @@
 all: concat
  
 concat:
-	browserify demo/blocking.js > dist/browserify-bundle.js
+	mkdir -p dist
+	browserify demo/demo.js > dist/browserify-bundle.js
 
 watch:
 	make
