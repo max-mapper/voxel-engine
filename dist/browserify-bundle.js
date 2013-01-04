@@ -38448,7 +38448,8 @@ var createGame = require('../lib/game')
 var game = createGame({
   chunkSize: 32,
   chunks: 32,
-  generateVoxel: voxel.generator['Hilly Terrain']
+  generateVoxel: voxel.generator['Hilly Terrain'],
+  texturePath: './textures/'
 })
 game.appendTo('#container')
 
