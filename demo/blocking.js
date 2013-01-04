@@ -9,8 +9,6 @@ var game = createGame({
 })
 game.appendTo('#container')
 
-document.addEventListener('DOMContentLoaded', function() {
-  document.body.addEventListener('click', function() {
-    game.requestPointerLock()
-  })
+document.body.addEventListener('click', function() {
+  game.requestPointerLock()
 })
