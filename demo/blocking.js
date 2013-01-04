@@ -10,7 +10,11 @@ var game = createGame({
 game.appendTo('#container')
 
 game.on('mousedown', function (pos) {
-  game.setBlock(pos, erase ? 0 : 1)
+  if (erase) {
+    game.setBlock(pos, 0)
+  } else {
+    game.createBlock(pos, 1)
+  }
 })
 
 var erase = true
