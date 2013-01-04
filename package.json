@@ -6,7 +6,7 @@
     "voxel": "0.0.3",
     "voxel-mesh": "0.0.6",
     "inherits": "1.0.0",
-    "three": "0.54.0-dev",
+    "three": "0.54.5-dev",
     "raf": "0.0.1"
   },
   "scripts": {
