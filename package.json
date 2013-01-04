@@ -1,5 +1,6 @@
 {
   "name": "blocking",
+  "main": "lib/game.js",
   "version": "0.0.1",
   "dependencies": {
     "voxel": "0.0.3",
