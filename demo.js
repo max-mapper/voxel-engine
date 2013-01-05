@@ -1,13 +1,17 @@
+var createGame = require('../lib/game')
+var THREE = require('three')
 var voxel = require('voxel')
 
-var createGame = require('../lib/game')
-
 window.game = createGame({
-  chunkSize: 32,
-  chunks: 32,
   generateVoxel: voxel.generator['Hilly Terrain'],
-  texturePath: './textures/'
+  texturePath: './textures/',
+  cubeSize: 25,
+  chunkSize: 32,
+  chunkDistance: 2,
+  startingPosition: new THREE.Vector3(35, 1024, 35),
+  worldOrigin: new THREE.Vector3(0,0,0)
 })
+
 game.appendTo('#container')
 
 game.on('mousedown', function (pos) {
@@ -26,5 +30,5 @@ window.addEventListener('keydown', function (ev) {
 })
 
 document.body.addEventListener('click', function() {
-  game.requestPointerLock()
+  game.requestPointerLock('#container')
 })
