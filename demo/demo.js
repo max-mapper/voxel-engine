@@ -30,5 +30,5 @@ window.addEventListener('keydown', function (ev) {
 })
 
 document.body.addEventListener('click', function() {
-  game.requestPointerLock()
+  game.requestPointerLock('#container')
 })
