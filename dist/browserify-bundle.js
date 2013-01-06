@@ -39760,7 +39760,7 @@ var voxel = require('voxel')
 
 window.game = createGame({
   generateVoxel: voxel.generator['Hilly Terrain'],
-  texturePath: '/textures/',
+  texturePath: './textures/',
   cubeSize: 25,
   chunkSize: 32,
   chunkDistance: 2,
