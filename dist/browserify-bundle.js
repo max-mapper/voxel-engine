@@ -392,8 +392,7 @@ process.binding = function (name) {
 });
 
 require.define("/lib/game.js",function(require,module,exports,__dirname,__filename,process,global){var voxel = require('voxel')
-var pointerLock = require('pointer-lock')
-var fullscreen = require('fullscreen')
+var interact = require('interact')
 var Chunker = require('./chunker')
 var Detector = require('./detector')
 var THREE = require('three')
@@ -416,6 +415,7 @@ function Game(opts) {
   this.chunkDistance = opts.chunkDistance || 2
   this.startingPosition = opts.startingPosition || new THREE.Vector3(35,1024,35)
   this.worldOrigin = opts.worldOrigin || new THREE.Vector3(0,0,0)
+  if (opts.renderCallback) this.renderCallback = opts.renderCallback
   
   this.material = this.loadTextures([ 'grass', 'grass_dirt', 'brick' ])
   this.height = window.innerHeight
@@ -437,41 +437,29 @@ function Game(opts) {
 
 inherits(Game, EventEmitter)
 
-Game.prototype.requestPointerLock = function(element) {
-  if (typeof element !== 'object') element = document.querySelector(element)
+Game.prototype.setupPointerLock = function(element) {
   var self = this
-  element = element || document
-  if (!pointerLock.available()) return alert("Your browser doesn't support pointer lock!")
-  var pointer = pointerLock(element)
-
+  element = element || document.body
+  if (typeof element !== 'object') element = document.querySelector(element)
+  var pointer = this.pointer = interact(document.body)
+  if (!pointer.pointerAvailable()) this.pointerLockDisabled = true
   pointer.on('attain', function(movements) {
     game.controls.enabled = true
     movements.pipe(self.controls)
   })
-
   pointer.on('release', function() {
     game.controls.enabled = false
   })
-
   pointer.on('error', function() {
     // user denied pointer lock OR it's not available
+    self.pointerLockDisabled = true
+    console.error('pointerlock error')
   })
+}
 
-  pointer.on('needs-fullscreen', function() {
-    // some browsers require you to be in fullscreen mode
-    // for pointer lock.
-    // this lets you catch that case and request it after
-    // you've requested fullscreen.
-    fullscreenRequest = fullscreen(element)
-
-    fullscreenRequest.once('attain', function() {
-      // manually re-request pointer lock
-      pointer.request()
-    })
-
-    // request fullscreen!
-    fullscreenRequest.request()
-  })
+Game.prototype.requestPointerLock = function(element) {
+  if (!this.pointer) this.setupPointerLock(element)
+  this.pointer.request()
 }
 
 Game.prototype.moveToPosition = function(position) {
@@ -1273,10 +1261,121 @@ if(exports) {
 
 });
 
-require.define("/node_modules/pointer-lock/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/node_modules/interact/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/pointer-lock/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = pointer
+require.define("/node_modules/interact/index.js",function(require,module,exports,__dirname,__filename,process,global){var lock = require('pointer-lock')
+  , drag = require('drag-stream')
+  , full = require('fullscreen')
+
+var EE = require('events').EventEmitter
+  , Stream = require('stream').Stream
+
+module.exports = interact
+
+function interact(el, skiplock) {
+  var ee = new EE
+    , internal
+
+  if(!lock.available() || skiplock) {
+    internal = usedrag(el)
+  } else {
+    internal = uselock(el, politelydeclined)
+  }
+
+  ee.release = function() { internal.release && internal.release() }
+  ee.request = function() { internal.request && internal.request() }
+  ee.destroy = function() { internal.destroy && internal.destroy() }
+  ee.pointerAvailable = function() { return lock.available() }
+  ee.fullscreenAvailable = function() { return full.available() }
+
+  forward()
+
+  return ee
+
+  function politelydeclined() {
+    ee.emit('opt-out')
+    internal.destroy()
+    internal = usedrag(el)
+    forward()
+  }
+
+  function forward() {
+    internal.on('attain', function(stream) {
+      ee.emit('attain', stream)
+    })
+
+    internal.on('release', function() {
+      ee.emit('release')
+    })
+  }
+}
+
+function uselock(el, declined) {
+  var pointer = lock(el)
+    , fs = full(el)
+
+  pointer.on('needs-fullscreen', function() {
+    fs.once('attain', function() {
+      pointer.request()
+    })
+    fs.request()
+  })
+
+  pointer.on('error', declined)
+
+  return pointer
+}
+
+function usedrag(el) {
+  var ee = new EE
+    , d = drag(el)
+    , stream
+
+  d.paused = true
+
+  d.on('resume', function() {
+    stream = new Stream
+    stream.readable = true
+    stream.initial = null
+  })
+
+  d.on('data', function(datum) {
+    if(!stream) {
+      stream = new Stream
+      stream.readable = true
+      stream.initial = null
+    }
+
+    if(!stream.initial) {
+      stream.initial = {
+        x: datum.dx
+      , y: datum.dy
+      , t: datum.dt
+      }
+      return ee.emit('attain', stream)
+    }
+
+    if(stream.paused) {
+      ee.emit('release')
+      stream.emit('end')
+      stream.readable = false
+      stream.emit('close')
+      stream = null
+    }
+
+    stream.emit('data', datum)
+  })
+
+  return ee
+}
+
+});
+
+require.define("/node_modules/interact/node_modules/pointer-lock/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+});
+
+require.define("/node_modules/interact/node_modules/pointer-lock/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = pointer
 
 pointer.available = available
 
@@ -1289,10 +1388,11 @@ function available() {
 
 function pointer(el) {
   var ael = el.addEventListener || el.attachEvent
+    , rel = el.removeEventListener || el.detachEvent
     , doc = el.ownerDocument
     , body = doc.body
     , rpl = shim(el) 
-    , out = {dx: 0, dy: 0}
+    , out = {dx: 0, dy: 0, dt: 0}
     , ee = new EE
     , stream = null
     , lastPageX, lastPageY
@@ -1313,6 +1413,11 @@ function pointer(el) {
   ee.release = release
   ee.target = pointerlockelement
   ee.request = onmousedown
+  ee.destroy = function() {
+    rel.call(el, 'mouseup', onmouseup, false)
+    rel.call(el, 'mousedown', onmousedown, false)
+    rel.call(el, 'mousemove', onmove, false)
+  }
 
   if(!shim) {
     setTimeout(function() {
@@ -1346,7 +1451,7 @@ function pointer(el) {
 
     stream = new Stream
     stream.readable = true
-    stream.initial = {x: lastPageX, y: lastPageY}
+    stream.initial = {x: lastPageX, y: lastPageY, t: Date.now()}
 
     ee.emit('attain', stream)
   }
@@ -1406,6 +1511,8 @@ function pointer(el) {
       ev.movementY || ev.webkitMovementY ||
       ev.mozMovementY || ev.msMovementY ||
       ev.oMovementY || 0
+
+    out.dt = Date.now() - stream.initial.t
 
     ee.emit('data', out)
     stream.emit('data', out)
@@ -2087,6 +2194,416 @@ exports.format = function(f) {
   }
   return str;
 };
+
+});
+
+require.define("/node_modules/interact/node_modules/drag-stream/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+});
+
+require.define("/node_modules/interact/node_modules/drag-stream/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = dragstream
+
+var Stream = require('stream')
+  , read = require('domnode-dom').createReadStream
+  , through = require('through')
+
+function dragstream(el) {
+  var body = el.ownerDocument.body
+    , down = read(el, 'mousedown')
+    , up = read(body, 'mouseup', false)
+    , move = read(body, 'mousemove', false)
+    , anchor = {x: 0, y: 0, t: 0}
+    , drag = through(on_move)
+
+  // default to "paused"
+  drag.pause()
+
+  down.on('data', on_down)
+  up.on('data', on_up)
+
+  return move.pipe(drag)
+
+  // listeners:
+
+  function on_move(ev) {
+    if(drag.paused) return
+
+    drag.emit('data', datum(
+        ev.screenX - anchor.x
+      , ev.screenY - anchor.y
+      , +new Date
+    ))
+
+    anchor.x = ev.screenX
+    anchor.y = ev.screenY
+  }
+
+  function on_down(ev) {
+    anchor.x = ev.screenX
+    anchor.y = ev.screenY
+    anchor.t = +new Date
+    drag.resume()
+    drag.emit('data', datum(
+        anchor.x
+      , anchor.y
+      , anchor.t
+    ))
+  }
+
+  function on_up(ev) {
+    drag.pause()
+    drag.emit('data', datum(
+        ev.screenX - anchor.x
+      , ev.screenY - anchor.y
+      , +new Date
+    ))
+  }
+
+  function datum(dx, dy, when) {
+    return {
+      dx: dx
+    , dy: dy
+    , dt: when - anchor.t
+    }
+  }
+}
+
+});
+
+require.define("/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+});
+
+require.define("/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = require('./lib/index')
+
+});
+
+require.define("/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/lib/index.js",function(require,module,exports,__dirname,__filename,process,global){var WriteStream = require('./writable')
+  , ReadStream = require('./readable')
+  , DOMStream = {}
+
+DOMStream.WriteStream = WriteStream
+DOMStream.ReadStream = ReadStream
+
+DOMStream.createAppendStream = function(el, mimetype) {
+  return new DOMStream.WriteStream(
+      el
+    , DOMStream.WriteStream.APPEND
+    , mimetype
+  )
+}
+
+DOMStream.createWriteStream = function(el, mimetype) {
+  return new DOMStream.WriteStream(
+      el
+    , DOMStream.WriteStream.WRITE
+    , mimetype
+  )
+}
+
+DOMStream.createReadStream =
+DOMStream.createEventStream = function(el, type, preventDefault) {
+  preventDefault = preventDefault === undefined ? true : preventDefault
+
+  return new DOMStream.ReadStream(
+      el
+    , type
+    , preventDefault
+  )
+}
+
+module.exports = DOMStream
+
+
+});
+
+require.define("/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/lib/writable.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = DOMStream
+
+var Stream = require('stream').Stream
+
+function DOMStream(el, mode, mimetype) {
+  this.el = el
+  this.mode = mode
+  this.mimetype = mimetype || 'text/html'
+
+  Stream.call(this)
+}
+
+var cons = DOMStream
+  , proto = cons.prototype = new Stream
+
+proto.constructor = cons
+
+cons.APPEND = 0
+cons.WRITE = 1
+
+proto.writable = true
+
+proto.setMimetype = function(mime) {
+  this.mimetype = mime
+}
+
+proto.write = function(data) {
+  var result = (this.mode === cons.APPEND) ? this.append(data) : this.insert(data)
+  this.emit('data', this.el.childNodes)
+  return result
+}
+
+proto.insert = function(data) {
+  this.el.innerHTML = ''
+  return this.append(data)
+}
+
+proto.append = function(data) {
+  var result = this[this.resolveMimetypeHandler()](data)
+
+  for(var i = 0, len = result.length; i < len; ++i) {
+    this.el.appendChild(result[i])
+  }
+
+  return true
+}
+
+proto.resolveMimetypeHandler = function() {
+  var type = this.mimetype.replace(/(\/\w)/, function(x) {
+    return x.slice(1).toUpperCase()
+  })
+  type = type.charAt(0).toUpperCase() + type.slice(1)
+
+  return 'construct'+type
+}
+
+proto.constructTextHtml = function(data) {
+  var isTableFragment = /(tr|td|th)/.test(data) && !/table/.test(data)
+    , div
+
+  if(isTableFragment) {
+    // wuh-oh.
+    div = document.createElement('table')
+  }
+
+  div = div || document.createElement('div')
+  div.innerHTML = data 
+
+  return [].slice.call(div.childNodes)
+}
+
+proto.constructTextPlain = function(data) {
+  var textNode = document.createTextNode(data)
+
+  return [textNode]
+}
+
+});
+
+require.define("/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/lib/readable.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = DOMStream
+
+var Stream = require('stream').Stream
+
+var listener = function(el, type, onmsg) {
+  return el.addEventListener(type, onmsg, false)
+}
+
+if(typeof $ !== 'undefined')
+  listener = function(el, type, onmsg) {
+    return el = $(el)[type](onmsg)
+  }
+
+if(!document.createElement('div').addEventListener)
+  listener = function(el, type, onmsg) {
+    return el.attachEvent('on'+type, onmsg)
+  }
+
+function DOMStream(el, eventType, shouldPreventDefault) {
+  this.el = el
+  this.eventType = eventType
+  this.shouldPreventDefault = shouldPreventDefault
+
+  var self = this
+
+  if(el && this.eventType)
+    listener(
+        this.el
+      , this.eventType
+      , function() { return self.listen.apply(self, arguments) }
+    )
+
+  Stream.call(this)
+}
+
+var cons = DOMStream
+  , proto = cons.prototype = new Stream
+
+proto.constructor = cons
+
+proto.listen = function(ev) { 
+  if(this.shouldPreventDefault)
+    ev.preventDefault ? ev.preventDefault() : (ev.returnValue = false)
+
+  var collectData = 
+    this.eventType === 'submit' ||
+    this.eventType === 'change' ||
+    this.eventType === 'keydown' ||
+    this.eventType === 'keyup'
+
+  if(collectData) {
+    if(this.el.tagName.toUpperCase() === 'FORM')
+      return this.handleFormSubmit(ev)
+
+    return this.emit('data', valueFromElement(this.el))
+  }
+
+  this.emit('data', ev) 
+}
+
+proto.handleFormSubmit = function(ev) {
+  var elements = []
+
+  if(this.el.querySelectorAll) {
+    elements = this.el.querySelectorAll('input,textarea,select')
+  } else {
+    var inputs = {'INPUT':true, 'TEXTAREA':true, 'SELECT':true}
+
+    var recurse = function(el) {
+      for(var i = 0, len = el.childNodes.length; i < len; ++i) {
+        if(el.childNodes[i].tagName) {
+          if(inputs[el.childNodes[i].tagName.toUpperCase()]) {
+            elements.push(el)
+          } else {
+            recurse(el.childNodes[i])
+          }
+        }
+      }
+    }
+
+    recurse(this.el)
+  }
+
+  var output = {}
+    , attr
+    , val
+
+  for(var i = 0, len = elements.length; i < len; ++i) {
+    attr = elements[i].getAttribute('name')
+    val = valueFromElement(elements[i])
+
+    output[attr] = val
+  }
+
+  return this.emit('data', output)
+}
+
+function valueFromElement(el) {
+  switch(el.getAttribute('type')) {
+    case 'radio':
+      return el.checked ? el.value : null
+    case 'checkbox':
+      return 'data', el.checked
+  }
+  return el.value
+}
+
+});
+
+require.define("/node_modules/interact/node_modules/drag-stream/node_modules/through/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+});
+
+require.define("/node_modules/interact/node_modules/drag-stream/node_modules/through/index.js",function(require,module,exports,__dirname,__filename,process,global){var Stream = require('stream')
+
+// through
+//
+// a stream that does nothing but re-emit the input.
+// useful for aggregating a series of changing but not ending streams into one stream)
+
+
+
+exports = module.exports = through
+through.through = through
+
+//create a readable writable stream.
+
+function through (write, end) {
+  write = write || function (data) { this.emit('data', data) }
+  end = end || function () { this.emit('end') }
+
+  var ended = false, destroyed = false
+  var stream = new Stream(), buffer = []
+  stream.buffer = buffer
+  stream.readable = stream.writable = true
+  stream.paused = false
+  stream.write = function (data) {
+    write.call(this, data)
+    return !stream.paused
+  }
+
+  function drain() {
+    while(buffer.length && !stream.paused) {
+      var data = buffer.shift()
+      if(null === data)
+        return stream.emit('end')
+      else
+        stream.emit('data', data)
+    }
+  }
+
+  stream.queue = function (data) {
+    buffer.push(data)
+    drain()
+  }
+
+  //this will be registered as the first 'end' listener
+  //must call destroy next tick, to make sure we're after any
+  //stream piped from here.
+  //this is only a problem if end is not emitted synchronously.
+  //a nicer way to do this is to make sure this is the last listener for 'end'
+
+  stream.on('end', function () {
+    stream.readable = false
+    if(!stream.writable)
+      process.nextTick(function () {
+        stream.destroy()
+      })
+  })
+
+  function _end () {
+    stream.writable = false
+    end.call(stream)
+    if(!stream.readable)
+      stream.destroy()
+  }
+
+  stream.end = function (data) {
+    if(ended) return
+    ended = true
+    if(arguments.length) stream.write(data)
+    _end() // will emit or queue
+  }
+
+  stream.destroy = function () {
+    if(destroyed) return
+    destroyed = true
+    ended = true
+    buffer.length = 0
+    stream.writable = stream.readable = false
+    stream.emit('close')
+  }
+
+  stream.pause = function () {
+    if(stream.paused) return
+    stream.paused = true
+    stream.emit('pause')
+  }
+  stream.resume = function () {
+    if(stream.paused) {
+      stream.paused = false
+    }
+    drain()
+    //may have become paused again,
+    //as drain emits 'data'.
+    if(!stream.paused)
+      stream.emit('drain')
+  }
+  return stream
+}
+
 
 });
 
@@ -39011,26 +39528,26 @@ function PlayerControls(camera, opts) {
     fall: opts.fall || 0.3
   }
 
-	this.pitchObject = new THREE.Object3D()
-	this.pitchObject.add( camera )
+  this.pitchObject = new THREE.Object3D()
+  this.pitchObject.add( camera )
 
-	this.yawObject = new THREE.Object3D()
-	this.yawObject.position.y = 10
-	this.yawObject.add( this.pitchObject )
+  this.yawObject = new THREE.Object3D()
+  this.yawObject.position.y = 10
+  this.yawObject.add( this.pitchObject )
 
-	this.moveForward = false
-	this.moveBackward = false
-	this.moveLeft = false
-	this.moveRight = false
+  this.moveForward = false
+  this.moveBackward = false
+  this.moveLeft = false
+  this.moveRight = false
 
-	this.isOnObject = false
-	this.canJump = false
+  this.isOnObject = false
+  this.canJump = false
 
-	this.velocity = new THREE.Vector3()
-	
+  this.velocity = new THREE.Vector3()
+  
   this.on('jump', function() {
     if ( self.canJump === true ) self.velocity.y += self.speed.jump
-		self.canJump = false
+    self.canJump = false
   })
   
   this.bindWASD()
@@ -39038,47 +39555,55 @@ function PlayerControls(camera, opts) {
 
 inherits(PlayerControls, stream.Stream)
 
+PlayerControls.prototype.playerIsMoving = function() { 
+  var v = this.velocity
+  if (Math.abs(v.x) > 0.1 || Math.abs(v.y) > 0.1 || Math.abs(v.z) > 0.1) return true
+  return false
+}
+
 PlayerControls.prototype.write = function(data) {
   if (this.enabled === false) return
   this.applyRotationDeltas(data)
 }
 
-PlayerControls.prototype.end = function() {}
+PlayerControls.prototype.end = function() {
+  this.emit('end')
+}
 
 PlayerControls.prototype.applyRotationDeltas = function(deltas) {
-	this.yawObject.rotation.y -= deltas.dx * 0.002
-	this.pitchObject.rotation.x -= deltas.dy * 0.002
-	this.pitchObject.rotation.x = Math.max(-PI_2, Math.min(PI_2, this.pitchObject.rotation.x))
+  this.yawObject.rotation.y -= deltas.dx * 0.002
+  this.pitchObject.rotation.x -= deltas.dy * 0.002
+  this.pitchObject.rotation.x = Math.max(-PI_2, Math.min(PI_2, this.pitchObject.rotation.x))
 }
 
 PlayerControls.prototype.isOnObject = function ( booleanValue ) {
-	this.isOnObject = booleanValue
-	this.canJump = booleanValue
+  this.isOnObject = booleanValue
+  this.canJump = booleanValue
 }
 
 PlayerControls.prototype.tick = function (delta, cb) {
-	if (this.enabled === false) return
+  if (this.enabled === false) return
 
-	delta *= 0.1
+  delta *= 0.1
 
-	this.velocity.x += (-this.velocity.x) * 0.08 * delta
-	this.velocity.z += (-this.velocity.z) * 0.08 * delta
+  this.velocity.x += (-this.velocity.x) * 0.08 * delta
+  this.velocity.z += (-this.velocity.z) * 0.08 * delta
 
-	if (this.gravityEnabled) this.velocity.y -= this.speed.fall * delta
+  if (this.gravityEnabled) this.velocity.y -= this.speed.fall * delta
 
-	if (this.moveForward) this.velocity.z -= this.speed.move * delta
-	if (this.moveBackward) this.velocity.z += this.speed.move * delta
+  if (this.moveForward) this.velocity.z -= this.speed.move * delta
+  if (this.moveBackward) this.velocity.z += this.speed.move * delta
 
-	if (this.moveLeft) this.velocity.x -= this.speed.move * delta
-	if (this.moveRight) this.velocity.x += this.speed.move * delta
+  if (this.moveLeft) this.velocity.x -= this.speed.move * delta
+  if (this.moveRight) this.velocity.x += this.speed.move * delta
 
-	if ( this.isOnObject === true ) this.velocity.y = Math.max(0, this.velocity.y)
+  if ( this.isOnObject === true ) this.velocity.y = Math.max(0, this.velocity.y)
 
   if (cb) cb.call(this)
   
-	this.yawObject.translateX( this.velocity.x )
-	this.yawObject.translateY( this.velocity.y )
-	this.yawObject.translateZ( this.velocity.z )
+  this.yawObject.translateX( this.velocity.x )
+  this.yawObject.translateY( this.velocity.y )
+  this.yawObject.translateZ( this.velocity.z )
 
   if (this.velocity.y === 0) this.canJump = true
 }
@@ -39087,54 +39612,54 @@ PlayerControls.prototype.tick = function (delta, cb) {
 PlayerControls.prototype.bindWASD = function () {
   var self = this
   var onKeyDown = function ( event ) {
-  	switch ( event.keyCode ) {
-  		case 38: // up
-  		case 87: // w
-  			self.moveForward = true;
-  			break;
+    switch ( event.keyCode ) {
+      case 38: // up
+      case 87: // w
+        self.moveForward = true;
+        break;
 
-  		case 37: // left
-  		case 65: // a
-  			self.moveLeft = true; break;
+      case 37: // left
+      case 65: // a
+        self.moveLeft = true; break;
 
-  		case 40: // down
-  		case 83: // s
-  			self.moveBackward = true;
-  			break;
+      case 40: // down
+      case 83: // s
+        self.moveBackward = true;
+        break;
 
-  		case 39: // right
-  		case 68: // d
-  			self.moveRight = true;
-  			break;
+      case 39: // right
+      case 68: // d
+        self.moveRight = true;
+        break;
 
-  		case 32: // space
+      case 32: // space
         self.emit('jump')
-  			break;
-  	}
+        break;
+    }
   }
 
   var onKeyUp = function ( event ) {
-  	switch( event.keyCode ) {
-  		case 38: // up
-  		case 87: // w
-  			self.moveForward = false;
-  			break;
+    switch( event.keyCode ) {
+      case 38: // up
+      case 87: // w
+        self.moveForward = false;
+        break;
 
-  		case 37: // left
-  		case 65: // a
-  			self.moveLeft = false;
-  			break;
+      case 37: // left
+      case 65: // a
+        self.moveLeft = false;
+        break;
 
-  		case 40: // down
-  		case 83: // a
-  			self.moveBackward = false;
-  			break;
+      case 40: // down
+      case 83: // a
+        self.moveBackward = false;
+        break;
 
-  		case 39: // right
-  		case 68: // d
-  			self.moveRight = false;
-  			break;
-  	}
+      case 39: // right
+      case 68: // d
+        self.moveRight = false;
+        break;
+    }
   };
 
   document.addEventListener( 'keydown', onKeyDown, false )
@@ -39260,9 +39785,7 @@ window.addEventListener('keydown', function (ev) {
   }
 })
 
-document.body.addEventListener('click', function() {
-  game.requestPointerLock('#container')
-})
+game.requestPointerLock('#container')
 });
 require("/demo/demo.js");
 })();
