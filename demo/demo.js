@@ -22,7 +22,7 @@ window.game = createGame({
   startingPosition: new THREE.Vector3(35, 1024, 35),
   worldOrigin: new THREE.Vector3(0,0,0),
   renderCallback: function() {
-    game.controls.gravityEnabled = false
+    // game.controls.gravityEnabled = false
   }
 })
 
