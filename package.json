@@ -3,7 +3,7 @@
   "main": "lib/game.js",
   "version": "0.0.7",
   "dependencies": {
-    "voxel": "0.0.4",
+    "voxel": "0.0.5",
     "voxel-mesh": "0.0.7",
     "inherits": "1.0.0",
     "three": "0.54.5-dev",

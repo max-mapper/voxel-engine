@@ -2,8 +2,19 @@ var createGame = require('../lib/game')
 var THREE = require('three')
 var voxel = require('voxel')
 
+var generator = function(low, high, x, y, z) {
+  var chunkIndex = [x, y, z].join('|')
+  var chunk = this.chunks[chunkIndex]
+  var voxels
+  if (chunk) voxels = chunk.voxels
+  return voxel.generate(low, high, function(vx, vy, vz, n) {
+    if (voxels) return voxels[n]
+    return voxel.generator['Valley'](vx, vy, vz)
+  })
+}
+
 window.game = createGame({
-  generateVoxel: voxel.generator['Valley'],
+  generateVoxelChunk: generator,
   texturePath: '/textures/',
   cubeSize: 25,
   chunkSize: 32,
@@ -18,9 +29,8 @@ window.game = createGame({
 game.appendTo('#container')
 
 game.on('mousedown', function (pos) {
-  var cid = game.chunker.chunkAtPosition(pos)
-  var vid = game.chunker.voxelAtPosition(pos)
-  console.log(cid, vid, pos)
+  var cid = game.voxels.chunkAtPosition(pos)
+  var vid = game.voxels.voxelAtPosition(pos)
   if (erase) {
     game.setBlock(pos, 0)
   } else {
