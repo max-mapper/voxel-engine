@@ -26,9 +26,7 @@ game.addItem((function () {
   
   return {
     mesh: mesh,
-    height: 10,
-    width: 10,
-    depth: 10
+    size: 10
   }
 })())
 
