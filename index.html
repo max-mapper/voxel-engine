@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="en">
   <head>
-    <title>Voxels</title>
+    <title>Voxel Engine</title>
     <meta charset="utf-8">
     <style type="text/css">
       body {
@@ -11,10 +11,44 @@
         margin: 0px;
         overflow: hidden;
       }
+      #container {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #stats { bottom: 0px; right: 0px; }
+      .bar-tab { right: 33% !important; left: 33% !important; }
+      .logo {position: absolute; top: 5px; left: 5px; }
     </style>
+    <link href="ratchet.css" media="screen" rel="stylesheet" type="text/css" />
   </head>
   <body>
+    <img class="logo" src="logo-white.png">
     <div id="container"></div>
+    <nav class="bar-tab" id="tools" >
+      <ul class="tab-inner">
+        <li class="tab-item active">
+          <img class="tab-icon" src="/textures/grass.png">
+          <div class="tab-label">grass</div>
+        </li>
+        <li class="tab-item">
+          <img class="tab-icon" src="/textures/brick.png">
+          <div class="tab-label">brick</div>
+        </li>
+        <li class="tab-item">
+          <img class="tab-icon" src="/textures/dirt.png">
+          <div class="tab-label">dirt</div>
+        </li>
+        <li class="tab-item">
+          <img class="tab-icon" src="/textures/obsidian.png">
+          <div class="tab-label">obsidian</div>
+        </li>
+        <li class="tab-item">
+          <img class="tab-icon" src="/textures/crate.png">
+          <div class="tab-label">crate</div>
+        </li>
+      </ul>
+    </nav>
     <script type="text/javascript" src="./dist/browserify-bundle.js"></script>
   </body>
 </html>
