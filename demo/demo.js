@@ -1,6 +1,8 @@
 var createGame = require('../lib/game')
 var THREE = require('three')
 var voxel = require('voxel')
+var toolbar = require('toolbar')
+var blockSelector = toolbar('.bar-tab')
 
 var generator = function(low, high, x, y, z) {
   var chunkIndex = [x, y, z].join('|')
@@ -16,7 +18,7 @@ var generator = function(low, high, x, y, z) {
 window.game = createGame({
   generateVoxelChunk: generator,
   texturePath: '/textures/',
-  materials: ['grass'],
+  materials: ['grass', 'brick', 'dirt', 'obsidian', 'crate'],
   cubeSize: 25,
   chunkSize: 32,
   chunkDistance: 2,
@@ -25,6 +27,13 @@ window.game = createGame({
   renderCallback: function() {
     // game.controls.gravityEnabled = false
   }
+})
+
+var currentMaterial = 0
+
+blockSelector.on('select', function(material) {
+  var idx = game.materials.indexOf(material)
+  if (idx > -1) currentMaterial = idx + 1
 })
 
 game.appendTo('#container')
