@@ -16,7 +16,7 @@ game.on('collision', function (item) {
   game.removeItem(item)
   var material = game.materials[item.value - 1]
   var label = document.querySelector('.block.' + material + ' .label')
-  label.textContent = Number(label.textContent) + 1
+  if (label) label.textContent = Number(label.textContent) + 1
 })
 
 function createDebris (pos, value) {
@@ -40,6 +40,7 @@ function createDebris (pos, value) {
 }
 
 function explode (pos, value) {
+  if (value === 0) return
   for (var i = 0; i < 4; i++) {
     var item = createDebris(pos, value)
     item.velocity = {
