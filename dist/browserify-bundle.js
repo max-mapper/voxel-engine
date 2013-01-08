@@ -507,10 +507,12 @@ Game.prototype.addItem = function(item) {
   var ticker = item.tick
   item.tick = function (dt) {
     if (item.collisionRadius) {
-      var pos = self.controls.yawObject.position.clone()
-      pos.y -= 25
-      var d = distance(item.mesh.position, pos)
-      if (d <= item.collisionRadius) {
+      var p0 = self.controls.yawObject.position.clone()
+      var p1 = self.controls.yawObject.position.clone()
+      p1.y -= 25
+      var d0 = distance(item.mesh.position, p0)
+      var d1 = distance(item.mesh.position, p1)
+      if (Math.min(d0, d1) <= item.collisionRadius) {
         self.emit('collision', item)
       }
     }
@@ -40877,6 +40879,7 @@ blockSelector.on('select', function(material) {
 })
 
 game.on('collision', function (item) {
+  incrementBlockTally()
   game.removeItem(item)
 })
 
@@ -40901,22 +40904,27 @@ function createDebris (pos, value) {
 }
 
 function explode (pos, value) {
-  for (var i = 0; i < 4; i++) {
-    var item = createDebris(pos, value)
-    item.velocity = {
-      x: (Math.random() * 2 - 1) * 0.05,
-      y: (Math.random() * 2 - 1) * 0.05,
-      z: (Math.random() * 2 - 1) * 0.05,
-    }
-    game.addItem(item)
-    setTimeout(function (item) {
-      game.removeItem(item)
-    }, 15 * 1000 + Math.random() * 15 * 1000, item)
+  if (!value) return
+  var item = createDebris(pos, value)
+  item.velocity = {
+    x: (Math.random() * 2 - 1) * 0.05,
+    y: (Math.random() * 2 - 1) * 0.05,
+    z: (Math.random() * 2 - 1) * 0.05,
   }
+  game.addItem(item)
+  setTimeout(function (item) {
+    game.removeItem(item)
+  }, 15 * 1000 + Math.random() * 15 * 1000, item)
 }
 
-
 game.appendTo('#container')
+
+var tally = document.querySelector('.tally .count')
+function incrementBlockTally() {
+  var c = +tally.innerText
+  ++c
+  tally.innerText = c
+}
 
 game.on('mousedown', function (pos) {
   var cid = game.voxels.chunkAtPosition(pos)
@@ -40942,6 +40950,7 @@ window.addEventListener('keyup', ctrlToggle)
 window.addEventListener('keydown', ctrlToggle)
 
 game.requestPointerLock('canvas')
+
 });
 require("/demo/demo.js");
 })();
