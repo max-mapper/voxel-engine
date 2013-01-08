@@ -13,33 +13,36 @@ game.appendTo('#container')
 
 var THREE = require('three')
 
-function createDebris (pos) {
+function createDebris (pos, value) {
   var mesh = new THREE.Mesh(
-    new THREE.CubeGeometry(2, 2, 2),
-    new THREE.MeshLambertMaterial({
-      color: 0xffff00,
-      ambient: 0xffff00,
-    })
+    new THREE.CubeGeometry(4, 4, 4),
+    game.material
   )
+  mesh.geometry.faces.forEach(function (face) {
+    face.materialIndex = value - 1
+  })
   mesh.translateX(pos.x)
   mesh.translateY(pos.y)
   mesh.translateZ(pos.z)
   
   return {
     mesh: mesh,
-    size: 2
+    size: 4
   }
 }
 
 function explode (pos, value) {
-  for (var i = 0; i < 10; i++) {
-    var item = createDebris(pos)
+  for (var i = 0; i < 4; i++) {
+    var item = createDebris(pos, value)
     item.velocity = {
-      x: (Math.random() * 2 - 1) * 0.1,
-      y: (Math.random() * 2 - 1) * 0.1,
-      z: (Math.random() * 2 - 1) * 0.1,
+      x: (Math.random() * 2 - 1) * 0.05,
+      y: (Math.random() * 2 - 1) * 0.05,
+      z: (Math.random() * 2 - 1) * 0.05,
     }
     game.addItem(item)
+    setTimeout(function (item) {
+      game.removeItem(item)
+    }, 15 * 1000 + Math.random() * 15 * 1000, item)
   }
 }
 
