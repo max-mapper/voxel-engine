@@ -44,7 +44,7 @@ game.on('mousedown', function (pos) {
   if (erase) {
     game.setBlock(pos, 0)
   } else {
-    game.createBlock(pos, 1)
+    game.createBlock(pos, currentMaterial)
   }
 })
 
