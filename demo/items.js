@@ -11,6 +11,27 @@ var game = createGame({
 })
 game.appendTo('#container')
 
+var THREE = require('three')
+game.addItem((function () {
+  var mesh = new THREE.Mesh(
+    new THREE.CubeGeometry(10,10,10),
+    new THREE.MeshLambertMaterial({
+      color: 0xffff00,
+      ambient: 0xffff00
+    })
+  )
+  mesh.translateY(550)
+  mesh.translateX(50)
+  mesh.translateZ(50)
+  
+  return {
+    mesh: mesh,
+    height: 10,
+    width: 10,
+    depth: 10
+  }
+})())
+
 game.on('mousedown', function (pos) {
   if (erase) {
     game.setBlock(pos, 0)
