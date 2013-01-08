@@ -18,10 +18,13 @@
       }
       #stats { top: 0px; right: 0px; }
       .bar-tab { right: 33% !important; left: 33% !important; }
+      .logo {position: absolute; top: 5px; left: 5px; }
     </style>
     <link href="ratchet.css" media="screen" rel="stylesheet" type="text/css" />
   </head>
   <body>
+    <img class="logo" src="logo-white.png">
+    <div id="container"></div>
     <nav class="bar-tab">
       <ul class="tab-inner">
         <li class="tab-item active">
@@ -46,7 +49,6 @@
         </li>
       </ul>
     </nav>
-    <div id="container"></div>
     <script type="text/javascript" src="/dist/browserify-bundle.js"></script>
   </body>
 </html>
