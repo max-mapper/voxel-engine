@@ -408,13 +408,14 @@ function Game(opts) {
   if (!(this instanceof Game)) return new Game(opts)
   var self = this
   if (!opts) opts = {}
-  
+  if (this.notCapable()) return
   if (opts.generate) {
     this.generateVoxelChunk = function(low, high) {
       return voxel.generate(low, high, opts.generate)
     }
   } else this.generateVoxelChunk = opts.generateVoxelChunk
   
+  this.THREE = THREE
   this.texturePath = opts.texturePath || '/textures/'
   this.cubeSize = opts.cubeSize || 25
   this.chunkSize = opts.chunkSize || 32
@@ -451,6 +452,21 @@ function Game(opts) {
 }
 
 inherits(Game, EventEmitter)
+
+Game.prototype.notCapable = function() {
+  if( !Detector.webgl ) {
+    var wrapper = document.createElement('div')
+    wrapper.className = "errorMessage"
+    var a = document.createElement('a')
+    a.title = "You need WebGL and Pointer Lock (Chrome 23/Firefox 14) to play this game. Click here for more information."
+    a.innerHTML = a.title
+    a.href = "http://get.webgl.org"
+    wrapper.appendChild(a)
+    this.element = wrapper
+    return true
+  }
+  return false
+}
 
 Game.prototype.setupPointerLock = function(element) {
   var self = this
@@ -503,6 +519,9 @@ Game.prototype.addItem = function(item) {
   self.items.push(item)
   item.velocity = item.velocity || { x: 0, y: 0, z: 0 }
   item.collisionRadius = item.collisionRadius || item.size
+  if (!item.width) item.width = item.size
+  if (!item.height) item.height = item.size
+  if (!item.depth) item.depth = item.width
   
   var ticker = item.tick
   item.tick = function (dt) {
@@ -519,23 +538,25 @@ Game.prototype.addItem = function(item) {
     
     if (item.resting) return
     
-    var c = self.getCollisions(item.mesh.position, item.size, item.size)
+    var c = self.getCollisions(item.mesh.position, item)
     if (c.bottom.length > 0) {
-      item.mesh.position.y -= item.velocity.y
+      if (item.velocity.y <= 0) {
+        item.mesh.position.y -= item.velocity.y
+        item.velocity.y = 0
+        item.resting = true
+      }
       item.velocity.x = 0
-      item.velocity.y = 0
       item.velocity.z = 0
-      item.resting = true
     } else if (c.middle.length || c.top.length) {
       item.velocity.x *= -1
       item.velocity.z *= -1
-      item.velocity.y = 0
-    } else {
-      item.velocity.y -= 0.003
-      item.mesh.position.x += item.velocity.x * dt
-      item.mesh.position.y += item.velocity.y * dt
-      item.mesh.position.z += item.velocity.z * dt
     }
+    
+    item.velocity.y -= 0.003
+    item.mesh.position.x += item.velocity.x * dt
+    item.mesh.position.y += item.velocity.y * dt
+    item.mesh.position.z += item.velocity.z * dt
+    
     if (ticker) ticker(item)
   }
   self.scene.add(item.mesh)
@@ -618,13 +639,9 @@ Game.prototype.createControls = function() {
 }
 
 Game.prototype.createRenderer = function() {
-  if( Detector.webgl ){
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true
-    })
-  } else {
-    this.renderer = new THREE.CanvasRenderer()
-  }
+  this.renderer = new THREE.WebGLRenderer({
+    antialias: true
+  })
   this.renderer.setSize(this.width, this.height)
   this.renderer.setClearColorHex(0xBFD1E5, 1.0)
   this.renderer.clear()
@@ -654,28 +671,31 @@ Game.prototype.cameraRotation = function() {
   return {x: xAngle, y: yAngle}
 }
 
-Game.prototype.getCollisions = function(position, w, h, checker) {
+Game.prototype.getCollisions = function(position, dims, checker) {
   var self = this
   var p = position.clone()
+  var w = dims.width / 2
+  var h = dims.height / 2
+  var d = dims.depth / 2
 
   var vertices = {
     bottom: [
-      new THREE.Vector3(p.x - w, p.y - h, p.z - w),
-      new THREE.Vector3(p.x - w, p.y - h, p.z + w),
-      new THREE.Vector3(p.x + w, p.y - h, p.z - w),
-      new THREE.Vector3(p.x + w, p.y - h, p.z + w)
+      new THREE.Vector3(p.x - w, p.y - h, p.z - d),
+      new THREE.Vector3(p.x - w, p.y - h, p.z + d),
+      new THREE.Vector3(p.x + w, p.y - h, p.z - d),
+      new THREE.Vector3(p.x + w, p.y - h, p.z + d)
     ],
     middle: [
-      new THREE.Vector3(p.x - w, p.y - h / 2, p.z - w),
-      new THREE.Vector3(p.x - w, p.y - h / 2, p.z + w),
-      new THREE.Vector3(p.x + w, p.y - h / 2, p.z - w),
-      new THREE.Vector3(p.x + w, p.y - h / 2, p.z + w)
+      new THREE.Vector3(p.x - w, p.y, p.z - d),
+      new THREE.Vector3(p.x - w, p.y, p.z + d),
+      new THREE.Vector3(p.x + w, p.y, p.z - d),
+      new THREE.Vector3(p.x + w, p.y, p.z + d)
     ],
     top: [
-      new THREE.Vector3(p.x - w, p.y, p.z - w),
-      new THREE.Vector3(p.x - w, p.y, p.z + w),
-      new THREE.Vector3(p.x + w, p.y, p.z - w),
-      new THREE.Vector3(p.x + w, p.y, p.z + w)
+      new THREE.Vector3(p.x - w, p.y + h, p.z - d),
+      new THREE.Vector3(p.x - w, p.y + h, p.z + d),
+      new THREE.Vector3(p.x + w, p.y + h, p.z - d),
+      new THREE.Vector3(p.x + w, p.y + h, p.z + d)
     ],
   }
 
@@ -725,10 +745,12 @@ Game.prototype.createBlock = function(pos, val) {
   var chunk = self.voxels.chunks[ckey]
   if (!chunk) return false
   
-  var w = self.cubeSize / 4 // width of player cube
-  var h = self.cubeSize * 1.5 // height of player cube
   var pos = self.controls.yawObject.position
-  var collisions = self.getCollisions(pos, w, h, check)
+  var collisions = self.getCollisions(pos, {
+    width: self.cubeSize / 2,
+    depth: self.cubeSize / 2,
+    height: self.cubeSize * 1.5
+  }, check)
   
   if (collisions.top.length) return false
   if (collisions.middle.length) return false
@@ -782,15 +804,25 @@ Game.prototype.applyTextures = function (geom) {
 Game.prototype.tick = function(dt) {
   var self = this
   this.controls.tick(dt, function () {
-    var w = self.cubeSize / 4 // width of player cube
-    var h = self.cubeSize * 1.5 // height of player cube
-    var collisions = self.getCollisions(this.yawObject.position, w, h)
+    var pos = this.yawObject.position.clone()
+    pos.y -= self.cubeSize * 1.5 / 2
     
-    if (collisions.middle.length || collisions.top.length) {
+    var collisions = self.getCollisions(pos, {
+      width: self.cubeSize / 2,
+      depth: self.cubeSize / 2,
+      height: self.cubeSize * 1.5
+    })
+    
+    if (collisions.middle.length) {
       this.yawObject.translateX(-this.velocity.x)
       this.yawObject.translateZ(-this.velocity.z)
       this.velocity.x *= -0.01
       this.velocity.z *= -0.01
+    }
+    
+    if (collisions.top.length) {
+      this.yawObject.translateY(-this.velocity.y)
+      this.velocity.y = Math.min(0, this.velocity.y)
     }
     
     if (collisions.bottom.length) {
