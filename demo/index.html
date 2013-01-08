@@ -16,11 +16,18 @@
         -webkit-user-select: none;
         user-select: none;
       }
+      #stats { bottom: 0px; right: 0px; }
+      .bar-tab { right: 33% !important; left: 33% !important; }
+      .logo {position: absolute; top: 5px; left: 5px; }
+      .tally { position: absolute !important; top: 5px; right: 5px; }
     </style>
     <link href="ratchet.css" media="screen" rel="stylesheet" type="text/css" />
   </head>
   <body>
-    <nav class="bar-tab">
+    <a class="button tally">Blocks collected<span class="count">0</span></a>
+    <img class="logo" src="logo-white.png">
+    <div id="container"></div>
+    <nav class="bar-tab" id="tools" >
       <ul class="tab-inner">
         <li class="tab-item active">
           <img class="tab-icon" src="/textures/grass.png">
@@ -44,7 +51,6 @@
         </li>
       </ul>
     </nav>
-    <div id="container"></div>
     <script type="text/javascript" src="/dist/browserify-bundle.js"></script>
   </body>
 </html>
