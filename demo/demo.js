@@ -24,12 +24,13 @@ window.game = createGame({
   chunkDistance: 2,
   startingPosition: new THREE.Vector3(35, 1024, 35),
   worldOrigin: new THREE.Vector3(0,0,0),
+  controlOptions: {jump: 6},
   renderCallback: function() {
     // game.controls.gravityEnabled = false
   }
 })
 
-var currentMaterial = 0
+var currentMaterial = 1
 
 blockSelector.on('select', function(material) {
   var idx = game.materials.indexOf(material)
