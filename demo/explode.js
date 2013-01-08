@@ -32,6 +32,7 @@ function createDebris (pos, value) {
 }
 
 function explode (pos, value) {
+  if (value === 0) return
   for (var i = 0; i < 4; i++) {
     var item = createDebris(pos, value)
     item.velocity = {
