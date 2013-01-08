@@ -2,7 +2,7 @@ var createGame = require('../lib/game')
 var THREE = require('three')
 var voxel = require('voxel')
 var toolbar = require('toolbar')
-var blockSelector = toolbar('.bar-tab')
+window.blockSelector = toolbar({el: '#tools'})
 
 var generator = function(low, high, x, y, z) {
   var chunkIndex = [x, y, z].join('|')
@@ -54,6 +54,11 @@ window.addEventListener('keydown', function (ev) {
   if (ev.keyCode === 'X'.charCodeAt(0)) {
     erase = !erase
   }
+  ctrlDown = ev.ctrlKey
 })
 
-game.requestPointerLock('#container')
+function ctrlToggle (ev) { erase = !ev.ctrlKey }
+window.addEventListener('keyup', ctrlToggle)
+window.addEventListener('keydown', ctrlToggle)
+
+game.requestPointerLock('canvas')
