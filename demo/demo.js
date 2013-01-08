@@ -63,6 +63,7 @@ function createDebris (pos, value) {
 }
 
 function explode (pos, value) {
+  if (!value) return
   var item = createDebris(pos, value)
   item.velocity = {
     x: (Math.random() * 2 - 1) * 0.05,
