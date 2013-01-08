@@ -1,9 +1,9 @@
 {
   "name": "voxel-engine",
   "main": "lib/game.js",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "dependencies": {
-    "voxel": "0.0.6",
+    "voxel": "0.0.7",
     "voxel-mesh": "0.0.8",
     "inherits": "1.0.0",
     "three": "0.54.5-dev",
