@@ -11,6 +11,15 @@ var game = createGame({
 })
 game.appendTo('#container')
 
+var THREE = require('three')
+var material = new THREE.MeshLambertMaterial({
+  color: 0xff0000
+})
+var cube = new THREE.CubeGeometry(500,500,500)
+var mesh = new THREE.Mesh(cube, material)
+window.mesh = mesh
+game.scene.add(mesh)
+
 game.on('mousedown', function (pos) {
   if (erase) {
     game.setBlock(pos, 0)
