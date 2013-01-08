@@ -1,14 +1,15 @@
 {
   "name": "voxel-engine",
   "main": "lib/game.js",
-  "version": "0.0.8",
+  "version": "0.1.5",
   "dependencies": {
-    "voxel": "0.0.5",
+    "voxel": "0.0.8",
     "voxel-mesh": "0.0.8",
     "inherits": "1.0.0",
     "three": "0.54.5-dev",
     "raf": "0.0.1",
-    "interact": "0.0.2"
+    "interact": "0.0.2",
+    "toolbar": "0.0.2"
   },
   "scripts": {
     "start": "node server.js",
