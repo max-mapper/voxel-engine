@@ -101,7 +101,6 @@ window.addEventListener('keydown', function (ev) {
   if (ev.keyCode === 'X'.charCodeAt(0)) {
     erase = !erase
   }
-  ctrlDown = ev.ctrlKey
 })
 
 function ctrlToggle (ev) { erase = !ev.ctrlKey }
