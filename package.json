@@ -10,11 +10,14 @@
     "voxel": "0.0.9",
     "voxel-mesh": "0.0.8",
     "inherits": "1.0.0",
-    "player-physics": "0.0.3",
+    "player-physics": "0.0.5",
     "three": "0.54.5-dev",
     "raf": "0.0.1",
     "interact": "0.0.2",
     "toolbar": "0.0.2"
+  },
+  "devDependencies": {
+    "minecraft-skin": "0.0.1"
   },
   "scripts": {
     "start": "node server.js",
