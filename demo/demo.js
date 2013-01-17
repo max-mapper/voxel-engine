@@ -5,7 +5,6 @@ var toolbar = require('toolbar')
 window.blockSelector = toolbar({el: '#tools'})
 var skin = require('minecraft-skin')
 
-
 var generator = function(low, high, x, y, z) {
   var chunkIndex = [x, y, z].join('|')
   var chunk = this.chunks[chunkIndex]
