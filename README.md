@@ -70,20 +70,53 @@ this.generateVoxelChunk = function(low, high) {
 
 If you just pass in a `generator` function it will automatically be wrapped in a `generateVoxelChunk` function. You must pass in one or both of these functions, there is no default. `generateVoxelChunk` is mostly a convenience method -- you can usually just use a `generator` function.
 
-# get it running
+## Interacting with the voxel world
+
+When the game renders it draws each voxel at `cubeSize` wide in three.js world coordinates (something like pixels wide). So a default chunk is 32 (`chunkSize`) * 25 (default `cubeSize`) === 800 wide.
+
+To get the players current position you can do `gameInstance.controls.yawObject.position`. This returns a THREE.js Vector3 object (which just means an object with 'x', 'y', and 'z'). The coordinates are in world coordinates.
+
+
+To look up the chunk at some world coordinates:
+
+`gameInstance.voxels.chunkAtPosition(position)`
+
+To look up the voxel at some world coordinates (relative to that voxels chunk):
+
+`gameInstance.voxels.voxelVector(position)`
+
+Create a new voxel at some world coordinates (handles collisions with player, etc):
+
+`gameInstance.createBlock(pos, val)`
+
+`val` can be 0 or you can also use any single digit integer 0-9. These correspond to the materials array that you pass in to the game.
+
+Set the value of a voxel at some world coordinates:
+
+`gameInstance.setBlock(pos, val)`
+
+Get the value of a voxel at some world coordinates:
+
+`gameInstance.getBlock(pos)`
+
+If you wanna see the lower level API for voxel data manipulation look at `chunker.js` inside the voxel module.
+
+# Get the demo running
+
+voxel.js modules use [browserify](http://browserify.org) for packaging modules together into game bundles. This means that every time you change code in your game you have to build a new bundle in order to test it out. Luckily this is very easy and can be automated:
 
 ```
 cd voxel-engine
 npm install
 npm install browserify -g
-make
+npm run make
 npm start
 ```
 
-# compile on file changes
+automatically compile whenever you edit a file
 
 ```
-make watch
+browserify mygame.js -o bundle.js --watch --debug
 ```
 
 ## license
