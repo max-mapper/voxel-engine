@@ -1,15 +1,23 @@
 {
   "name": "voxel-engine",
   "main": "lib/game.js",
-  "version": "0.1.7",
+  "version": "0.2.6",
+  "repository": {
+    "type":"git",
+    "url": "git@github.com:maxogden/voxel-engine.git"
+  },
   "dependencies": {
-    "voxel": "0.0.8",
-    "voxel-mesh": "0.0.8",
+    "voxel": "0.1.0",
+    "voxel-mesh": "0.1.0",
     "inherits": "1.0.0",
-    "three": "0.54.5-dev",
+    "player-physics": "0.0.6",
+    "three": "0.54.0",
     "raf": "0.0.1",
     "interact": "0.0.2",
     "toolbar": "0.0.2"
+  },
+  "devDependencies": {
+    "minecraft-skin": "0.0.1"
   },
   "scripts": {
     "start": "node server.js",

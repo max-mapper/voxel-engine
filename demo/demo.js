@@ -3,6 +3,7 @@ var THREE = require('three')
 var voxel = require('voxel')
 var toolbar = require('toolbar')
 window.blockSelector = toolbar({el: '#tools'})
+var skin = require('minecraft-skin')
 
 var generator = function(low, high, x, y, z) {
   var chunkIndex = [x, y, z].join('|')
@@ -22,14 +23,14 @@ window.game = createGame({
   cubeSize: 25,
   chunkSize: 32,
   chunkDistance: 2,
-  startingPosition: new THREE.Vector3(35, 1024, 35),
-  worldOrigin: new THREE.Vector3(0,0,0),
-  controlOptions: {jump: 6},
-  renderCallback: function() {
-    // game.controls.gravityEnabled = false
-  }
+  startingPosition: [35, 100, 35],
+  worldOrigin: [0,0,0],
+  controlOptions: {jump: 6}
 })
 
+window.viking = skin(game.THREE, 'viking.png').createPlayerObject()
+viking.position.y = 60
+game.scene.add(viking)
 var currentMaterial = 1
 
 blockSelector.on('select', function(material) {
@@ -101,11 +102,13 @@ window.addEventListener('keydown', function (ev) {
   if (ev.keyCode === 'X'.charCodeAt(0)) {
     erase = !erase
   }
-  ctrlDown = ev.ctrlKey
 })
 
 function ctrlToggle (ev) { erase = !ev.ctrlKey }
 window.addEventListener('keyup', ctrlToggle)
 window.addEventListener('keydown', ctrlToggle)
 
-game.requestPointerLock('canvas')
+var container = document.querySelector('#container')
+container.addEventListener('click', function() {
+  game.requestPointerLock(container)
+})

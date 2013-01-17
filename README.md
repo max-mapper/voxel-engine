@@ -2,9 +2,28 @@
 
 ## a voxel engine in javascript using three.js
 
-**not done, super hacky!**
+**still in beta and super hacky**
 
-see also: https://github.com/maxogden/voxel and https://github.com/maxogden/voxel-mesh
+soon more information will be available at http://voxeljs.com
+
+associated modules/plugins:
+
+- https://github.com/maxogden/voxel
+- https://github.com/maxogden/voxel-mesh
+- https://github.com/substack/voxel-creature
+- https://github.com/substack/voxel-debris
+- https://github.com/substack/voxel-forest
+- https://github.com/maxogden/voxel-perlin-terrain
+- https://github.com/maxogden/voxel-server
+- https://github.com/maxogden/toolbar
+
+demos:
+
+- http://maxogden.github.com/voxel-engine/
+- http://maxogden.github.com/voxel-perlin-terrain/
+- http://substack.net/projects/voxel-creature/
+- http://substack.net/projects/voxel-debris/
+- http://substack.net/projects/voxel-forest/
 
 # example
 
