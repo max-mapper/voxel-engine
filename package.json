@@ -16,15 +16,13 @@
     "interact": "0.0.2",
     "toolbar": "0.0.2"
   },
-  "devDependencies": {
-    "minecraft-skin": "0.0.1"
-  },
   "scripts": {
     "start": "node server.js",
     "make": "mkdir -p dist && browserify demo/demo.js > dist/browserify-bundle.js",
     "watch": "mkdir -p dist && browserify demo/demo.js -o dist/browserify-bundle.js --watch --debug"
   },
   "devDependencies": {
+    "minecraft-skin": "0.0.1",
     "ecstatic": "0.3.0"
   }
 }
