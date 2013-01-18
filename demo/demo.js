@@ -19,7 +19,7 @@ var generator = function(low, high, x, y, z) {
 window.game = createGame({
   generateVoxelChunk: generator,
   texturePath: '/textures/',
-  materials: ['grass', 'brick', 'dirt', 'obsidian', 'crate'],
+  materials: [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt', 'obsidian', 'crate'],
   cubeSize: 25,
   chunkSize: 32,
   chunkDistance: 2,

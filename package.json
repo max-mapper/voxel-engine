@@ -14,17 +14,16 @@
     "three": "0.54.0",
     "raf": "0.0.1",
     "interact": "0.0.2",
-    "toolbar": "0.0.2"
+    "toolbar": "0.0.2",
+    "voxel-texture": "~0.2.0"
   },
   "devDependencies": {
-    "minecraft-skin": "0.0.1"
+    "minecraft-skin": "0.0.1",
+    "ecstatic": "0.3.0"
   },
   "scripts": {
     "start": "node server.js",
     "make": "mkdir -p dist && browserify demo/demo.js > dist/browserify-bundle.js",
     "watch": "mkdir -p dist && browserify demo/demo.js -o dist/browserify-bundle.js --watch --debug"
-  },
-  "devDependencies": {
-    "ecstatic": "0.3.0"
   }
 }
