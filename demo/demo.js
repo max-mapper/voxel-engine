@@ -2,35 +2,25 @@ var createGame = require('../lib/game')
 var THREE = require('three')
 var voxel = require('voxel')
 var toolbar = require('toolbar')
-window.blockSelector = toolbar({el: '#tools'})
+var blockSelector = toolbar({el: '#tools'})
 var skin = require('minecraft-skin')
 
-var generator = function(low, high, x, y, z) {
-  var chunkIndex = [x, y, z].join('|')
-  var chunk = this.chunks[chunkIndex]
-  var voxels
-  if (chunk) voxels = chunk.voxels
-  return voxel.generate(low, high, function(vx, vy, vz, n) {
-    if (voxels) return voxels[n]
-    return voxel.generator['Valley'](vx, vy, vz)
-  })
-}
-
 window.game = createGame({
-  generateVoxelChunk: generator,
-  texturePath: '/textures/',
+  generate: voxel.generator['Valley'],
+  texturePath: './textures/',
   materials: [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt', 'obsidian', 'crate'],
   cubeSize: 25,
   chunkSize: 32,
   chunkDistance: 2,
-  startingPosition: [35, 100, 35],
+  startingPosition: [35, 1024, 35],
   worldOrigin: [0,0,0],
   controlOptions: {jump: 6}
 })
 
-window.viking = skin(game.THREE, 'viking.png').createPlayerObject()
+var viking = skin(game.THREE, 'viking.png').createPlayerObject()
 viking.position.y = 60
 game.scene.add(viking)
+
 var currentMaterial = 1
 
 blockSelector.on('select', function(material) {
