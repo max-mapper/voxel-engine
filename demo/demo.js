@@ -12,14 +12,18 @@ window.game = createGame({
   cubeSize: 25,
   chunkSize: 32,
   chunkDistance: 2,
-  startingPosition: [35, 1024, 35],
+  startingPosition: [35, 324, 35],
   worldOrigin: [0,0,0],
   controlOptions: {jump: 6}
 })
 
-var viking = skin(game.THREE, 'viking.png').createPlayerObject()
-viking.position.y = 60
-game.scene.add(viking)
+var maxogden = skin(game.THREE, 'maxogden.png').createPlayerObject()
+maxogden.position.set(0, 62, 20)
+game.scene.add(maxogden)
+
+var substack = skin(game.THREE, 'substack.png').createPlayerObject()
+substack.position.set(0, 62, -20)
+game.scene.add(substack)
 
 var currentMaterial = 1
 
