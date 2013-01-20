@@ -25,6 +25,11 @@ var currentMaterial = 1
 
 blockSelector.on('select', function(material) {
   var idx = game.materials.indexOf(material)
+  if(idx === -1) {
+    for(var m = 0; m < game.materials.length; m++) {
+      if(typeof game.materials[m] === 'object' && game.materials[m][0] === material) idx = m
+    }
+  }
   if (idx > -1) currentMaterial = idx + 1
 })
 
