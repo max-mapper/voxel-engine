@@ -12,19 +12,28 @@ window.game = createGame({
   cubeSize: 25,
   chunkSize: 32,
   chunkDistance: 2,
-  startingPosition: [35, 100, 35],
+  startingPosition: [35, 350, 35],
   worldOrigin: [0,0,0],
   controlOptions: {jump: 6}
 })
 
-var viking = skin(game.THREE, 'viking.png').createPlayerObject()
-viking.position.y = 60
-game.scene.add(viking)
+var maxogden = skin(game.THREE, 'maxogden.png').createPlayerObject()
+maxogden.position.set(0, 62, 20)
+game.scene.add(maxogden)
+
+var substack = skin(game.THREE, 'substack.png').createPlayerObject()
+substack.position.set(0, 62, -20)
+game.scene.add(substack)
 
 var currentMaterial = 1
 
 blockSelector.on('select', function(material) {
   var idx = game.materials.indexOf(material)
+  if(idx === -1) {
+    for(var m = 0; m < game.materials.length; m++) {
+      if(typeof game.materials[m] === 'object' && game.materials[m][0] === material) idx = m
+    }
+  }
   if (idx > -1) currentMaterial = idx + 1
 })
 
