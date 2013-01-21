@@ -1,7 +1,7 @@
 {
   "name": "voxel-engine",
   "main": "lib/game.js",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "repository": {
     "type":"git",
     "url": "git@github.com:maxogden/voxel-engine.git"
