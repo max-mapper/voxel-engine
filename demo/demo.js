@@ -12,7 +12,7 @@ window.game = createGame({
   cubeSize: 25,
   chunkSize: 32,
   chunkDistance: 2,
-  startingPosition: [35, 324, 35],
+  startingPosition: [35, 350, 35],
   worldOrigin: [0,0,0],
   controlOptions: {jump: 6}
 })
