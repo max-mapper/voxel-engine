@@ -889,19 +889,14 @@ Game.prototype.checkBlock = function(pos) {
   var chunk = self.voxels.chunks[ckey]
   if (!chunk) return false
 
-  var pos = self.controls.yawObject.position
-  var collisions = self.getCollisions(pos, {
-    width: self.cubeSize / 2,
-    depth: self.cubeSize / 2,
-    height: self.cubeSize * 1.5
-  }, check)
+  var aabb = this.playerAABB()
+  var bottom = {x: aabb.x0(), y: aabb.y0(), z: aabb.z0()}
+  var playerVector = self.voxels.voxelVector(bottom)
 
-  if (collisions.top.length) return false
-  if (collisions.middle.length) return false
-  if (collisions.bottom.length > 2) return false
-
-  function check(v) { return vidx === self.voxels.voxelIndexFromPosition(v) }
-
+  if ( playerVector.x === voxelVector.x
+    && playerVector.y === voxelVector.y
+    && playerVector.z === voxelVector.z) return false
+  
   return {chunkIndex: ckey, voxelVector: voxelVector}
 }
 
@@ -942,11 +937,8 @@ Game.prototype.showChunk = function(chunk) {
   return mesh
 }
 
-Game.prototype.updatePlayerPhysics = function(controls) {
-  var self = this
- 
-  var pos = controls.yawObject.position
-  var yaw = controls.yawObject
+Game.prototype.playerAABB = function() {
+  var pos = this.controls.yawObject.position
   var size = this.cubeSize
 
   var bbox = aabb([
@@ -958,10 +950,21 @@ Game.prototype.updatePlayerPhysics = function(controls) {
     size * 1.5,
     size / 2
   ])
+  return bbox
+}
+
+Game.prototype.updatePlayerPhysics = function(controls) {
+  var self = this
+ 
+  var pos = controls.yawObject.position
+  var yaw = controls.yawObject
+  var size = this.cubeSize
+
+  var bbox = this.playerAABB()
     
   var base = [ pos.x, pos.y, pos.z ]
   
-  var userVec = [
+  var velocity = [
     controls.velocity.x,
     controls.velocity.y,
     controls.velocity.z
@@ -969,9 +972,9 @@ Game.prototype.updatePlayerPhysics = function(controls) {
   
   var worldVector
 
-  yaw.translateX(userVec[0])
-  yaw.translateY(userVec[1])
-  yaw.translateZ(userVec[2])
+  yaw.translateX(velocity[0])
+  yaw.translateY(velocity[1])
+  yaw.translateZ(velocity[2])
 
   worldVector = [
     pos.x - base[0],
@@ -979,9 +982,9 @@ Game.prototype.updatePlayerPhysics = function(controls) {
     pos.z - base[2]
   ]
 
-  yaw.translateX(-userVec[0])
-  yaw.translateY(-userVec[1])
-  yaw.translateZ(-userVec[2])
+  yaw.translateX(-velocity[0])
+  yaw.translateY(-velocity[1])
+  yaw.translateZ(-velocity[2])
 
   function sign(x) {
     return x / Math.abs(x)
@@ -1002,7 +1005,6 @@ Game.prototype.updatePlayerPhysics = function(controls) {
   var newLocation = new game.THREE.Vector3(
     worldVector[0] + base[0], worldVector[1] + base[1], worldVector[2] + base[2]
   )
-  if (this.voxels.voxelAtPosition(pos)) console.log('in voxel!')
   pos.copy(newLocation)
 }
 
