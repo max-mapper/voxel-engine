@@ -87,14 +87,21 @@ If you wanna see the lower level API for voxel data manipulation look at `chunke
 
 # Get the demo running
 
+The first time you set up, you should install the required npm packages:
+
 ```
 cd voxel-engine
 npm install
 npm install browserify -g
+```
+
+Then run the start script (which you'll need to do every time you want to run the demo):
+
+```
 npm start
 ```
 
-Then point your browser to http://localhost:8080
+Then point your browser to [http://localhost:8080](http://localhost:8080) and have fun!
 
 ## How does this work?
 
