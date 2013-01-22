@@ -1,13 +1,13 @@
 {
   "name": "voxel-engine",
   "main": "lib/game.js",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "repository": {
     "type":"git",
     "url": "git@github.com:maxogden/voxel-engine.git"
   },
   "dependencies": {
-    "voxel": "0.1.0",
+    "voxel": "0.1.1",
     "voxel-mesh": "0.1.0",
     "inherits": "1.0.0",
     "player-physics": "0.0.10",
