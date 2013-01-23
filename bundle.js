@@ -391,7 +391,7 @@ process.binding = function (name) {
 
 });
 
-require.define("/lib/game.js",function(require,module,exports,__dirname,__filename,process,global){var voxel = require('voxel')
+require.define("/js/voxel-engine/lib/game.js",function(require,module,exports,__dirname,__filename,process,global){var voxel = require('voxel')
 var voxelMesh = require('voxel-mesh')
 if (process.browser) var interact = require('interact')
 var Detector = require('./detector')
@@ -434,6 +434,8 @@ function Game(opts) {
   this.meshType = opts.meshType || 'surfaceMesh'
   this.controlOptions = opts.controlOptions || {}
   this.materials = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
+  this.materialType = opts.materialType || THREE.MeshLambertMaterial
+  this.materialParams = opts.materialParams || {}
   this.items = []
   this.voxels = voxel(this)
   this.voxels.generateMissingChunks(this.worldOrigin)
@@ -514,6 +516,8 @@ Game.prototype.initializeRendering = function() {
   var self = this
   this._materialEngine = require('voxel-texture')({
     texturePath: self.texturePath,
+    materialType: self.materialType,
+    materialParams: self.materialParams,
     THREE: THREE
   })
   this.material = this.loadTextures(this.materials)
@@ -696,8 +700,8 @@ Game.prototype.raycast = function() {
   return intersects
 }
 
-Game.prototype.loadTextures = function (names) {
-  return this._materialEngine.loadTextures(names)
+Game.prototype.loadTextures = function (names, opts) {
+  return this._materialEngine.loadTextures(names, opts)
 }
 
 Game.prototype.applyTextures = function (geom) {
@@ -954,8 +958,6 @@ Game.prototype.playerAABB = function(position) {
 }
 
 Game.prototype.updatePlayerPhysics = function(bbox, controls) {
-  var self = this
- 
   var pos = controls.yawObject.position
   var yaw = controls.yawObject
   var size = this.cubeSize
@@ -984,17 +986,13 @@ Game.prototype.updatePlayerPhysics = function(bbox, controls) {
   yaw.translateY(-velocity[1])
   yaw.translateZ(-velocity[2])
 
-  function sign(x) {
-    return x / Math.abs(x)
-  }
-
   controls.freedom['y-'] = true
 
   this.collideVoxels(bbox, worldVector, function(axis, tile, coords, dir, edgeVector) {
     if (tile) {
       worldVector[axis] = edgeVector
       if (axis === 1 && dir === -1) {
-        self.controls.freedom['y-'] = false
+        controls.freedom['y-'] = false
       }
       return true
     }
@@ -1003,6 +1001,7 @@ Game.prototype.updatePlayerPhysics = function(bbox, controls) {
   var newLocation = new THREE.Vector3(
     worldVector[0] + base[0], worldVector[1] + base[1], worldVector[2] + base[2]
   )
+
   pos.copy(newLocation)
 }
 
@@ -1031,7 +1030,7 @@ Game.prototype.bindWASD = function (controls) {
         break
 
       case 32: // space
-        controls.emit('command', 'jump')
+        controls.emit('command', 'wantsJump', true)
         break;
     }
   }
@@ -1057,6 +1056,10 @@ Game.prototype.bindWASD = function (controls) {
       case 68: // d
         controls.emit('command', 'moveRight', false)
         break
+        
+      case 32: // space
+        controls.emit('command', 'wantsJump', false)
+        break;
     }
   };
 
@@ -1085,10 +1088,10 @@ function distance (a, b) {
 
 });
 
-require.define("/node_modules/voxel/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/voxel/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/voxel/index.js",function(require,module,exports,__dirname,__filename,process,global){var chunker = require('./chunker')
+require.define("/js/voxel-engine/node_modules/voxel/index.js",function(require,module,exports,__dirname,__filename,process,global){var chunker = require('./chunker')
 
 module.exports = function(opts) {
   if (!opts.generateVoxelChunk) opts.generateVoxelChunk = function(low, high) {
@@ -1185,7 +1188,7 @@ module.exports.generateExamples = function() {
 
 });
 
-require.define("/node_modules/voxel/chunker.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = function(opts) {
+require.define("/js/voxel-engine/node_modules/voxel/chunker.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = function(opts) {
   return new Chunker(opts)
 }
 
@@ -1281,7 +1284,7 @@ Chunker.prototype.voxelVector = function(pos) {
 
 });
 
-require.define("/node_modules/voxel/meshers/culled.js",function(require,module,exports,__dirname,__filename,process,global){//Naive meshing (with face culling)
+require.define("/js/voxel-engine/node_modules/voxel/meshers/culled.js",function(require,module,exports,__dirname,__filename,process,global){//Naive meshing (with face culling)
 function CulledMesh(volume, dims) {
   //Precalculate direction vectors for convenience
   var dir = new Array(3);
@@ -1334,7 +1337,7 @@ if(exports) {
 
 });
 
-require.define("/node_modules/voxel/meshers/greedy.js",function(require,module,exports,__dirname,__filename,process,global){var GreedyMesh = (function() {
+require.define("/js/voxel-engine/node_modules/voxel/meshers/greedy.js",function(require,module,exports,__dirname,__filename,process,global){var GreedyMesh = (function() {
 //Cache buffer internally
 var mask = new Int32Array(4096);
 
@@ -1435,7 +1438,7 @@ if(exports) {
 
 });
 
-require.define("/node_modules/voxel/meshers/monotone.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+require.define("/js/voxel-engine/node_modules/voxel/meshers/monotone.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
 
 var MonotoneMesh = (function(){
 
@@ -1689,7 +1692,7 @@ if(exports) {
 
 });
 
-require.define("/node_modules/voxel/meshers/stupid.js",function(require,module,exports,__dirname,__filename,process,global){//The stupidest possible way to generate a Minecraft mesh (I think)
+require.define("/js/voxel-engine/node_modules/voxel/meshers/stupid.js",function(require,module,exports,__dirname,__filename,process,global){//The stupidest possible way to generate a Minecraft mesh (I think)
 function StupidMesh(volume, dims) {
   var vertices = [], faces = [], x = [0,0,0], n = 0;
   for(x[2]=0; x[2]<dims[2]; ++x[2])
@@ -1726,10 +1729,10 @@ if(exports) {
 
 });
 
-require.define("/node_modules/voxel-mesh/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/voxel-mesh/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/voxel-mesh/index.js",function(require,module,exports,__dirname,__filename,process,global){var THREE = require('three')
+require.define("/js/voxel-engine/node_modules/voxel-mesh/index.js",function(require,module,exports,__dirname,__filename,process,global){var THREE = require('three')
 
 module.exports = function(data, scaleFactor, mesher) {
   return new Mesh(data, scaleFactor, mesher)
@@ -38367,10 +38370,10 @@ if (typeof exports !== 'undefined') {
 
 });
 
-require.define("/node_modules/interact/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/interact/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/interact/index.js",function(require,module,exports,__dirname,__filename,process,global){var lock = require('pointer-lock')
+require.define("/js/voxel-engine/node_modules/interact/index.js",function(require,module,exports,__dirname,__filename,process,global){var lock = require('pointer-lock')
   , drag = require('drag-stream')
   , full = require('fullscreen')
 
@@ -38478,10 +38481,10 @@ function usedrag(el) {
 
 });
 
-require.define("/node_modules/interact/node_modules/pointer-lock/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/interact/node_modules/pointer-lock/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/interact/node_modules/pointer-lock/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = pointer
+require.define("/js/voxel-engine/node_modules/interact/node_modules/pointer-lock/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = pointer
 
 pointer.available = available
 
@@ -39303,10 +39306,10 @@ exports.format = function(f) {
 
 });
 
-require.define("/node_modules/interact/node_modules/drag-stream/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/interact/node_modules/drag-stream/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/interact/node_modules/drag-stream/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = dragstream
+require.define("/js/voxel-engine/node_modules/interact/node_modules/drag-stream/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = dragstream
 
 var Stream = require('stream')
   , read = require('domnode-dom').createReadStream
@@ -39375,14 +39378,14 @@ function dragstream(el) {
 
 });
 
-require.define("/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = require('./lib/index')
+require.define("/js/voxel-engine/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = require('./lib/index')
 
 });
 
-require.define("/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/lib/index.js",function(require,module,exports,__dirname,__filename,process,global){var WriteStream = require('./writable')
+require.define("/js/voxel-engine/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/lib/index.js",function(require,module,exports,__dirname,__filename,process,global){var WriteStream = require('./writable')
   , ReadStream = require('./readable')
   , DOMStream = {}
 
@@ -39421,7 +39424,7 @@ module.exports = DOMStream
 
 });
 
-require.define("/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/lib/writable.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = DOMStream
+require.define("/js/voxel-engine/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/lib/writable.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = DOMStream
 
 var Stream = require('stream').Stream
 
@@ -39500,7 +39503,7 @@ proto.constructTextPlain = function(data) {
 
 });
 
-require.define("/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/lib/readable.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = DOMStream
+require.define("/js/voxel-engine/node_modules/interact/node_modules/drag-stream/node_modules/domnode-dom/lib/readable.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = DOMStream
 
 var Stream = require('stream').Stream
 
@@ -39610,10 +39613,10 @@ function valueFromElement(el) {
 
 });
 
-require.define("/node_modules/interact/node_modules/drag-stream/node_modules/through/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/interact/node_modules/drag-stream/node_modules/through/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/interact/node_modules/drag-stream/node_modules/through/index.js",function(require,module,exports,__dirname,__filename,process,global){var Stream = require('stream')
+require.define("/js/voxel-engine/node_modules/interact/node_modules/drag-stream/node_modules/through/index.js",function(require,module,exports,__dirname,__filename,process,global){var Stream = require('stream')
 
 // through
 //
@@ -39714,10 +39717,10 @@ function through (write, end) {
 
 });
 
-require.define("/node_modules/interact/node_modules/fullscreen/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/interact/node_modules/fullscreen/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/interact/node_modules/fullscreen/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = fullscreen
+require.define("/js/voxel-engine/node_modules/interact/node_modules/fullscreen/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = fullscreen
 fullscreen.available = available
 
 var EE = require('events').EventEmitter
@@ -39809,7 +39812,7 @@ function shim(el) {
 
 });
 
-require.define("/lib/detector.js",function(require,module,exports,__dirname,__filename,process,global){/**
+require.define("/js/voxel-engine/lib/detector.js",function(require,module,exports,__dirname,__filename,process,global){/**
  * @author alteredq / http://alteredqualia.com/
  * @author mr.doob / http://mrdoob.com/
  */
@@ -39871,7 +39874,7 @@ module.exports = function() {
 
 });
 
-require.define("/lib/stats.js",function(require,module,exports,__dirname,__filename,process,global){/**
+require.define("/js/voxel-engine/lib/stats.js",function(require,module,exports,__dirname,__filename,process,global){/**
  * @author mrdoob / http://mrdoob.com/
  */
 
@@ -40049,10 +40052,13 @@ function PlayerPhysics(camera, opts) {
   this.enabled = false
   
   this.speed = {
-    jump: (opts.jump || 6),
-    move: (opts.move || 0.12),
+    jump: (opts.jump || 3.25),
+    move: (opts.move || 0.2),
     fall: (opts.fall || 0.3),
   }
+  
+  this.jumpTime = 250
+  this.jumpRemaining = 0
 
   this.pitchObject = opts.pitchObject || new THREE.Object3D()
   if (camera) this.pitchObject.add( camera )
@@ -40074,17 +40080,13 @@ function PlayerPhysics(camera, opts) {
     'z+': true,
     'z-': true
   }
-  this.canJump = false
+  
+  this.wantsJump = false
   this.gravityEnabled = true
   
   this.velocity = opts.velocityObject || new THREE.Vector3()
 
   this.on('command', function(command, setting) {
-    if (command === 'jump') {
-      if ( self.canJump === true) self.velocity.y += self.speed.jump
-      self.canJump = false
-      return
-    }
     self[command] = setting
   })  
 }
@@ -40120,7 +40122,15 @@ PlayerPhysics.prototype.tick = function (delta, cb) {
   this.velocity.x += (-this.velocity.x) * 0.08 * delta
   this.velocity.z += (-this.velocity.z) * 0.08 * delta
 
-  if (this.gravityEnabled) this.velocity.y -= this.speed.fall * delta
+  if (this.freedom['y-']) this.wantsJump = false
+  if (this.wantsJump && this.jumpRemaining <= 0) this.jumpRemaining = this.jumpTime
+  if (this.jumpRemaining > 0) this.jumpRemaining -= delta * 100
+  if (this.jumpRemaining > 0) {
+    this.velocity.y += this.speed.jump * delta
+  } else {
+    this.jumpRemaining = 0
+    if (this.gravityEnabled) this.velocity.y -= this.speed.fall * delta
+  }
 
   if (this.moveForward) this.velocity.z -= this.speed.move * delta
   if (this.moveBackward) this.velocity.z += this.speed.move * delta
@@ -40130,21 +40140,20 @@ PlayerPhysics.prototype.tick = function (delta, cb) {
   
   if (!this.freedom['x-']) this.velocity.x = Math.max(0, this.velocity.x)
   if (!this.freedom['x+']) this.velocity.x = Math.min(0, this.velocity.x)
-  if (!this.freedom['y-']) this.velocity.y = Math.max(0, this.velocity.y)
+  if (!this.freedom['y-']) this.velocity.y = Math.max(-0.0001, this.velocity.y)
   if (!this.freedom['y+']) this.velocity.y = Math.min(0, this.velocity.y)
   if (!this.freedom['z-']) this.velocity.z = Math.max(0, this.velocity.z)
   if (!this.freedom['z+']) this.velocity.z = Math.min(0, this.velocity.z)
-  if (!this.freedom['y-']) this.canJump = true
   
   if (cb) cb(this)
 }
 
 });
 
-require.define("/node_modules/inherits/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"./inherits.js"}
+require.define("/node_modules/player-physics/node_modules/inherits/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"./inherits.js"}
 });
 
-require.define("/node_modules/inherits/inherits.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = inherits
+require.define("/node_modules/player-physics/node_modules/inherits/inherits.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = inherits
 
 function inherits (c, p, proto) {
   proto = proto || {}
@@ -40176,10 +40185,10 @@ function inherits (c, p, proto) {
 
 });
 
-require.define("/node_modules/raf/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/raf/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/raf/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = raf
+require.define("/js/voxel-engine/node_modules/raf/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = raf
 
 var EE = require('events').EventEmitter
   , global = typeof window === 'undefined' ? this : window
@@ -40227,10 +40236,45 @@ raf.now = function() { return Date.now() }
 
 });
 
-require.define("/node_modules/collide-3d-tilemap/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/inherits/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"./inherits.js"}
 });
 
-require.define("/node_modules/collide-3d-tilemap/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = function(field, tilesize, dimensions, offset) {
+require.define("/js/voxel-engine/node_modules/inherits/inherits.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = inherits
+
+function inherits (c, p, proto) {
+  proto = proto || {}
+  var e = {}
+  ;[c.prototype, proto].forEach(function (s) {
+    Object.getOwnPropertyNames(s).forEach(function (k) {
+      e[k] = Object.getOwnPropertyDescriptor(s, k)
+    })
+  })
+  c.prototype = Object.create(p.prototype, e)
+  c.super = p
+}
+
+//function Child () {
+//  Child.super.call(this)
+//  console.error([this
+//                ,this.constructor
+//                ,this.constructor === Child
+//                ,this.constructor.super === Parent
+//                ,Object.getPrototypeOf(this) === Child.prototype
+//                ,Object.getPrototypeOf(Object.getPrototypeOf(this))
+//                 === Parent.prototype
+//                ,this instanceof Child
+//                ,this instanceof Parent])
+//}
+//function Parent () {}
+//inherits(Child, Parent)
+//new Child
+
+});
+
+require.define("/js/voxel-engine/node_modules/collide-3d-tilemap/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+});
+
+require.define("/js/voxel-engine/node_modules/collide-3d-tilemap/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = function(field, tilesize, dimensions, offset) {
   dimensions = dimensions || [ 
     Math.sqrt(field.length) >> 0
   , Math.sqrt(field.length) >> 0
@@ -40320,10 +40364,10 @@ require.define("/node_modules/collide-3d-tilemap/index.js",function(require,modu
 
 });
 
-require.define("/node_modules/aabb-3d/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/js/voxel-engine/node_modules/aabb-3d/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/aabb-3d/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = AABB
+require.define("/js/voxel-engine/node_modules/aabb-3d/index.js",function(require,module,exports,__dirname,__filename,process,global){module.exports = AABB
 
 var vec3 = require('gl-matrix').vec3
 
@@ -40423,10 +40467,10 @@ proto.union = function(aabb) {
 
 });
 
-require.define("/node_modules/aabb-3d/node_modules/gl-matrix/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"dist/gl-matrix.js"}
+require.define("/js/voxel-engine/node_modules/aabb-3d/node_modules/gl-matrix/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"dist/gl-matrix.js"}
 });
 
-require.define("/node_modules/aabb-3d/node_modules/gl-matrix/dist/gl-matrix.js",function(require,module,exports,__dirname,__filename,process,global){/**
+require.define("/js/voxel-engine/node_modules/aabb-3d/node_modules/gl-matrix/dist/gl-matrix.js",function(require,module,exports,__dirname,__filename,process,global){/**
  * @fileoverview gl-matrix - High performance matrix and vector operations
  * @author Brandon Jones
  * @author Colin MacKenzie IV
@@ -43500,10 +43544,10 @@ if(typeof(exports) !== 'undefined') {
 
 });
 
-require.define("/node_modules/voxel-texture/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {}
+require.define("/js/voxel-engine/node_modules/voxel-texture/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {}
 });
 
-require.define("/node_modules/voxel-texture/index.js",function(require,module,exports,__dirname,__filename,process,global){function Texture(names, opts) {
+require.define("/js/voxel-engine/node_modules/voxel-texture/index.js",function(require,module,exports,__dirname,__filename,process,global){function Texture(names, opts) {
   if (!(this instanceof Texture)) return new Texture(names, opts);
   opts = opts || {};
   if (!isArray(name)) {
@@ -43613,10 +43657,10 @@ function isArray(ar) {
 
 });
 
-require.define("/node_modules/voxel-texture/node_modules/three/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"./three.js"}
+require.define("/js/voxel-engine/node_modules/voxel-texture/node_modules/three/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"./three.js"}
 });
 
-require.define("/node_modules/voxel-texture/node_modules/three/three.js",function(require,module,exports,__dirname,__filename,process,global){
+require.define("/js/voxel-engine/node_modules/voxel-texture/node_modules/three/three.js",function(require,module,exports,__dirname,__filename,process,global){
 var window = window || {};
 var self = self || {};
 /**
@@ -79423,10 +79467,10 @@ if (typeof exports !== 'undefined') {
 
 });
 
-require.define("/node_modules/toolbar/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {}
+require.define("/js/voxel-engine/node_modules/toolbar/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {}
 });
 
-require.define("/node_modules/toolbar/index.js",function(require,module,exports,__dirname,__filename,process,global){var keymaster = require('./lib/keymaster.js')
+require.define("/js/voxel-engine/node_modules/toolbar/index.js",function(require,module,exports,__dirname,__filename,process,global){var keymaster = require('./lib/keymaster.js')
 var inherits = require('inherits')
 var events = require('events')
 
@@ -79606,7 +79650,7 @@ HUD.prototype.switchToolbar = function(num) {
 }
 });
 
-require.define("/node_modules/toolbar/lib/keymaster.js",function(require,module,exports,__dirname,__filename,process,global){//     keymaster.js
+require.define("/js/voxel-engine/node_modules/toolbar/lib/keymaster.js",function(require,module,exports,__dirname,__filename,process,global){//     keymaster.js
 //     (c) 2011-2012 Thomas Fuchs
 //     keymaster.js may be freely distributed under the MIT license.
 
@@ -79834,10 +79878,10 @@ require.define("/node_modules/toolbar/lib/keymaster.js",function(require,module,
 })(this);
 });
 
-require.define("/node_modules/minecraft-skin/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {}
+require.define("/js/voxel-engine/node_modules/minecraft-skin/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {}
 });
 
-require.define("/node_modules/minecraft-skin/index.js",function(require,module,exports,__dirname,__filename,process,global){var THREE
+require.define("/js/voxel-engine/node_modules/minecraft-skin/index.js",function(require,module,exports,__dirname,__filename,process,global){var THREE
 
 module.exports = function(three, image, sizeRatio) {
   return new Skin(three, image, sizeRatio)
@@ -80169,7 +80213,7 @@ Skin.prototype.createPlayerObject = function(scene) {
 }
 });
 
-require.define("/demo/demo.js",function(require,module,exports,__dirname,__filename,process,global){var createGame = require('../lib/game')
+require.define("/js/voxel-engine/demo/demo.js",function(require,module,exports,__dirname,__filename,process,global){var createGame = require('../lib/game')
 var THREE = require('three')
 var voxel = require('voxel')
 var toolbar = require('toolbar')
@@ -80184,8 +80228,7 @@ window.game = createGame({
   chunkSize: 32,
   chunkDistance: 2,
   startingPosition: [35, 350, 35],
-  worldOrigin: [0,0,0],
-  controlOptions: {jump: 6}
+  worldOrigin: [0,0,0]
 })
 
 var maxogden = skin(game.THREE, 'maxogden.png').createPlayerObject()
@@ -80284,5 +80327,5 @@ container.addEventListener('click', function() {
 })
 
 });
-require("/demo/demo.js");
+require("/js/voxel-engine/demo/demo.js");
 })();
