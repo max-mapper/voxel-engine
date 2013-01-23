@@ -14,7 +14,7 @@ window.game = createGame({
   chunkDistance: 2,
   startingPosition: [35, 350, 35],
   worldOrigin: [0,0,0],
-  controlOptions: {jump: 6}
+  controlOptions: {jump: 10}
 })
 
 var maxogden = skin(game.THREE, 'maxogden.png').createPlayerObject()
