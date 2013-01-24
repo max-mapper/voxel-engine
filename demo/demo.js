@@ -4,6 +4,7 @@ var voxel = require('voxel')
 var toolbar = require('toolbar')
 var blockSelector = toolbar({el: '#tools'})
 var skin = require('minecraft-skin')
+var aabb = require('aabb-3d')
 
 window.game = createGame({
   generate: voxel.generator['Valley'],
@@ -110,3 +111,27 @@ var container = document.querySelector('#container')
 container.addEventListener('click', function() {
   game.requestPointerLock(container)
 })
+
+var All = aabb([-Infinity, -Infinity, -Infinity], [Infinity, Infinity, Infinity])
+  , pre = document.createElement('pre')
+  , inBox = false
+  , pos
+
+document.querySelector('.tally').appendChild(pre)
+
+game.on('tick', function() {
+  if(!pos) return
+
+  pre.innerText = pre.textContents = (inBox ? 'in trigger: ' : '') + pos.x.toFixed(2) + ', ' + pos.y.toFixed(2) + ', ' + pos.z.toFixed(2)
+  inBox = false 
+})
+
+game.spatial.on('position', All, function(p) {
+  pos = p 
+})
+
+game.spatial.on('position', aabb([-40, 0, -40], [80, 80, 80]), function() {
+  inBox = true
+})
+
+
