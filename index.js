@@ -11,7 +11,6 @@ var playerPhysics = require('player-physics')
 var requestAnimationFrame = require('raf')
 var collisions = require('collide-3d-tilemap')
 var aabb = require('aabb-3d')
-var defaultTextures = require('painterly-textures')
 var SpatialEventEmitter = require('spatial-events')
 
 var AXISES = ['x', 'y', 'z']
@@ -38,7 +37,7 @@ function Game(opts) {
     }
   }
   this.THREE = THREE
-  this.texturePath = opts.texturePath || defaultTextures(__dirname)
+  this.texturePath = opts.texturePath || './textures/'
   this.cubeSize = opts.cubeSize || 25
   this.chunkSize = opts.chunkSize || 32
   this.chunkDistance = opts.chunkDistance || 2
