@@ -1,29 +1,20 @@
 {
-  "name": "voxel-engine",
-  "main": "lib/game.js",
-  "version": "0.3.3",
+  "name": "voxel-hello-world",
+  "version": "0.0.1",
   "repository": {
     "type":"git",
-    "url": "git@github.com:maxogden/voxel-engine.git"
+    "url": "git@github.com:maxogden/voxel-hello-world.git"
   },
   "dependencies": {
-    "voxel": "0.1.1",
-    "voxel-mesh": "0.1.0",
-    "inherits": "1.0.0",
-    "player-physics": "0.0.10",
-    "three": "0.54.0",
-    "raf": "0.0.1",
-    "interact": "0.0.2",
-    "toolbar": "0.0.2",
-    "voxel-texture": "0.2.2",
-    "collide-3d-tilemap": "0.0.1",
-    "aabb-3d": "0.0.0"
+    "voxel-engine": "0.3.5",
+    "minecraft-skin": "0.0.1",
+    "painterly-textures": "git://github.com/maxogden/painterly-textures.git#relative",
+    "voxel-debris": "0.0.4"
   },
   "devDependencies": {
-    "minecraft-skin": "0.0.1",
-    "browservefy": "0.0.0"
+    "browservefy": "0.0.1"
   },
   "scripts": {
-    "start": "echo \"open localhost:8080/\" && cd demo && ../node_modules/.bin/browservefy demo.js 8080 -- -d"
+    "start": "echo \"open localhost:8080/\" && ./node_modules/.bin/browservefy index.js 8080 -- -d"
   }
 }
