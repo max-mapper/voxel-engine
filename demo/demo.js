@@ -5,6 +5,7 @@ var toolbar = require('toolbar')
 var blockSelector = toolbar({el: '#tools'})
 var skin = require('minecraft-skin')
 var aabb = require('aabb-3d')
+var trigger = require('spatial-trigger')
 
 window.game = createGame({
   generate: voxel.generator['Valley'],
@@ -112,26 +113,11 @@ container.addEventListener('click', function() {
   game.requestPointerLock(container)
 })
 
-var All = aabb([-Infinity, -Infinity, -Infinity], [Infinity, Infinity, Infinity])
+var trigger = require('spatial-trigger')
   , pre = document.createElement('pre')
-  , inBox = false
-  , pos
 
 document.querySelector('.tally').appendChild(pre)
 
-game.on('tick', function() {
-  if(!pos) return
-
-  pre.innerText = pre.textContents = (inBox ? 'in trigger: ' : '') + pos.x.toFixed(2) + ', ' + pos.y.toFixed(2) + ', ' + pos.z.toFixed(2)
-  inBox = false 
-})
-
-game.spatial.on('position', All, function(p) {
-  pos = p 
-})
-
-game.spatial.on('position', aabb([-40, 0, -40], [80, 80, 80]), function() {
-  inBox = true
-})
-
-
+trigger(game.spatial, aabb([-40, 0, -40], [80, 80, 80]))
+  .on('enter', function() { pre.innerHTML = 'in trigger: '+Date.now() })
+  .on('exit', function() { pre.innerHTML = 'leave trigger: '+Date.now() })
