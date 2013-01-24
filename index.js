@@ -12,6 +12,9 @@ var requestAnimationFrame = require('raf')
 var collisions = require('collide-3d-tilemap')
 var aabb = require('aabb-3d')
 var defaultTextures = require('painterly-textures')
+var SpatialEventEmitter = require('spatial-events')
+
+var AXISES = ['x', 'y', 'z']
 
 module.exports = Game
 
@@ -64,6 +67,7 @@ function Game(opts) {
     [Infinity, Infinity, Infinity],
     [-Infinity, -Infinity, -Infinity]
   )
+  this.spatial = new SpatialEventEmitter
 
   // client side only
   if (process.browser) {
@@ -523,8 +527,10 @@ Game.prototype.createBlock = function(pos, val) {
   var newBlock = this.checkBlock(pos)
   if (!newBlock) return
   var chunk = this.voxels.chunks[newBlock.chunkIndex]
+  var old = chunk.voxels[this.voxels.voxelIndex(newBlock.voxelVector)]
   chunk.voxels[this.voxels.voxelIndex(newBlock.voxelVector)] = val
   this.showChunk(chunk)
+  this.spatial.emit('change-block', [pos.x, pos.y, pos.z], pos, old, val)
   return true
 }
 
@@ -532,6 +538,8 @@ Game.prototype.setBlock = function(pos, val) {
   var hitVoxel = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
   this.showChunk(this.voxels.chunks[c.join('|')])
+
+  this.spatial.emit('change-block', [pos.x, pos.y, pos.z], pos, hitVoxel, val)
 }
 
 Game.prototype.getBlock = function(pos) {
@@ -573,9 +581,10 @@ Game.prototype.playerAABB = function(position) {
 }
 
 Game.prototype.updatePlayerPhysics = function(bbox, controls) {
+  var self = this
   var pos = controls.yawObject.position
   var yaw = controls.yawObject
-  var size = this.cubeSize
+  var size = self.cubeSize
 
   var base = [ pos.x, pos.y, pos.z ]
   
@@ -603,12 +612,17 @@ Game.prototype.updatePlayerPhysics = function(bbox, controls) {
 
   controls.freedom['y-'] = true
 
-  this.collideVoxels(bbox, worldVector, function(axis, tile, coords, dir, edgeVector) {
+  self.collideVoxels(bbox, worldVector, function(axis, tile, coords, dir, edgeVector) {
     if (tile) {
       worldVector[axis] = edgeVector
       if (axis === 1 && dir === -1) {
         controls.freedom['y-'] = false
       }
+      self.spatial.emit(
+        'collide-'+AXISES[axis],
+        [worldVector[0] + base[0], worldVector[1] + base[1], worldVector[2] + base[2]],
+        tile, coords, dir
+      )
       return true
     }
   })  
@@ -616,6 +630,8 @@ Game.prototype.updatePlayerPhysics = function(bbox, controls) {
   var newLocation = new THREE.Vector3(
     worldVector[0] + base[0], worldVector[1] + base[1], worldVector[2] + base[2]
   )
+
+  self.spatial.emit('position', bbox, newLocation)
 
   pos.copy(newLocation)
 }
