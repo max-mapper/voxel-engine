@@ -1,7 +1,6 @@
 {
   "name": "voxel-engine",
-  "main": "lib/game.js",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "repository": {
     "type":"git",
     "url": "git@github.com:maxogden/voxel-engine.git"
@@ -17,13 +16,7 @@
     "toolbar": "0.0.2",
     "voxel-texture": "0.2.2",
     "collide-3d-tilemap": "0.0.1",
-    "aabb-3d": "0.0.0"
-  },
-  "devDependencies": {
-    "minecraft-skin": "0.0.1",
-    "browservefy": "0.0.0"
-  },
-  "scripts": {
-    "start": "echo \"open localhost:8080/\" && cd demo && ../node_modules/.bin/browservefy demo.js 8080 -- -d"
+    "aabb-3d": "0.0.0",
+    "painterly-textures": "0.0.3"
   }
 }

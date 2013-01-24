@@ -1,15 +1,17 @@
 var voxel = require('voxel')
 var voxelMesh = require('voxel-mesh')
-if (process.browser) var interact = require('interact')
-var Detector = require('./detector')
 var THREE = require('three')
-var Stats = require('./stats')
+var Stats = require('./lib/stats')
+var Detector = require('./lib/detector')
+var inherits = require('inherits')
+var path = require('path')
+var EventEmitter = require('events').EventEmitter
+if (process.browser) var interact = require('interact')
 var playerPhysics = require('player-physics')
 var requestAnimationFrame = require('raf')
-var inherits = require('inherits')
-var EventEmitter = require('events').EventEmitter
 var collisions = require('collide-3d-tilemap')
 var aabb = require('aabb-3d')
+var defaultTextures = require('painterly-textures')
 
 module.exports = Game
 
@@ -33,7 +35,7 @@ function Game(opts) {
     }
   }
   this.THREE = THREE
-  this.texturePath = opts.texturePath || './textures/'
+  this.texturePath = opts.texturePath || defaultTextures(__dirname)
   this.cubeSize = opts.cubeSize || 25
   this.chunkSize = opts.chunkSize || 32
   this.chunkDistance = opts.chunkDistance || 2
@@ -62,7 +64,8 @@ function Game(opts) {
     [Infinity, Infinity, Infinity],
     [-Infinity, -Infinity, -Infinity]
   )
-  // client side only (todo: use better pattern than this)
+
+  // client side only
   if (process.browser) {
     this.initializeRendering()
     Object.keys(this.voxels.chunks).map(function(chunkIndex) {
