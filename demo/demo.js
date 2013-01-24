@@ -4,6 +4,8 @@ var voxel = require('voxel')
 var toolbar = require('toolbar')
 var blockSelector = toolbar({el: '#tools'})
 var skin = require('minecraft-skin')
+var aabb = require('aabb-3d')
+var trigger = require('spatial-trigger')
 
 window.game = createGame({
   generate: voxel.generator['Valley'],
@@ -110,3 +112,12 @@ var container = document.querySelector('#container')
 container.addEventListener('click', function() {
   game.requestPointerLock(container)
 })
+
+var trigger = require('spatial-trigger')
+  , pre = document.createElement('pre')
+
+document.querySelector('.tally').appendChild(pre)
+
+trigger(game.spatial, aabb([-40, 0, -40], [80, 80, 80]))
+  .on('enter', function() { pre.innerHTML = 'in trigger: '+Date.now() })
+  .on('exit', function() { pre.innerHTML = 'leave trigger: '+Date.now() })

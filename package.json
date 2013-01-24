@@ -17,7 +17,9 @@
     "toolbar": "0.0.2",
     "voxel-texture": "0.2.2",
     "collide-3d-tilemap": "0.0.1",
-    "aabb-3d": "0.0.0"
+    "aabb-3d": "0.0.0",
+    "spatial-events": "0.0.0",
+    "spatial-trigger": "0.0.0"
   },
   "devDependencies": {
     "minecraft-skin": "0.0.1",
