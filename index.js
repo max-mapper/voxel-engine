@@ -292,14 +292,14 @@ Game.prototype.onMouseUp = function(e) {
   if (intersection) this.emit('mouseup', intersection, e)
 }
 
-Game.prototype.intersectAllMeshes = function(start, direction) {
+Game.prototype.intersectAllMeshes = function(start, direction, maxDistance) {
   var self = this
   var meshes = []
   Object.keys(self.voxels.meshes).map(function(key) {
     meshes.push(self.voxels.meshes[key][self.meshType])
   })
   var d = direction.subSelf(start).normalize()
-  var ray = new THREE.Raycaster(start, d)
+  var ray = new THREE.Raycaster(start, d, 0, maxDistance)
   var intersections = ray.intersectObjects( meshes )
   if (intersections.length === 0) return false
   var intersection = intersections[0]
@@ -311,10 +311,10 @@ Game.prototype.intersectAllMeshes = function(start, direction) {
   return p
 }
 
-Game.prototype.raycast = function() {
+Game.prototype.raycast = function(maxDistance) {
   var start = this.controls.yawObject.position.clone()
   var direction = this.camera.matrixWorld.multiplyVector3(new THREE.Vector3(0,0,-1))
-  var intersects = this.intersectAllMeshes(start, direction)
+  var intersects = this.intersectAllMeshes(start, direction, maxDistance)
   return intersects
 }
 
