@@ -1,5 +1,7 @@
 var voxel = require('voxel')
 var voxelMesh = require('voxel-mesh')
+var voxelChunks = require('voxel-chunks')
+
 var THREE = require('three')
 var Stats = require('./lib/stats')
 var Detector = require('./lib/detector')
@@ -48,8 +50,11 @@ function Game(opts) {
   this.materialType = opts.materialType || THREE.MeshLambertMaterial
   this.materialParams = opts.materialParams || {}
   this.items = []
+  
   this.voxels = voxel(this)
   this.voxels.generateMissingChunks(this.worldOrigin)
+  this.chunkGroups = voxelChunks(this)
+  
   this.height = typeof window === "undefined" ? 1 : window.innerHeight
   this.width = typeof window === "undefined" ? 1 : window.innerWidth
   this.scene = new THREE.Scene()
@@ -294,17 +299,21 @@ Game.prototype.onMouseUp = function(e) {
 
 Game.prototype.intersectAllMeshes = function(start, direction) {
   var self = this
-  var meshes = []
-  Object.keys(self.voxels.meshes).map(function(key) {
-    meshes.push(self.voxels.meshes[key][self.meshType])
-  })
+  var meshes = Object.keys(self.voxels.meshes).map(function(key) {
+    return self.voxels.meshes[key][self.meshType]
+  }).concat(self.chunkGroups.meshes)
+  
   var d = direction.subSelf(start).normalize()
   var ray = new THREE.Raycaster(start, d)
-  var intersections = ray.intersectObjects( meshes )
+  var intersections = ray.intersectObjects(meshes)
   if (intersections.length === 0) return false
-  var intersection = intersections[0]
+  
+  var dists = intersections.map(function (i) { return i.distance })
+  var inter = intersections[dists.indexOf(Math.min.apply(null, dists))]
+  
   var p = new THREE.Vector3()
-  p.copy(intersection.point)
+  p.copy(inter.point)
+  p.intersection = inter
   p.x += d.x
   p.y += d.y
   p.z += d.z
