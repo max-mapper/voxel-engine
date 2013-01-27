@@ -649,11 +649,13 @@ Game.prototype.bindWASD = function (controls) {
     switch ( event.keyCode ) {
       case 38: // up
       case 87: // w
+      case 90: // z
         controls.emit('command', 'moveForward', true)
         break
 
       case 37: // left
       case 65: // a
+      case 81: // q
         controls.emit('command', 'moveLeft', true)
         break
 
@@ -677,11 +679,13 @@ Game.prototype.bindWASD = function (controls) {
     switch( event.keyCode ) {
       case 38: // up
       case 87: // w
+      case 90: // z
         controls.emit('command', 'moveForward', false)
         break
 
       case 37: // left
       case 65: // a
+      case 81: // q
         controls.emit('command', 'moveLeft', false)
         break
 
