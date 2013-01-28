@@ -314,6 +314,11 @@ Game.prototype.intersectAllMeshes = function(start, direction) {
   var p = new THREE.Vector3()
   p.copy(inter.point)
   p.intersection = inter
+  p.direction = d
+  
+  var cm = self.chunkGroups.chunkMatricies[inter.object.id]
+  if (cm) p.chunkMatrix = cm
+  
   p.x += d.x
   p.y += d.y
   p.z += d.z
@@ -532,6 +537,10 @@ Game.prototype.checkBlock = function(pos) {
 }
 
 Game.prototype.createBlock = function(pos, val) {
+  if (pos.chunkMatrix) {
+    return this.chunkGroups.createBlock(pos, val);
+  }
+  
   var newBlock = this.checkBlock(pos)
   if (!newBlock) return
   var chunk = this.voxels.chunks[newBlock.chunkIndex]
@@ -543,6 +552,10 @@ Game.prototype.createBlock = function(pos, val) {
 }
 
 Game.prototype.setBlock = function(pos, val) {
+  if (pos.chunkMatrix) {
+    return this.chunkGroups.setBlock(pos, val);
+  }
+  
   var hitVoxel = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
   this.showChunk(this.voxels.chunks[c.join('|')])
