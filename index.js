@@ -546,7 +546,7 @@ Game.prototype.checkBlock = function(pos) {
 
 Game.prototype.createBlock = function(pos, val) {
   if (pos.chunkMatrix) {
-    return this.chunkGroups.createBlock(pos, val);
+    return this.chunkGroups.createBlock(pos, val)
   }
   
   var newBlock = this.checkBlock(pos)
@@ -561,7 +561,7 @@ Game.prototype.createBlock = function(pos, val) {
 
 Game.prototype.setBlock = function(pos, val) {
   if (pos.chunkMatrix) {
-    return this.chunkGroups.setBlock(pos, val);
+    return this.chunkGroups.setBlock(pos, val)
   }
   
   var hitVoxel = this.voxels.voxelAtPosition(pos, val)
@@ -572,6 +572,9 @@ Game.prototype.setBlock = function(pos, val) {
 }
 
 Game.prototype.getBlock = function(pos) {
+  if (pos.chunkMatrix) {
+    return this.chunkGroups.getBlock(pos)
+  }
   return this.voxels.voxelAtPosition(pos)
 }
 
