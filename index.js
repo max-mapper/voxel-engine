@@ -739,9 +739,13 @@ Game.prototype.tick = function(delta) {
   })
   this.items.forEach(function (item) { item.tick(delta) })
   this.emit('tick', delta)
-  this.renderer.render(this.scene, this.camera)
+  this.render(delta)
   stats.update()
 }
+
+Game.prototype.render = function(delta) {
+  this.renderer.render(this.scene, this.camera)
+};
 
 function distance (a, b) {
   var x = a.x - b.x
