@@ -1,7 +1,7 @@
 {
   "name": "voxel-engine",
   "description": "make games with voxel.js",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "repository": {
     "type":"git",
     "url": "git@github.com:maxogden/voxel-engine.git"
@@ -9,7 +9,7 @@
   "dependencies": {
     "voxel": "0.1.1",
     "voxel-mesh": "0.1.0",
-    "voxel-chunks": "0.0.0",
+    "voxel-chunks": "0.0.1",
     "inherits": "1.0.0",
     "player-physics": "0.1.0",
     "three": "0.54.0",
