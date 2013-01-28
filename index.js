@@ -745,7 +745,7 @@ Game.prototype.tick = function(delta) {
 
 Game.prototype.render = function(delta) {
   this.renderer.render(this.scene, this.camera)
-};
+}
 
 function distance (a, b) {
   var x = a.x - b.x
