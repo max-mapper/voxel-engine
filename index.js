@@ -1,7 +1,6 @@
 var voxel = require('voxel')
 var voxelMesh = require('voxel-mesh')
 var voxelChunks = require('voxel-chunks')
-
 var THREE = require('three')
 var Stats = require('./lib/stats')
 var Detector = require('./lib/detector')
@@ -14,7 +13,7 @@ var requestAnimationFrame = require('raf')
 var collisions = require('collide-3d-tilemap')
 var aabb = require('aabb-3d')
 var SpatialEventEmitter = require('spatial-events')
-
+var regionChange = require('voxel-region-change')
 var AXISES = ['x', 'y', 'z']
 
 module.exports = Game
@@ -24,6 +23,59 @@ function Game(opts) {
   var self = this
   if (!opts) opts = {}
   if (process.browser && this.notCapable()) return
+  if (!opts.generateChunks) opts.generateChunks = true
+  this.generateChunks = opts.generateChunks
+  this.setConfigurablePositions(opts)
+  this.configureChunkLoading(opts)
+  this.THREE = THREE
+  this.texturePath = opts.texturePath || './textures/'
+  this.cubeSize = opts.cubeSize || 25
+  this.chunkSize = opts.chunkSize || 32
+  this.chunkDistance = opts.chunkDistance || 2
+  this.meshType = opts.meshType || 'surfaceMesh'
+  this.controlOptions = opts.controlOptions || {}
+  this.materials = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
+  this.materialType = opts.materialType || THREE.MeshLambertMaterial
+  this.materialParams = opts.materialParams || {}
+  this.items = []
+  this.voxels = voxel(this)
+  this.chunkGroups = voxelChunks(this)  
+  this.height = typeof window === "undefined" ? 1 : window.innerHeight
+  this.width = typeof window === "undefined" ? 1 : window.innerWidth
+  this.scene = new THREE.Scene()
+  this.camera = this.createCamera(this.scene)
+  this.controls = this.createControls()
+  if (!opts.lightsDisabled) this.addLights(this.scene)
+  if (!opts.controlsDisabled) this.bindWASD(this.controls)
+  if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( 0xffffff, 0.00025, this.worldWidth() )
+  this.moveToPosition(this.startingPosition)
+  this.collideVoxels = collisions(
+    this.getTileAtIJK.bind(this),
+    this.cubeSize,
+    [Infinity, Infinity, Infinity],
+    [-Infinity, -Infinity, -Infinity]
+  )
+  this.spatial = new SpatialEventEmitter()
+  this.region = regionChange(this.spatial, this.cubeSize, this.chunkSize)
+  
+  // client side only
+  if (process.browser) this.initializeRendering()
+  
+  if (this.generateChunks) {
+    self.voxels.on('missingChunk', function(x, y, z) {
+      var chunk = self.voxels.generateChunk(x, y, z)
+      self.showChunk(chunk)
+    })
+    this.voxels.requestMissingChunks(this.worldOrigin)
+  }
+  
+}
+
+inherits(Game, EventEmitter)
+
+Game.prototype.configureChunkLoading = function(opts) {
+  var self = this
+  if (!opts.generateChunks) return
   if (!opts.generate) {
     this.generate = function(x,y,z) {
       return x*x+y*y+z*z <= 15*15 ? 1 : 0 // sphere world
@@ -38,51 +90,7 @@ function Game(opts) {
       return voxel.generate(low, high, self.generate)
     }
   }
-  this.THREE = THREE
-  this.texturePath = opts.texturePath || './textures/'
-  this.cubeSize = opts.cubeSize || 25
-  this.chunkSize = opts.chunkSize || 32
-  this.chunkDistance = opts.chunkDistance || 2
-  this.setConfigurablePositions(opts)
-  this.meshType = opts.meshType || 'surfaceMesh'
-  this.controlOptions = opts.controlOptions || {}
-  this.materials = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
-  this.materialType = opts.materialType || THREE.MeshLambertMaterial
-  this.materialParams = opts.materialParams || {}
-  this.items = []
-  
-  this.voxels = voxel(this)
-  this.voxels.generateMissingChunks(this.worldOrigin)
-  this.chunkGroups = voxelChunks(this)
-  
-  this.height = typeof window === "undefined" ? 1 : window.innerHeight
-  this.width = typeof window === "undefined" ? 1 : window.innerWidth
-  this.scene = new THREE.Scene()
-  this.camera = this.createCamera(this.scene)
-  this.controls = this.createControls()
-  if (!opts.lightsDisabled) this.addLights(this.scene)
-  if (!opts.controlsDisabled) this.bindWASD(this.controls)
-  if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( 0xffffff, 0.00025, this.worldWidth() )
-  
-  this.moveToPosition(this.startingPosition)
-  this.collideVoxels = collisions(
-    this.getTileAtIJK.bind(this),
-    this.cubeSize,
-    [Infinity, Infinity, Infinity],
-    [-Infinity, -Infinity, -Infinity]
-  )
-  this.spatial = new SpatialEventEmitter
-
-  // client side only
-  if (process.browser) {
-    this.initializeRendering()
-    Object.keys(this.voxels.chunks).map(function(chunkIndex) {
-      self.showChunk(self.voxels.chunks[chunkIndex])
-    })
-  }
 }
-
-inherits(Game, EventEmitter)
 
 Game.prototype.worldWidth = function() {
   return this.chunkSize * 2 * this.chunkDistance * this.cubeSize

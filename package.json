@@ -1,15 +1,15 @@
 {
   "name": "voxel-engine",
   "description": "make games with voxel.js",
-  "version": "0.3.9",
+  "version": "0.4.0",
   "repository": {
     "type":"git",
     "url": "git@github.com:maxogden/voxel-engine.git"
   },
   "dependencies": {
-    "voxel": "0.1.1",
+    "voxel": "0.1.2",
     "voxel-mesh": "0.1.0",
-    "voxel-chunks": "0.0.1",
+    "voxel-chunks": "0.0.2",
     "inherits": "1.0.0",
     "player-physics": "0.1.0",
     "three": "0.54.0",
@@ -17,6 +17,7 @@
     "interact": "0.0.2",
     "toolbar": "0.0.2",
     "voxel-texture": "0.2.2",
+    "voxel-region-change": "0.0.1",
     "collide-3d-tilemap": "0.0.1",
     "aabb-3d": "0.0.0",
     "spatial-events": "0.0.1",
