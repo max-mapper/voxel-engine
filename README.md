@@ -40,6 +40,24 @@ Returns a new game instance. `options` defaults to:
 }
 ```
 
+## Game events
+
+There are a number of events you can listen to once you've instantiated a game. we use the node.js event emitter library which uses the following syntax for subscribing:
+
+`emitter.on('eventName', function(arg1, arg2, etc) {})`
+
+### game.on('tick', function(delta) {})
+
+emits every time the game renders (usually no more than 60 times a second). delta is the time in milliseconds between this render and the last render
+
+### game.voxelRegion.on('change', function(pos) {})
+
+emits when you move between voxels. pos has x, y, and z voxel coordinates of the voxel you just entered
+
+### game.chunkRegion.on('change', function(pos) {})
+
+emits when you move between chunks. pos has x, y, and z chunk coordinates of the chunk you just entered
+
 ## Generating voxel worlds
 
 Worlds have many chunks and chunks have many voxels. Chunks are cube shaped and are `chunkSize` x/y/z (default 32/32/32 - 32768 voxels per chunk). When the game starts it takes the `worldOrigin` and generates `chunkDistance` chunks in every x/y/z dimension (`chunkDistance` default of 2 means the game will render 2 chunks behind you, 2 in front etc for a total of 16 chunks.). 

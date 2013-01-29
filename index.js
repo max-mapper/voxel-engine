@@ -56,7 +56,8 @@ function Game(opts) {
     [-Infinity, -Infinity, -Infinity]
   )
   this.spatial = new SpatialEventEmitter()
-  this.region = regionChange(this.spatial, this.cubeSize, this.chunkSize)
+  this.voxelRegion = regionChange(this.spatial, this.cubeSize)
+  this.chunkRegion = regionChange(this.spatial, this.cubeSize * this.chunkSize)
   
   // client side only
   if (process.browser) this.initializeRendering()

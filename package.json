@@ -1,7 +1,7 @@
 {
   "name": "voxel-engine",
   "description": "make games with voxel.js",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "repository": {
     "type":"git",
     "url": "git@github.com:maxogden/voxel-engine.git"
@@ -17,7 +17,7 @@
     "interact": "0.0.2",
     "toolbar": "0.0.2",
     "voxel-texture": "0.2.2",
-    "voxel-region-change": "0.0.1",
+    "voxel-region-change": "0.0.2",
     "collide-3d-tilemap": "0.0.1",
     "aabb-3d": "0.0.0",
     "spatial-events": "0.0.1",
