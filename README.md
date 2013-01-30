@@ -36,7 +36,8 @@ Returns a new game instance. `options` defaults to:
   chunkDistance: 2,
   startingPosition: [35, 1024, 35],
   worldOrigin: [0,0,0],
-  controlOptions: {jump: 6}
+  controlOptions: {jump: 6},
+  controlLayout: 'qwerty'
 }
 ```
 

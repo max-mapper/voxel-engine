@@ -46,7 +46,7 @@ function Game(opts) {
   this.scene = new THREE.Scene()
   this.camera = this.createCamera(this.scene)
   this.controls = this.createControls()
-  if (!opts.lightsDisabled) { this.addLights(this.scene); }
+  if (!opts.lightsDisabled) this.addLights(this.scene)
   this.controlLayouts = {
     qwerty: {
       87: 'moveForward', //w
@@ -70,8 +70,8 @@ function Game(opts) {
       32: 'wantsJump', //space
     }
   }
-  this.playerControls = opts.playerControls || this.controlLayouts.qwerty;
-  if (!opts.controlsDisabled) { this.bindControls(this.controls); }
+  this.playerControls = opts.controlLayout ? this.controlLayouts[opts.controlLayout] : this.controlLayouts.qwerty
+  if (!opts.controlsDisabled) this.bindControls(this.controls)
   if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( 0xffffff, 0.00025, this.worldWidth() )
   this.moveToPosition(this.startingPosition)
   this.collideVoxels = collisions(
