@@ -63,8 +63,8 @@ function Game(opts) {
   if (process.browser) this.initializeRendering()
   
   if (this.generateChunks) {
-    self.voxels.on('missingChunk', function(x, y, z) {
-      var chunk = self.voxels.generateChunk(x, y, z)
+    self.voxels.on('missingChunk', function(chunkPos) {
+      var chunk = self.voxels.generateChunk(chunkPos[0], chunkPos[1], chunkPos[2])
       self.showChunk(chunk)
     })
     this.voxels.requestMissingChunks(this.worldOrigin)
@@ -161,6 +161,23 @@ Game.prototype.initializeRendering = function() {
   window.addEventListener('mousedown', this.onMouseDown.bind(this), false)
   window.addEventListener('mouseup', this.onMouseUp.bind(this), false)
   requestAnimationFrame(window).on('data', this.tick.bind(this))
+  this.chunkRegion.on('change', function(newChunk) {
+    self.removeFarChunks()
+  })
+}
+
+Game.prototype.removeFarChunks = function(playerPosition) {
+  var self = this
+  playerPosition = playerPosition || this.controls.yawObject.position
+  var nearbyChunks = this.voxels.nearbyChunks(playerPosition).map(function(chunkPos) {
+    return chunkPos.join('|')
+  })
+  Object.keys(self.voxels.chunks).map(function(chunkIndex) {
+    if (nearbyChunks.indexOf(chunkIndex) > -1) return
+    self.scene.remove(self.voxels.meshes[chunkIndex][self.meshType])
+    delete self.voxels.chunks[chunkIndex]
+  })
+  self.voxels.requestMissingChunks(playerPosition)
 }
 
 Game.prototype.parseVectorOption = function(vector) {
@@ -672,9 +689,10 @@ Game.prototype.updatePlayerPhysics = function(bbox, controls) {
     worldVector[0] + base[0], worldVector[1] + base[1], worldVector[2] + base[2]
   )
 
+  pos.copy(newLocation)
+
   self.spatial.emit('position', bbox, newLocation)
 
-  pos.copy(newLocation)
 }
 
 Game.prototype.bindWASD = function (controls) {
