@@ -18,6 +18,7 @@ var AXISES = ['x', 'y', 'z']
 
 module.exports = Game
 
+
 function Game(opts) {
   if (!(this instanceof Game)) return new Game(opts)
   var self = this
@@ -45,8 +46,32 @@ function Game(opts) {
   this.scene = new THREE.Scene()
   this.camera = this.createCamera(this.scene)
   this.controls = this.createControls()
-  if (!opts.lightsDisabled) this.addLights(this.scene)
-  if (!opts.controlsDisabled) this.bindWASD(this.controls)
+  if (!opts.lightsDisabled) { this.addLights(this.scene); }
+  this.controlLayouts = {
+    qwerty: {
+      87: 'moveForward', //w
+      65: 'moveLeft', //a
+      83: 'moveBackward', //s
+      68: 'moveRight', //d
+      32: 'wantsJump', //space
+    },
+    azerty: {
+      90: 'moveForward', //z
+      81: 'moveLeft', //q
+      83: 'moveBackward', //s
+      68: 'moveRight', //d
+      32: 'wantsJump', //space
+    },
+    dvorak: {
+      188: 'moveForward', //comma
+      65: 'moveLeft', //a
+      79: 'moveBackward', //o
+      69: 'moveRight', //e
+      32: 'wantsJump', //space
+    }
+  }
+  this.playerControls = opts.playerControls || this.controlLayouts.qwerty;
+  if (!opts.controlsDisabled) { this.bindControls(this.controls); }
   if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( 0xffffff, 0.00025, this.worldWidth() )
   this.moveToPosition(this.startingPosition)
   this.collideVoxels = collisions(
@@ -695,67 +720,17 @@ Game.prototype.updatePlayerPhysics = function(bbox, controls) {
 
 }
 
-Game.prototype.bindWASD = function (controls) {
+Game.prototype.bindControls = function (controls) {
   var self = this
   var onKeyDown = function ( event ) {
-    switch ( event.keyCode ) {
-      case 38: // up
-      case 87: // w
-      case 90: // z
-        controls.emit('command', 'moveForward', true)
-        break
-
-      case 37: // left
-      case 65: // a
-      case 81: // q
-        controls.emit('command', 'moveLeft', true)
-        break
-
-      case 40: // down
-      case 83: // s
-        controls.emit('command', 'moveBackward', true)
-        break
-
-      case 39: // right
-      case 68: // d
-        controls.emit('command', 'moveRight', true)
-        break
-
-      case 32: // space
-        controls.emit('command', 'wantsJump', true)
-        break;
-    }
+    var command = self.playerControls[event.keyCode];
+    if (command) { controls.emit('command', command, true); }
   }
 
   var onKeyUp = function ( event ) {
-    switch( event.keyCode ) {
-      case 38: // up
-      case 87: // w
-      case 90: // z
-        controls.emit('command', 'moveForward', false)
-        break
-
-      case 37: // left
-      case 65: // a
-      case 81: // q
-        controls.emit('command', 'moveLeft', false)
-        break
-
-      case 40: // down
-      case 83: // a
-        controls.emit('command', 'moveBackward', false)
-        break
-
-      case 39: // right
-      case 68: // d
-        controls.emit('command', 'moveRight', false)
-        break
-        
-      case 32: // space
-        controls.emit('command', 'wantsJump', false)
-        break;
-    }
-  };
+    var command = self.playerControls[event.keyCode];
+    if (command) { controls.emit('command', command, false); }
+  }
 
   document.addEventListener( 'keydown', onKeyDown, false )
   document.addEventListener( 'keyup', onKeyUp, false )
