@@ -23,7 +23,7 @@ function Game(opts) {
   var self = this
   if (!opts) opts = {}
   if (process.browser && this.notCapable()) return
-  if (!opts.generateChunks) opts.generateChunks = true
+  if (typeof(opts.generateChunks) === "undefined") {opts.generateChunks = true;}
   this.generateChunks = opts.generateChunks
   this.setConfigurablePositions(opts)
   this.configureChunkLoading(opts)
