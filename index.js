@@ -29,15 +29,11 @@ function Game(opts) {
   this.setConfigurablePositions(opts)
   this.configureChunkLoading(opts)
   this.THREE = THREE
-  this.texturePath = opts.texturePath || './textures/'
   this.cubeSize = opts.cubeSize || 25
   this.chunkSize = opts.chunkSize || 32
   this.chunkDistance = opts.chunkDistance || 2
   this.meshType = opts.meshType || 'surfaceMesh'
   this.controlOptions = opts.controlOptions || {}
-  this.materials = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
-  this.materialType = opts.materialType || THREE.MeshLambertMaterial
-  this.materialParams = opts.materialParams || {}
   this.items = []
   this.voxels = voxel(this)
   this.chunkGroups = voxelChunks(this)  
@@ -85,7 +81,16 @@ function Game(opts) {
   this.chunkRegion = regionChange(this.spatial, this.cubeSize * this.chunkSize)
   
   // client side only
-  if (process.browser) this.initializeRendering()
+  if (process.browser) {
+    this.materials = require('voxel-texture')({
+      THREE: THREE,
+      texturePath: opts.texturePath || './textures/',
+      materialType: opts.materialType || THREE.MeshLambertMaterial,
+      materialParams: opts.materialParams || {}
+    })
+    this.materials.load(opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt'])
+    this.initializeRendering()
+  }
   
   if (this.generateChunks) {
     self.voxels.on('missingChunk', function(chunkPos) {
@@ -173,13 +178,6 @@ Game.prototype.getChunkAtPosition = function(pos) {
 
 Game.prototype.initializeRendering = function() {
   var self = this
-  this._materialEngine = require('voxel-texture')({
-    texturePath: self.texturePath,
-    materialType: self.materialType,
-    materialParams: self.materialParams,
-    THREE: THREE
-  })
-  this.material = this.loadTextures(this.materials)
   this.renderer = this.createRenderer()
   if (!this.statsDisabled) this.addStats()
   window.addEventListener('resize', this.onWindowResize.bind(this), false)
@@ -389,14 +387,6 @@ Game.prototype.raycast = function(maxDistance) {
   var direction = this.camera.matrixWorld.multiplyVector3(new THREE.Vector3(0,0,-1))
   var intersects = this.intersectAllMeshes(start, direction, maxDistance)
   return intersects
-}
-
-Game.prototype.loadTextures = function (names, opts) {
-  return this._materialEngine.loadTextures(names, opts)
-}
-
-Game.prototype.applyTextures = function (geom) {
-  this._materialEngine.applyTextures(geom)
 }
 
 Game.prototype.createCamera = function() {
@@ -639,10 +629,10 @@ Game.prototype.showChunk = function(chunk) {
   if (this.voxels.meshes[chunkIndex]) this.scene.remove(this.voxels.meshes[chunkIndex][this.meshType])
   this.voxels.meshes[chunkIndex] = mesh
   if (this.meshType === 'wireMesh') mesh.createWireMesh()
-  else mesh.createSurfaceMesh(this.material)
+  else mesh.createSurfaceMesh(new THREE.MeshFaceMaterial(this.materials.get()))
   mesh.setPosition(bounds[0][0] * cubeSize, bounds[0][1] * cubeSize, bounds[0][2] * cubeSize)
   mesh.addToScene(this.scene)
-  this.applyTextures(mesh.geometry)
+  this.materials.paint(mesh.geometry)
   this.items.forEach(function (item) { item.resting = false })
   return mesh
 }
