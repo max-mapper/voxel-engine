@@ -95,7 +95,7 @@ function Game(opts) {
   if (this.generateChunks) {
     self.voxels.on('missingChunk', function(chunkPos) {
       var chunk = self.voxels.generateChunk(chunkPos[0], chunkPos[1], chunkPos[2])
-      self.showChunk(chunk)
+      if (process.browser) self.showChunk(chunk)
     })
     this.voxels.requestMissingChunks(this.worldOrigin)
   }
