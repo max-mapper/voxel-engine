@@ -34,7 +34,7 @@ function Game(opts) {
   this.chunkDistance = opts.chunkDistance || 2
   this.meshType = opts.meshType || 'surfaceMesh'
   this.controlOptions = opts.controlOptions || {}
-  this.mesher = opts.mesher || voxel.meshers.greedier
+  this.mesher = opts.mesher || voxel.meshers.greedy
   this.items = []
   this.voxels = voxel(this)
   this.chunkGroups = voxelChunks(this)  
