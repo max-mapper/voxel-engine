@@ -34,6 +34,7 @@ function Game(opts) {
   this.chunkDistance = opts.chunkDistance || 2
   this.meshType = opts.meshType || 'surfaceMesh'
   this.controlOptions = opts.controlOptions || {}
+  this.mesher = opts.mesher || voxel.meshers.greedy
   this.items = []
   this.voxels = voxel(this)
   this.chunkGroups = voxelChunks(this)  
@@ -619,12 +620,12 @@ Game.prototype.getBlock = function(pos) {
   return this.voxels.voxelAtPosition(pos)
 }
 
-Game.prototype.showChunk = function(chunk) {
+Game.prototype.showChunk = function(chunk, mesher) {
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
   var cubeSize = this.cubeSize
   var scale = new THREE.Vector3(cubeSize, cubeSize, cubeSize)
-  var mesh = voxelMesh(chunk, voxel.meshers.greedy, scale)
+  var mesh = voxelMesh(chunk, this.mesher, scale)
   this.voxels.chunks[chunkIndex] = chunk
   if (this.voxels.meshes[chunkIndex]) this.scene.remove(this.voxels.meshes[chunkIndex][this.meshType])
   this.voxels.meshes[chunkIndex] = mesh
