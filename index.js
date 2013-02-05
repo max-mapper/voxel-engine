@@ -32,6 +32,8 @@ function Game(opts) {
   this.cubeSize = opts.cubeSize || 25
   this.chunkSize = opts.chunkSize || 32
   this.chunkDistance = opts.chunkDistance || 2
+  this.playerHeight = opts.playerHeight || 1.62 // gets multiplied by cubeSize
+  
   this.meshType = opts.meshType || 'surfaceMesh'
   this.controlOptions = opts.controlOptions || {}
   this.mesher = opts.mesher || voxel.meshers.greedy
@@ -644,11 +646,11 @@ Game.prototype.playerAABB = function(position) {
 
   var bbox = aabb([
     pos.x - size / 4,
-    pos.y - size * 1.5,
+    pos.y - size * this.playerHeight,
     pos.z - size / 4
   ], [
     size / 2,
-    size * 1.5,
+    size * this.playerHeight,
     size / 2
   ])
   return bbox
