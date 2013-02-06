@@ -70,8 +70,10 @@ function Game(opts) {
     }
   }
   this.playerControls = opts.controlLayout ? this.controlLayouts[opts.controlLayout] : this.controlLayouts.qwerty
+  this.skyColor = opts.skyColor || 0xBFD1E5
+  this.fogScale = opts.fogScale || 1
   if (!opts.controlsDisabled) this.bindControls(this.controls)
-  if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( 0xffffff, 0.00025, this.worldWidth() )
+  if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( this.skyColor, 0.00025, this.worldWidth() * this.fogScale )
   this.moveToPosition(this.startingPosition)
   this.collideVoxels = collisions(
     this.getTileAtIJK.bind(this),
@@ -411,7 +413,7 @@ Game.prototype.createRenderer = function() {
     antialias: true
   })
   this.renderer.setSize(this.width, this.height)
-  this.renderer.setClearColorHex(0xBFD1E5, 1.0)
+  this.renderer.setClearColorHex(this.skyColor, 1.0)
   this.renderer.clear()
   this.element = this.renderer.domElement
   return this.renderer
