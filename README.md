@@ -4,6 +4,8 @@
 
 Learn more at http://voxeljs.com
 
+Write a voxel.js game in browser: http://voxel-creator.jit.su
+
 hello world code: http://github.com/maxogden/voxel-hello-world
 
 # example
@@ -11,11 +13,9 @@ hello world code: http://github.com/maxogden/voxel-hello-world
 ``` js
 var createGame = require('voxel-engine')
 var game = createGame()
-var container = document.querySelector('#container')
+var container = document.body
 game.appendTo(container)
-container.addEventListener('click', function() {
-  game.requestPointerLock(container)
-})
+container.setupPointerLock(container)
 ```
 
 # API
@@ -37,9 +37,35 @@ Returns a new game instance. `options` defaults to:
   startingPosition: [35, 1024, 35],
   worldOrigin: [0,0,0],
   controlOptions: {jump: 6},
-  controlLayout: 'qwerty'
+  controlLayout: 'qwerty',
+  lightsDisabled: false,
+  fogDisabled: false,
+  generateChunks: true,
+  mesher: voxel.meshers.greedy,
+  playerHeight: 1.62
 }
 ```
+
+## Generating voxel worlds
+
+Worlds have many chunks and chunks have many voxels. Chunks are cube shaped and are `chunkSize` x/y/z (default 32/32/32 - 32768 voxels per chunk). When the game starts it takes the `worldOrigin` and generates `chunkDistance` chunks in every x/y/z dimension (`chunkDistance` default of 2 means the game will render 2 chunks behind you, 2 in front etc for a total of 16 chunks.). 
+
+There are three coordinate systems in voxel.js: 
+
+- game coordinates (aka screen coordinates): every object added to a three.js scene gets a x/y/z position in game coordinates
+- voxel coordinates: when generating the world or interacting with individual voxels you may need to refer to voxels in voxel coordinates. an example voxel coordinate might be [34, -50, 302] which would mean starting from the `worldOrigin` 34 voxels over, 50 down and 302 forward
+- chunk coordinates: logically the same as voxel coordinates but for chunks. you probably won't need to use these as they are just used internally for rendering the world but it is good to know they exist.
+
+When you create a game you can also pass functions that the game will ask for voxel data. Here is an example `generate` function that makes a randomly textured cube world with a diameter of 20 voxels:
+
+```javascript
+function generator(x, y, z) {
+  if (x*x + y*y + z*z > 20*20) return 0
+  return Math.floor(Math.random() * 4) + 1
+}
+```
+
+The `generate` function will be called once for each voxel in the world. `x`, `y` and `z` will be values in voxel coordinates.
 
 ## Game events
 
@@ -59,20 +85,9 @@ emits when you move between voxels. pos has x, y, and z voxel coordinates of the
 
 emits when you move between chunks. pos has x, y, and z chunk coordinates of the chunk you just entered
 
-## Generating voxel worlds
+### game.on('missingChunk', function(chunkPosition) {})
 
-Worlds have many chunks and chunks have many voxels. Chunks are cube shaped and are `chunkSize` x/y/z (default 32/32/32 - 32768 voxels per chunk). When the game starts it takes the `worldOrigin` and generates `chunkDistance` chunks in every x/y/z dimension (`chunkDistance` default of 2 means the game will render 2 chunks behind you, 2 in front etc for a total of 16 chunks.). 
-
-When you create a game you can also pass functions that the game will ask for voxel data. Here is an example `generate` function that makes a randomly textured cube world with a diameter of 20 voxels:
-
-```javascript
-function generator(x, y, z) {
-  if (x*x + y*y + z*z > 20*20) return 0
-  return Math.floor(Math.random() * 4) + 1
-}
-```
-
-The `generate` function will be called once for each voxel in the world. `x`, `y` and `z` will be values in voxel coordinates.
+emits when the player moves into range of a chunk that isn't loaded yet. if your game has `generateChunks` set to true it will automatically create the chunk and render it but if you are providing your own chunk generation then you can use this to hook into the game.
 
 ## Interacting with the voxel world
 
@@ -88,7 +103,7 @@ To look up the voxel at some world coordinates (relative to that voxels chunk):
 
 `gameInstance.voxels.voxelVector(position)`
 
-Create a new voxel at some world coordinates (handles collisions with player, etc):
+Create a brand new voxel at some world coordinates. Intended for use in first player contexts as it checks if a player is standing in the way of the new voxel. If you don't care about that then just use `setBlock`:
 
 `gameInstance.createBlock(pos, val)`
 
