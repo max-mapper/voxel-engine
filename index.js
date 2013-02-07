@@ -738,6 +738,7 @@ Game.prototype.tick = function(delta) {
     self.updatePlayerPhysics(bbox, controls)
   })
   this.items.forEach(function (item) { item.tick(delta) })
+  if (this.materials) this.materials.tick()
   this.emit('tick', delta)
   this.render(delta)
   stats.update()
