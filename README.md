@@ -6,7 +6,7 @@ Learn more at http://voxeljs.com
 
 Write a voxel.js game in browser: http://voxel-creator.jit.su
 
-hello world code: http://github.com/maxogden/voxel-hello-world
+hello world template repo: http://github.com/maxogden/voxel-hello-world
 
 # example
 
@@ -46,6 +46,42 @@ Returns a new game instance. `options` defaults to:
 }
 ```
 
+### Defaults
+
+#### Block Size
+Default block size is 25, accessible via `game.cubeSize`:
+
+```js
+game.cubeSize // => 25
+```
+#### Player Size
+Default 'player size' is a 1/2 block long/wide and 1.5 blocks high:
+
+```js
+game.playerAABB().width() // => 12.5
+game.playerAABB().height() // => 37.5
+```
+See implementation of `Game.prototype.playerAABB` for more details.
+
+## Terminology
+
+* block/voxel/cube -> mostly interchangeable. The minecrafty blocks you see on the screen.
+* chunk: is a piece of the world that contains voxels
+* AABB: [bounding volume](http://en.wikipedia.org/wiki/Bounding_volume)
+* voxeljs: not 100% consistent yet, 'voxel.js' also acceptable, but definitely not 'VoxelJS'.
+* dims: short for 'dimensions'. Perhaps obvious to some.
+
+## Positions
+
+* `x`, `z`: horizontal plane
+* `y`: vertical plane
+
+We use various forms to represent positions (this will likely be simplified in the future):
+
+* `{x: Number, y: Number, z: Number}`
+* `[x, y, z]` and
+* Three.js's `Vector3`. Vector3 is rad and has a bunch of operations that allow you to combine vectors in various ways.
+
 ## Generating voxel worlds
 
 Worlds have many chunks and chunks have many voxels. Chunks are cube shaped and are `chunkSize` x/y/z (default 32/32/32 - 32768 voxels per chunk). When the game starts it takes the `worldOrigin` and generates `chunkDistance` chunks in every x/y/z dimension (`chunkDistance` default of 2 means the game will render 2 chunks behind you, 2 in front etc for a total of 16 chunks.). 
@@ -67,57 +103,186 @@ function generator(x, y, z) {
 
 The `generate` function will be called once for each voxel in the world. `x`, `y` and `z` will be values in voxel coordinates.
 
+### Generate a flat world 1 block high
+
+Flat world is a nicer way to start (at least you can't fall off the edge).
+This places the player just above the ground.
+
+```js
+var game = createGame({
+  generate: function(i,j,k) {
+    return j < 1 ? 1 : 0;
+  },
+  startingPosition: [0, 75, 0],
+  texturePath: texturePath // etc
+})
+
+```
+
+## Interacting with the voxel world
+
+When the game renders it draws each voxel at `cubeSize` wide in three.js world coordinates (something like pixels wide). So a default chunk is 32 (`chunkSize`) * 25 (default `cubeSize`) === 800 wide.
+
+### Get current player position
+```js
+game.controls.yawObject.position
+```
+
+This returns a THREE.js Vector3 object (which just means an object with 'x', 'y', and 'z'). The coordinates are in world coordinates.
+
+### Check if there's a block at a position
+```js
+
+// returns 0 or 1-9 depending whether block at that position exists and is 'on'
+gameInstance.getVoxel(pos) // pos = game coordinates
+```
+
+### Toggle a block on/off
+
+```js
+game.setVoxel(pos, 0) // off
+game.setVoxel(pos, 1) // on
+game.setVoxel(pos, 2) // on, with another material
+```
+
+### Get the chunk at some world coordinates:
+
+`gameInstance.voxels.chunkAtPosition(position)`
+
+### Get the voxel coordinates at some world coordinates (relative to that voxels chunk):
+
+`gameInstance.voxels.voxelVector(position)`
+
+### Create a brand new voxel at some world coordinates. 
+
+Intended for use in first player contexts as it checks if a player is standing in the way of the new voxel. If you don't care about that then just use `setBlock`:
+
+`gameInstance.createBlock(pos, val)`
+
+`val` can be 0 or you can also use any single digit integer 0-9. These correspond to the materials array that you pass in to the game.
+
+### Set the value of a voxel at some world coordinates:
+
+`gameInstance.setBlock(pos, val)`
+
+### Get the value of a voxel at some world coordinates:
+
+`gameInstance.getBlock(pos)`
+
+If you wanna see the lower level API for voxel data manipulation look at `chunker.js` inside the voxel module.
+
 ## Game events
 
 There are a number of events you can listen to once you've instantiated a game. we use the node.js event emitter library which uses the following syntax for subscribing:
 
 `emitter.on('eventName', function(arg1, arg2, etc) {})`
 
-### game.on('tick', function(delta) {})
+### `game.on('mouseup', function(pos) {})`, `game.on('mousedown', function(pos) {})`
+
+Captures mouse activity. `pos` is the game coordinate of the intersection of the voxel that you clicked on (if any)
+
+### `game.on('tick', function(delta) {})`
 
 emits every time the game renders (usually no more than 60 times a second). delta is the time in milliseconds between this render and the last render
 
-### game.voxelRegion.on('change', function(pos) {})
+### `game.on('collision', function(item) {})`
+
+Called every tick when an item is colliding with the player. Callback is passed the item that is colliding.
+
+### `game.voxelRegion.on('change', function(pos) {})`
 
 emits when you move between voxels. pos has x, y, and z voxel coordinates of the voxel you just entered
 
-### game.chunkRegion.on('change', function(pos) {})
+### `game.chunkRegion.on('change', function(pos) {})``
 
 emits when you move between chunks. pos has x, y, and z chunk coordinates of the chunk you just entered
 
-### game.on('missingChunk', function(chunkPosition) {})
+### `game.on('missingChunk', function(chunkPosition) {})`
 
 emits when the player moves into range of a chunk that isn't loaded yet. if your game has `generateChunks` set to true it will automatically create the chunk and render it but if you are providing your own chunk generation then you can use this to hook into the game.
 
-## Interacting with the voxel world
+### Collisions
 
-When the game renders it draws each voxel at `cubeSize` wide in three.js world coordinates (something like pixels wide). So a default chunk is 32 (`chunkSize`) * 25 (default `cubeSize`) === 800 wide.
+#### Check for collisions between an item and other 'things'
 
-To get the players current position you can do `gameInstance.controls.yawObject.position`. This returns a THREE.js Vector3 object (which just means an object with 'x', 'y', and 'z'). The coordinates are in world coordinates.
+Detects collisions between an item and other items, or voxels.
 
-To look up the chunk at some world coordinates:
+```js
+game.getCollisions(item.mesh.position, item)
+```
 
-`gameInstance.voxels.chunkAtPosition(position)`
+This will give you back a 'collisions object' whose keys are positions on the object and values are arrays of the positions of faces that are colliding.
 
-To look up the voxel at some world coordinates (relative to that voxels chunk):
+For example, here we have 4 faces colliding with the bottom of our object:
 
-`gameInstance.voxels.voxelVector(position)`
+```js
+{
+  back: Array[0]
+  bottom: Array[4]
+  down: Array[1]
+  forward: Array[0]
+  left: Array[0]
+  middle: Array[0]
+  right: Array[0]
+  top: Array[0]
+  up: Array[0]
+}
+```
 
-Create a brand new voxel at some world coordinates. Intended for use in first player contexts as it checks if a player is standing in the way of the new voxel. If you don't care about that then just use `setBlock`:
+### Textures
 
-`gameInstance.createBlock(pos, val)`
+Loading textures creates multiple "materials".
 
-`val` can be 0 or you can also use any single digit integer 0-9. These correspond to the materials array that you pass in to the game.
+```var material = game.loadTextures([ 'obsidian', 'dirt' ]);```
 
-Set the value of a voxel at some world coordinates:
+Both of these textures come with 6 materials, one for each side of a cube, giving a total of 12 materials. By default, faces 1 to 6 are assigned materials 1 to 6. You can assign materials to faces in however you want. For example, we could load materials 7 to 12 (e.g. the dirt materials) like so:
 
-`gameInstance.setBlock(pos, val)`
+```js
+mesh.geometry.faces.forEach(function (face, index) {
+    face.materialIndex = index + 6; // obsidian texture indices 0 - 5, dirt 6 - 11.
+});
 
-Get the value of a voxel at some world coordinates:
+```
 
-`gameInstance.getBlock(pos)`
+### Items
 
-If you wanna see the lower level API for voxel data manipulation look at `chunker.js` inside the voxel module.
+* Items are non-voxel objects you can add to your game. e.g. Monsters/Players, Powerups, etc.
+* Items currently implement their own physics, which is calculated every 'tick' by running an items' item.tick function. It's not very sophisticated.
+* Items .mesh property is the thing that's actually processed by the THREE.js engine. Other properties of item are used in voxel.js to update the mesh, e.g. item.velocity.y is used every tick to calculate the next position the mesh should be in.
+* Using the current item physics system, setting item.resting to false will force an item to recalculate it's position.
+
+####  Example:  Creating an Item
+
+```js
+// texture for item
+var material = game.loadTextures([ 'obsidian' ]);
+var mesh = new game.THREE.Mesh(
+    new game.THREE.CubeGeometry(10, 30, 10), // width, height, depth
+    material
+);
+
+// move item to some location
+mesh.translateX(87.5);
+mesh.translateY(420);
+mesh.translateZ(12.5);
+
+// if these item dimensions don't match the mesh's dimensions,
+// the object's physics will not operate correctly.
+var item = {
+    mesh: mesh,
+    width: 10,
+    height: 100,
+    depth: 10,
+    collisionRadius: 20, // padding around object dimensions box for collisions
+    velocity: { x: 0, y: 0, z: 0 } // initial velocity
+};
+
+game.items.length // => 0
+game.addItem(item)
+// use `game.removeItem(item)` to remove
+game.items.length // => 1
+
+```
 
 ## license
 
