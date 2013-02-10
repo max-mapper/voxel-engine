@@ -7,7 +7,7 @@
     "url": "git@github.com:maxogden/voxel-engine.git"
   },
   "dependencies": {
-    "voxel": "0.1.4",
+    "voxel": "0.1.5",
     "voxel-mesh": "0.1.1",
     "voxel-chunks": "0.0.2",
     "inherits": "1.0.0",
