@@ -30,9 +30,11 @@ function Game(opts) {
   this.THREE = THREE
   this.cubeSize = opts.cubeSize || 25
   this.chunkSize = opts.chunkSize || 32
+  // chunkDistance and removeDistance should not be set to the same thing
+  // as it causes lag when you go back and forth on a chunk boundary
   this.chunkDistance = opts.chunkDistance || 2
+  this.removeDistance = opts.removeDistance || this.chunkDistance + 1
   this.playerHeight = opts.playerHeight || 1.62 // gets multiplied by cubeSize
-  
   this.meshType = opts.meshType || 'surfaceMesh'
   this.controlOptions = opts.controlOptions || {}
   this.mesher = opts.mesher || voxel.meshers.greedy
@@ -198,7 +200,7 @@ Game.prototype.initializeRendering = function() {
 Game.prototype.removeFarChunks = function(playerPosition) {
   var self = this
   playerPosition = playerPosition || this.controls.yawObject.position
-  var nearbyChunks = this.voxels.nearbyChunks(playerPosition).map(function(chunkPos) {
+  var nearbyChunks = this.voxels.nearbyChunks(playerPosition, this.removeDistance).map(function(chunkPos) {
     return chunkPos.join('|')
   })
   Object.keys(self.voxels.chunks).map(function(chunkIndex) {
