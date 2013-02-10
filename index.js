@@ -590,7 +590,7 @@ Game.prototype.checkBlock = function(pos) {
     && playerVector.y === voxelVector.y
     && playerVector.z === voxelVector.z) return false
   
-  return {chunkIndex: ckey, voxelVector: voxelVector}
+  return {chunkIndex: ckey, voxelVector: voxelVector, position: p}
 }
 
 Game.prototype.addChunkToNextUpdate = function(chunk) {
