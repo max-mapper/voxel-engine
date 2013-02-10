@@ -18,7 +18,6 @@ var AXISES = ['x', 'y', 'z']
 
 module.exports = Game
 
-
 function Game(opts) {
   if (!(this instanceof Game)) return new Game(opts)
   var self = this
@@ -107,7 +106,6 @@ function Game(opts) {
     })
     this.voxels.requestMissingChunks(this.worldOrigin)
   }
-  
 }
 
 inherits(Game, EventEmitter)
