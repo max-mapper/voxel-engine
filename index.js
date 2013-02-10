@@ -85,6 +85,9 @@ function Game(opts) {
   this.voxelRegion = regionChange(this.spatial, this.cubeSize)
   this.chunkRegion = regionChange(this.spatial, this.cubeSize * this.chunkSize)
   
+  // contains chunks that has had an update this tick. Will be generated right before redrawing the frame
+  this.chunksNeedsUpdate = {}
+
   // client side only
   if (process.browser) {
     this.materials = require('voxel-texture')({
@@ -590,6 +593,19 @@ Game.prototype.checkBlock = function(pos) {
   return {chunkIndex: ckey, voxelVector: voxelVector}
 }
 
+Game.prototype.addChunkToNextUpdate = function(chunk) {
+  this.chunksNeedsUpdate[chunk.position.join('|')] = chunk
+}
+
+Game.prototype.updateDirtyChunks = function() {
+  var self = this;
+  Object.keys(this.chunksNeedsUpdate).forEach(function showChunkAtIndex(chunkIndex) {
+    var chunk = self.chunksNeedsUpdate[chunkIndex];
+    self.showChunk(chunk);
+  })
+  this.chunksNeedsUpdate = {}
+}
+
 Game.prototype.createBlock = function(pos, val) {
   if (pos.chunkMatrix) {
     return this.chunkGroups.createBlock(pos, val)
@@ -600,7 +616,7 @@ Game.prototype.createBlock = function(pos, val) {
   var chunk = this.voxels.chunks[newBlock.chunkIndex]
   var old = chunk.voxels[this.voxels.voxelIndex(newBlock.voxelVector)]
   chunk.voxels[this.voxels.voxelIndex(newBlock.voxelVector)] = val
-  this.showChunk(chunk)
+  this.addChunkToNextUpdate(chunk)
   this.spatial.emit('change-block', [pos.x, pos.y, pos.z], pos, old, val)
   return true
 }
@@ -612,7 +628,7 @@ Game.prototype.setBlock = function(pos, val) {
   
   var hitVoxel = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
-  this.showChunk(this.voxels.chunks[c.join('|')])
+  this.addChunkToNextUpdate(this.voxels.chunks[c.join('|')])
 
   this.spatial.emit('change-block', [pos.x, pos.y, pos.z], pos, hitVoxel, val)
 }
@@ -624,7 +640,7 @@ Game.prototype.getBlock = function(pos) {
   return this.voxels.voxelAtPosition(pos)
 }
 
-Game.prototype.showChunk = function(chunk, mesher) {
+Game.prototype.showChunk = function(chunk) {
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
   var cubeSize = this.cubeSize
@@ -739,6 +755,7 @@ Game.prototype.tick = function(delta) {
   })
   this.items.forEach(function (item) { item.tick(delta) })
   if (this.materials) this.materials.tick()
+  if (Object.keys(this.chunksNeedsUpdate).length > 0) this.updateDirtyChunks();
   this.emit('tick', delta)
   this.render(delta)
   stats.update()
