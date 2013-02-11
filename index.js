@@ -569,15 +569,9 @@ Game.prototype.playerAABB = function(position) {
   return bbox
 }
 
-var meshes = []
-
 Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
   var spatial = this.spatial
     , vec3 = [vec.x, vec.y, vec.z]
-
-  for(var i = 0; i < 3; ++i) {
-    if(meshes[i]) this.scene.remove(meshes[i])
-  }
 
   i = 0
   var self = this
@@ -586,8 +580,6 @@ Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
     if(!tile) {
       return
     }
-
-    meshes[i++] = self.addVoxelMarker(coords[0], coords[1], coords[2])  
 
     if(Math.abs(vec3[axis]) < Math.abs(edge)) {
       return
