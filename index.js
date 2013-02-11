@@ -455,14 +455,9 @@ Game.prototype.addLights = function(scene) {
   scene.add( light )
 };
 
-Game.prototype.currentMesh = function() {
-  var cid = this.voxels.chunkAtPosition(this.controls.yawObject.position).join('|')
-  return this.voxels.meshes[cid]
-}
-
 Game.prototype.checkBlock = function(pos) {
   var floored = pos.clone().multiplyScalar(1 / this.cubeSize)
-    , bbox
+  var bbox
 
   floored.x = Math.floor(floored.x)
   floored.y = Math.floor(floored.y)
@@ -470,28 +465,28 @@ Game.prototype.checkBlock = function(pos) {
 
   bbox = aabb([floored.x * this.cubeSize, floored.y * this.cubeSize, floored.z * this.cubeSize], [this.cubeSize, this.cubeSize, this.cubeSize])
 
-  for(var i = 0, len = this.items.length; i < len; ++i) {
-    if(this.items[i].blocksCreation && this.items[i].aabb && bbox.intersects(this.items[i].aabb())) {
+  for (var i = 0, len = this.items.length; i < len; ++i) {
+    if (this.items[i].blocksCreation && this.items[i].aabb && bbox.intersects(this.items[i].aabb())) {
       return
     }
   }
 
-  var chunk_key_arr = this.voxels.chunkAtPosition(pos)
-    , chunk_key = chunk_key_arr.join('|')
-    , chunk = this.voxels.chunks[chunk_key]
+  var chunkKeyArr = this.voxels.chunkAtPosition(pos)
+  var chunkKey = chunkKeyArr.join('|')
+  var chunk = this.voxels.chunks[chunkKey]
 
   if(!chunk) {
     return
   }
 
-  var chunk_position = this.chunkspaceToTilespace(chunk.position)
-    , voxel_position = new THREE.Vector3(
-          floored.x - chunk_position.i
-        , floored.y - chunk_position.j
-        , floored.z - chunk_position.k 
+  var chunkPosition = this.chunkspaceToTilespace(chunk.position)
+  var voxelPosition = new THREE.Vector3(
+        floored.x - chunkPosition.i,
+        floored.y - chunkPosition.j,
+        floored.z - chunkPosition.k 
       )
 
-  return {chunkIndex: chunk_key, voxelVector: voxel_position}
+  return {chunkIndex: chunkKey, voxelVector: voxelPosition}
 }
 
 Game.prototype.addChunkToNextUpdate = function(chunk) {
