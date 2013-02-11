@@ -321,21 +321,21 @@ Game.prototype.addVoxelMarker = function(i, j, k, color) {
 
 Game.prototype.addItem = function(item) {
   if(!item.tick) {
-    var new_item = physical(
-        item.mesh
-      , this.potentialCollisionSet.bind(this)
-      , new THREE.Vector3(item.size, item.size, item.size)
+    var newItem = physical(
+      item.mesh,
+      this.potentialCollisionSet.bind(this),
+      new THREE.Vector3(item.size, item.size, item.size)
     )
 
     if(item.velocity) {
-      new_item.acceleration.copy(item.velocity)
-      new_item.subjectTo(new THREE.Vector3(0, -9.8/100000, 0))
+      newItem.velocity.copy(item.velocity)
+      newItem.subjectTo(new THREE.Vector3(0, -9.8/100000, 0))
     } 
 
-    new_item.repr = function() { return 'debris' }
-    new_item.mesh = item.mesh
+    newItem.repr = function() { return 'debris' }
+    newItem.mesh = item.mesh
 
-    item = new_item 
+    item = newItem 
   }
 
   this.items.push(item)
