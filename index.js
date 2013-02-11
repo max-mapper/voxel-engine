@@ -605,13 +605,14 @@ Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
 }
 
 Game.prototype.tick = function(delta) {
-  if(this.buttons.enabled()) {
-    for(var i = 0, len = this.items.length; i < len; ++i) {
-      this.items[i].tick(delta)
-    }
-    if (this.materials) this.materials.tick()
-    if (Object.keys(this.chunksNeedsUpdate).length > 0) this.updateDirtyChunks();
-    this.emit('tick', delta)
+  for(var i = 0, len = this.items.length; i < len; ++i) {
+    this.items[i].tick(delta)
+  }
+  if (this.materials) {
+    this.materials.tick()
+  }
+  if (Object.keys(this.chunksNeedsUpdate).length > 0) {
+    this.updateDirtyChunks()
   }
   this.emit('tick', delta)
   this.render(delta)
