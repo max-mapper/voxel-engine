@@ -73,7 +73,11 @@ function Game(opts) {
     materialType: opts.materialType || THREE.MeshLambertMaterial,
     materialParams: opts.materialParams || {}
   })
-  this.materials.load(opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt'])
+
+  if (process.browser) {
+    this.materials.load(opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt'])
+  }
+
   if (this.generateChunks) {
     self.voxels.on('missingChunk', function(chunkPos) {
       var chunk = self.voxels.generateChunk(chunkPos[0], chunkPos[1], chunkPos[2])
@@ -81,10 +85,10 @@ function Game(opts) {
     })
     this.voxels.requestMissingChunks(this.worldOrigin)
   }
-  if (!process.browser) {
-    return
-  }
+
   // client side only
+  if (!process.browser) { return }
+  
   this.initializeRendering()
   for(var chunkIndex in this.voxels.chunks) {
     this.showChunk(this.voxels.chunks[chunkIndex])
@@ -372,8 +376,12 @@ Game.prototype.onFire = function(state) {
   this.emit('fire', this.controlling, state)
 }
 
-Game.prototype.raycast =
+Game.prototype.raycast = 
 Game.prototype.intersectAllMeshes = function(start, direction, maxDistance) {
+  if(!start.clone) {
+    return this.raycast(this.cameraPosition(), this.cameraVector(), 10000)
+  }
+
   var ray = new THREE.Raycaster(start, direction, 0, maxDistance)
     , curMaxDist = Infinity
     , curMaxIDX = null
