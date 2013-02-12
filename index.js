@@ -73,7 +73,6 @@ function Game(opts) {
     materialType: opts.materialType || THREE.MeshLambertMaterial,
     materialParams: opts.materialParams || {}
   })
-  this.materials.load(opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt'])
   if (this.generateChunks) {
     self.voxels.on('missingChunk', function(chunkPos) {
       var chunk = self.voxels.generateChunk(chunkPos[0], chunkPos[1], chunkPos[2])
@@ -81,10 +80,12 @@ function Game(opts) {
     })
     this.voxels.requestMissingChunks(this.worldOrigin)
   }
-  if (!process.browser) {
-    return
-  }
+
   // client side only
+  if (!process.browser) { return }
+  
+  this.materials.load(opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt'])
+  
   this.initializeRendering()
   for(var chunkIndex in this.voxels.chunks) {
     this.showChunk(this.voxels.chunks[chunkIndex])
