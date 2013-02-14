@@ -2,6 +2,7 @@ var voxel = require('voxel')
 var voxelMesh = require('voxel-mesh')
 var voxelChunks = require('voxel-chunks')
 var control = require('voxel-control')
+var voxelView = require('voxel-view')
 
 var THREE = require('three')
 var Stats = require('./lib/stats')
@@ -44,11 +45,12 @@ function Game(opts) {
   this.materialParams = opts.materialParams || {}
   this.items = []
   this.voxels = voxel(this)
-  this.chunkGroups = voxelChunks(this)  
+  this.chunkGroups = voxelChunks(this)
   this.height = typeof window === "undefined" ? 1 : window.innerHeight
   this.width = typeof window === "undefined" ? 1 : window.innerWidth
   this.scene = new THREE.Scene()
-  this.camera = this.createCamera(this.scene)
+  this.view = opts.view || new voxelView({width:this.width,height:this.height})
+  this.scene.add(this.view.camera)
 
   if (!opts.lightsDisabled) this.addLights(this.scene)
   this.skyColor = opts.skyColor || 0xBFD1E5
@@ -98,7 +100,7 @@ function Game(opts) {
   this.buttons = kb(document.body, opts.keybindings || this.defaultButtons)
   this.buttons.disable()
   this.optout = false
-  this.interact = interact(this.element)
+  this.interact = interact(this.view.element)
   this.interact
       .on('attain', this.onControlChange.bind(this, true))
       .on('release', this.onControlChange.bind(this, false))
@@ -143,21 +145,12 @@ Game.prototype.defaultButtons = {
 , '<control>': 'alt'
 }
 
-var temporaryPosition = new THREE.Vector3
-  , temporaryVector = new THREE.Vector3
-
 Game.prototype.cameraPosition = function() {
-  temporaryPosition.multiplyScalar(0)
-  this.camera.matrixWorld.multiplyVector3(temporaryPosition)
-  return temporaryPosition  
+  return this.view.cameraPosition()
 }
 
 Game.prototype.cameraVector = function() {
-  temporaryVector.multiplyScalar(0)
-  temporaryVector.z = -1
-  this.camera.matrixWorld.multiplyVector3(temporaryVector)
-  temporaryVector.subSelf(this.cameraPosition()).normalize()
-  return temporaryVector
+  return this.view.cameraVector()
 }
 
 Game.prototype.makePhysical = function(target, envelope, blocksCreation) {
@@ -240,7 +233,6 @@ Game.prototype.getChunkAtPosition = function(pos) {
 
 Game.prototype.initializeRendering = function() {
   var self = this
-  this.renderer = this.createRenderer()
   if (!this.statsDisabled) this.addStats()
   window.addEventListener('resize', this.onWindowResize.bind(this), false)
   requestAnimationFrame(window).on('data', this.tick.bind(this))
@@ -287,16 +279,14 @@ Game.prototype.notCapable = function() {
     a.innerHTML = a.title
     a.href = "http://get.webgl.org"
     wrapper.appendChild(a)
-    this.element = wrapper
+    this.view.element = wrapper
     return true
   }
   return false
 }
 
 Game.prototype.onWindowResize = function() {
-  this.camera.aspect = window.innerWidth / window.innerHeight
-  this.camera.updateProjectionMatrix()
-  this.renderer.setSize( window.innerWidth, window.innerHeight )
+  this.view.resizeWindow(window.innerWidth, window.innerHeight)
 }
 
 Game.prototype.addMarker = function(position) {
@@ -419,31 +409,12 @@ Game.prototype.intersectAllMeshes = function(start, direction, maxDistance) {
   return point
 }
 
-Game.prototype.createCamera = function() {
-  var camera;
-  camera = new THREE.PerspectiveCamera(60, this.width / this.height, 1, 10000)
-  camera.lookAt(new THREE.Vector3(0, 0, 0))
-  this.scene.add(camera)
-  return camera
-}
-
-Game.prototype.createRenderer = function() {
-  this.renderer = new THREE.WebGLRenderer({
-    antialias: true
-  })
-  this.renderer.setSize(this.width, this.height)
-  this.renderer.setClearColorHex(this.skyColor, 1.0)
-  this.renderer.clear()
-  this.element = this.renderer.domElement
-  return this.renderer
-}
-
 Game.prototype.appendTo = function (element) {
   if (typeof element === 'object') {
-    element.appendChild(this.element)
+    element.appendChild(this.view.element)
   }
   else {
-    document.querySelector(element).appendChild(this.element)
+    document.querySelector(element).appendChild(this.view.element)
   }
 }
 
@@ -620,7 +591,7 @@ Game.prototype.tick = function(delta) {
 }
 
 Game.prototype.render = function(delta) {
-  this.renderer.render(this.scene, this.camera)
+  this.view.render(this.scene)
 }
 
 function distance (a, b) {
