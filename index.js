@@ -123,7 +123,7 @@ Game.prototype.configureChunkLoading = function(opts) {
     this.generateVoxelChunk = opts.generateVoxelChunk
   } else {
     this.generateVoxelChunk = function(low, high) {
-      return voxel.generate(low, high, self.generate)
+      return voxel.generate(low, high, self.generate, self)
     }
   }
 }
