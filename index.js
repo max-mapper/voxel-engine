@@ -1,6 +1,8 @@
 var voxel = require('voxel')
 var voxelMesh = require('voxel-mesh')
 var voxelChunks = require('voxel-chunks')
+var control = require('voxel-control')
+
 var THREE = require('three')
 var Stats = require('./lib/stats')
 var Detector = require('./lib/detector')
@@ -8,16 +10,16 @@ var inherits = require('inherits')
 var path = require('path')
 var EventEmitter = require('events').EventEmitter
 if (process.browser) var interact = require('interact')
-var playerPhysics = require('player-physics')
 var requestAnimationFrame = require('raf')
 var collisions = require('collide-3d-tilemap')
 var aabb = require('aabb-3d')
 var SpatialEventEmitter = require('spatial-events')
 var regionChange = require('voxel-region-change')
-var AXISES = ['x', 'y', 'z']
+var kb = require('kb-controls')
+var AXES = ['x', 'y', 'z']
+var physical = require('voxel-physical')
 
 module.exports = Game
-
 
 function Game(opts) {
   if (!(this instanceof Game)) return new Game(opts)
@@ -31,12 +33,15 @@ function Game(opts) {
   this.THREE = THREE
   this.cubeSize = opts.cubeSize || 25
   this.chunkSize = opts.chunkSize || 32
+  // chunkDistance and removeDistance should not be set to the same thing
+  // as it causes lag when you go back and forth on a chunk boundary
   this.chunkDistance = opts.chunkDistance || 2
+  this.removeDistance = opts.removeDistance || this.chunkDistance + 1
   this.playerHeight = opts.playerHeight || 1.62 // gets multiplied by cubeSize
-  
   this.meshType = opts.meshType || 'surfaceMesh'
-  this.controlOptions = opts.controlOptions || {}
   this.mesher = opts.mesher || voxel.meshers.greedy
+  this.materialType = opts.materialType || THREE.MeshLambertMaterial
+  this.materialParams = opts.materialParams || {}
   this.items = []
   this.voxels = voxel(this)
   this.chunkGroups = voxelChunks(this)  
@@ -44,59 +49,35 @@ function Game(opts) {
   this.width = typeof window === "undefined" ? 1 : window.innerWidth
   this.scene = new THREE.Scene()
   this.camera = this.createCamera(this.scene)
-  this.controls = this.createControls()
+
   if (!opts.lightsDisabled) this.addLights(this.scene)
-  this.controlLayouts = {
-    qwerty: {
-      87: 'moveForward', //w
-      65: 'moveLeft', //a
-      83: 'moveBackward', //s
-      68: 'moveRight', //d
-      32: 'wantsJump', //space
-    },
-    azerty: {
-      90: 'moveForward', //z
-      81: 'moveLeft', //q
-      83: 'moveBackward', //s
-      68: 'moveRight', //d
-      32: 'wantsJump', //space
-    },
-    dvorak: {
-      188: 'moveForward', //comma
-      65: 'moveLeft', //a
-      79: 'moveBackward', //o
-      69: 'moveRight', //e
-      32: 'wantsJump', //space
-    }
-  }
-  this.playerControls = opts.controlLayout ? this.controlLayouts[opts.controlLayout] : this.controlLayouts.qwerty
   this.skyColor = opts.skyColor || 0xBFD1E5
   this.fogScale = opts.fogScale || 1
-  if (!opts.controlsDisabled) this.bindControls(this.controls)
-  if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( this.skyColor, 0.00025, this.worldWidth() * this.fogScale )
-  this.moveToPosition(this.startingPosition)
   this.collideVoxels = collisions(
     this.getTileAtIJK.bind(this),
     this.cubeSize,
     [Infinity, Infinity, Infinity],
     [-Infinity, -Infinity, -Infinity]
   )
-  this.spatial = new SpatialEventEmitter()
+
+  this.spatial = new SpatialEventEmitter
+  this.region = regionChange(this.spatial, aabb([0, 0, 0], [this.cubeSize, this.cubeSize, this.cubeSize]), this.chunkSize)
   this.voxelRegion = regionChange(this.spatial, this.cubeSize)
   this.chunkRegion = regionChange(this.spatial, this.cubeSize * this.chunkSize)
-  
-  // client side only
+  // contains chunks that has had an update this tick. Will be generated right before redrawing the frame
+  this.chunksNeedsUpdate = {}
+
+  this.materials = require('voxel-texture')({
+    THREE: THREE,
+    texturePath: opts.texturePath || './textures/',
+    materialType: opts.materialType || THREE.MeshLambertMaterial,
+    materialParams: opts.materialParams || {}
+  })
+
   if (process.browser) {
-    this.materials = require('voxel-texture')({
-      THREE: THREE,
-      texturePath: opts.texturePath || './textures/',
-      materialType: opts.materialType || THREE.MeshLambertMaterial,
-      materialParams: opts.materialParams || {}
-    })
     this.materials.load(opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt'])
-    this.initializeRendering()
   }
-  
+
   if (this.generateChunks) {
     self.voxels.on('missingChunk', function(chunkPos) {
       var chunk = self.voxels.generateChunk(chunkPos[0], chunkPos[1], chunkPos[2])
@@ -104,7 +85,30 @@ function Game(opts) {
     })
     this.voxels.requestMissingChunks(this.worldOrigin)
   }
+
+  // client side only
+  if (!process.browser) { return }
   
+  this.initializeRendering()
+  for(var chunkIndex in this.voxels.chunks) {
+    this.showChunk(this.voxels.chunks[chunkIndex])
+  }
+
+  // player control
+  this.buttons = kb(document.body, opts.keybindings || this.defaultButtons)
+  this.buttons.disable()
+  this.optout = false
+  this.interact = interact(this.element)
+  this.interact
+      .on('attain', this.onControlChange.bind(this, true))
+      .on('release', this.onControlChange.bind(this, false))
+      .on('opt-out', this.onControlOptOut.bind(this))
+
+  opts.controls = opts.controls || {}
+  opts.controls.onfire = this.onFire.bind(this)
+  this.controls = control(this.buttons, opts.controls)
+  this.items.push(this.controls)
+  this.controlling = null
 }
 
 inherits(Game, EventEmitter)
@@ -126,6 +130,51 @@ Game.prototype.configureChunkLoading = function(opts) {
       return voxel.generate(low, high, self.generate, self)
     }
   }
+}
+
+Game.prototype.defaultButtons = {
+  'W': 'forward'
+, 'A': 'left'
+, 'S': 'backward'
+, 'D': 'right'
+, '<mouse 1>': 'fire'
+, '<mouse 2>': 'firealt'
+, '<space>': 'jump'
+, '<control>': 'alt'
+}
+
+var temporaryPosition = new THREE.Vector3
+  , temporaryVector = new THREE.Vector3
+
+Game.prototype.cameraPosition = function() {
+  temporaryPosition.multiplyScalar(0)
+  this.camera.matrixWorld.multiplyVector3(temporaryPosition)
+  return temporaryPosition  
+}
+
+Game.prototype.cameraVector = function() {
+  temporaryVector.multiplyScalar(0)
+  temporaryVector.z = -1
+  this.camera.matrixWorld.multiplyVector3(temporaryVector)
+  temporaryVector.subSelf(this.cameraPosition()).normalize()
+  return temporaryVector
+}
+
+Game.prototype.makePhysical = function(target, envelope, blocksCreation) {
+  var obj = physical(target, this.potentialCollisionSet(), envelope || new THREE.Vector3(
+    this.cubeSize / 2, this.cubeSize * 1.5, this.cubeSize / 2
+  ))
+  obj.blocksCreation = !!blocksCreation
+  return obj
+}
+
+Game.prototype.control = function(target) {
+  this.controlling = target
+  return this.controls.target(target)
+}
+
+Game.prototype.potentialCollisionSet = function() {
+  return [{ collide: this.collideTerrain.bind(this) }]
 }
 
 Game.prototype.worldWidth = function() {
@@ -166,6 +215,14 @@ Game.prototype.tilespaceToWorldspace = function(i, j, k) {
   }
 }
 
+Game.prototype.worldspaceToTilespace = function(pos) {
+  return {
+    i: Math.floor(pos.x / this.cubeSize),
+    j: Math.floor(pos.y / this.cubeSize),
+    k: Math.floor(pos.z / this.cubeSize)
+  }
+}
+
 Game.prototype.chunkspaceToTilespace = function(pos) {
   return {
     i: pos[0] * this.chunkSize,
@@ -186,8 +243,6 @@ Game.prototype.initializeRendering = function() {
   this.renderer = this.createRenderer()
   if (!this.statsDisabled) this.addStats()
   window.addEventListener('resize', this.onWindowResize.bind(this), false)
-  window.addEventListener('mousedown', this.onMouseDown.bind(this), false)
-  window.addEventListener('mouseup', this.onMouseUp.bind(this), false)
   requestAnimationFrame(window).on('data', this.tick.bind(this))
   this.chunkRegion.on('change', function(newChunk) {
     self.removeFarChunks()
@@ -197,7 +252,7 @@ Game.prototype.initializeRendering = function() {
 Game.prototype.removeFarChunks = function(playerPosition) {
   var self = this
   playerPosition = playerPosition || this.controls.yawObject.position
-  var nearbyChunks = this.voxels.nearbyChunks(playerPosition).map(function(chunkPos) {
+  var nearbyChunks = this.voxels.nearbyChunks(playerPosition, this.removeDistance).map(function(chunkPos) {
     return chunkPos.join('|')
   })
   Object.keys(self.voxels.chunks).map(function(chunkIndex) {
@@ -238,38 +293,6 @@ Game.prototype.notCapable = function() {
   return false
 }
 
-Game.prototype.setupPointerLock = function(element) {
-  var self = this
-  element = element || document.body
-  if (typeof element !== 'object') element = document.querySelector(element)
-  var pointer = this.pointer = interact(element)
-  if (!pointer.pointerAvailable()) this.pointerLockDisabled = true
-  pointer.on('attain', function(movements) {
-    self.controls.enabled = true
-    movements.pipe(self.controls)
-  })
-  pointer.on('release', function() {
-    self.controls.enabled = false
-  })
-  pointer.on('error', function() {
-    // user denied pointer lock OR it's not available
-    self.pointerLockDisabled = true
-    console.error('pointerlock error')
-  })
-}
-
-Game.prototype.requestPointerLock = function(element) {
-  if (!this.pointer) this.setupPointerLock(element)
-  this.pointer.request()
-}
-
-Game.prototype.moveToPosition = function(position) {
-  var pos = this.controls.yawObject.position
-  pos.x = position.x
-  pos.y = position.y
-  pos.z = position.z
-}
-
 Game.prototype.onWindowResize = function() {
   this.camera.aspect = window.innerWidth / window.innerHeight
   this.camera.updateProjectionMatrix()
@@ -290,108 +313,110 @@ Game.prototype.addAABBMarker = function(aabb, color) {
   var mesh = new THREE.Mesh(geometry, material)
   mesh.position.set(aabb.x0() + aabb.width() / 2, aabb.y0() + aabb.height() / 2, aabb.z0() + aabb.depth() / 2)
   this.scene.add(mesh)
+  return mesh
+}
+
+Game.prototype.addVoxelMarker = function(i, j, k, color) {
+  var pos = this.tilespaceToWorldspace(i, j, k)
+    , bbox = aabb([pos.x, pos.y, pos.z], [this.cubeSize, this.cubeSize, this.cubeSize])
+
+  return this.addAABBMarker(bbox, color)
 }
 
 Game.prototype.addItem = function(item) {
-  var self = this
-  self.items.push(item)
-  item.velocity = item.velocity || { x: 0, y: 0, z: 0 }
-  item.collisionRadius = item.collisionRadius || item.size
-  if (!item.width) item.width = item.size
-  if (!item.height) item.height = item.size
-  if (!item.depth) item.depth = item.width
+  if(!item.tick) {
+    var newItem = physical(
+      item.mesh,
+      this.potentialCollisionSet.bind(this),
+      new THREE.Vector3(item.size, item.size, item.size)
+    )
 
-  var ticker = item.tick
-  item.tick = function (dt) {
-    if (item.collisionRadius) {
-      var p0 = self.controls.yawObject.position.clone()
-      var p1 = self.controls.yawObject.position.clone()
-      p1.y -= 25
-      var d0 = distance(item.mesh.position, p0)
-      var d1 = distance(item.mesh.position, p1)
-      if (Math.min(d0, d1) <= item.collisionRadius) {
-        self.emit('collision', item)
-      }
-    }
+    if(item.velocity) {
+      newItem.velocity.copy(item.velocity)
+      newItem.subjectTo(new THREE.Vector3(0, -9.8/100000, 0))
+    } 
 
-    if (!item.resting) {
-      var c = self.getCollisions(item.mesh.position, item)
-      if (c.bottom.length > 0) {
-        if (item.velocity.y <= 0) {
-          item.mesh.position.y -= item.velocity.y
-          item.velocity.y = 0
-          item.resting = true
-        }
-        item.velocity.x = 0
-        item.velocity.z = 0
-      } else if (c.middle.length || c.top.length) {
-        item.velocity.x *= -1
-        item.velocity.z *= -1
-      }
+    newItem.repr = function() { return 'debris' }
+    newItem.mesh = item.mesh
 
-      item.velocity.y -= 0.003
-      item.mesh.position.x += item.velocity.x * dt
-      item.mesh.position.y += item.velocity.y * dt
-      item.mesh.position.z += item.velocity.z * dt
-    }
-
-    if (ticker) ticker(item)
+    item = newItem 
   }
-  self.scene.add(item.mesh)
+
+  this.items.push(item)
+  if(item.mesh) {
+    this.scene.add(item.mesh)
+  }
 }
 
 Game.prototype.removeItem = function(item) {
   var ix = this.items.indexOf(item)
   if (ix < 0) return
   this.items.splice(ix, 1)
-  this.scene.remove(item.mesh)
+  if(item.mesh) {
+    this.scene.remove(item.mesh)
+  }
 }
 
-Game.prototype.onMouseDown = function(e) {
-  if (!this.controls.enabled) return
-  var intersection = this.raycast()
-  if (intersection) this.emit('mousedown', intersection, e)
+Game.prototype.onControlChange = function(gained, stream) {
+  console.log('control '+(gained ? 'gained' : 'lost'))
+  if(!gained && !this.optout) {
+    this.buttons.disable()
+    return
+  }
+
+  this.buttons.enable()
+  stream.pipe(this.controls.createWriteRotationStream())
 }
 
-Game.prototype.onMouseUp = function(e) {
-  if (!this.controls.enabled) return
-  var intersection = this.raycast()
-  if (intersection) this.emit('mouseup', intersection, e)
+Game.prototype.onControlOptOut = function() {
+  this.optout = true
 }
 
+Game.prototype.onFire = function(state) {
+  this.emit('fire', this.controlling, state)
+}
+
+Game.prototype.raycast = 
 Game.prototype.intersectAllMeshes = function(start, direction, maxDistance) {
-  var self = this
-  var meshes = Object.keys(self.voxels.meshes).map(function(key) {
-    return self.voxels.meshes[key][self.meshType]
-  }).concat(self.chunkGroups.meshes)
-  
-  var d = direction.subSelf(start).normalize()
-  var ray = new THREE.Raycaster(start, d, 0, maxDistance)
-  var intersections = ray.intersectObjects(meshes)
-  if (intersections.length === 0) return false
-  
-  var dists = intersections.map(function (i) { return i.distance })
-  var inter = intersections[dists.indexOf(Math.min.apply(null, dists))]
-  
-  var p = new THREE.Vector3()
-  p.copy(inter.point)
-  p.intersection = inter
-  p.direction = d
-  
-  var cm = self.chunkGroups.chunkMatricies[inter.object.id]
-  if (cm) p.chunkMatrix = cm
-  
-  p.x += d.x
-  p.y += d.y
-  p.z += d.z
-  return p
-}
+  if(!start.clone) {
+    return this.raycast(this.cameraPosition(), this.cameraVector(), 10000)
+  }
 
-Game.prototype.raycast = function(maxDistance) {
-  var start = this.controls.yawObject.position.clone()
-  var direction = this.camera.matrixWorld.multiplyVector3(new THREE.Vector3(0,0,-1))
-  var intersects = this.intersectAllMeshes(start, direction, maxDistance)
-  return intersects
+  var ray = new THREE.Raycaster(start, direction, 0, maxDistance)
+    , curMaxDist = Infinity
+    , curMaxIDX = null
+    , meshes = []
+    , idx = 0
+    , intersections
+    , closest
+    , point
+
+  for(var key in this.voxels.meshes) {
+    meshes[idx++] = this.voxels.meshes[key][this.meshType]
+  }
+
+  intersections = ray.intersectObjects(meshes)
+  if(!intersections.length) {
+    return false
+  }
+  
+  for(var i = 0, len = intersections.length; i < len; ++i) {
+    if(intersections[i].distance < curMaxDist) {
+      curMaxDist = intersections[i].distance
+      curMaxIDX = i
+    }
+  }
+
+  closest = intersections[curMaxIDX]
+
+  point = new THREE.Vector3
+
+  point.copy(closest.point)
+  point.intersect = closest
+  point.direction = direction
+  point.chunkMatrix = this.chunkGroups.chunkMatricies[closest.object.id] || null
+  point.addSelf(direction)
+  return point
 }
 
 Game.prototype.createCamera = function() {
@@ -400,12 +425,6 @@ Game.prototype.createCamera = function() {
   camera.lookAt(new THREE.Vector3(0, 0, 0))
   this.scene.add(camera)
   return camera
-}
-
-Game.prototype.createControls = function(camera) {
-  var controls = playerPhysics(this.camera, this.controlOptions)
-  this.scene.add( controls.yawObject )
-  return controls
 }
 
 Game.prototype.createRenderer = function() {
@@ -435,115 +454,6 @@ Game.prototype.addStats = function() {
   document.body.appendChild( stats.domElement )
 }
 
-Game.prototype.cameraRotation = function() {
-  var xAngle = this.controls.pitchObject.rotation.x
-  var yAngle = this.controls.yawObject.rotation.y
-  return {x: xAngle, y: yAngle}
-}
-
-Game.prototype.getCollisions = function(position, dims, checker, controls) {
-  var self = this
-  var p = position.clone()
-  var w = dims.width / 2
-  var h = dims.height / 2
-  var d = dims.depth / 2
-
-  controls = controls || this.controls
-  var rx = controls.pitchObject.rotation.x
-  var ry = controls.yawObject.rotation.y
-
-  var vertices = {
-    bottom: [
-      new THREE.Vector3(p.x - w, p.y - h, p.z - d),
-      new THREE.Vector3(p.x - w, p.y - h, p.z + d),
-      new THREE.Vector3(p.x + w, p.y - h, p.z - d),
-      new THREE.Vector3(p.x + w, p.y - h, p.z + d)
-    ],
-    middle: [
-      new THREE.Vector3(p.x - w, p.y, p.z - d),
-      new THREE.Vector3(p.x - w, p.y, p.z + d),
-      new THREE.Vector3(p.x + w, p.y, p.z - d),
-      new THREE.Vector3(p.x + w, p.y, p.z + d)
-    ],
-    top: [
-      new THREE.Vector3(p.x - w, p.y + h, p.z - d),
-      new THREE.Vector3(p.x - w, p.y + h, p.z + d),
-      new THREE.Vector3(p.x + w, p.y + h, p.z - d),
-      new THREE.Vector3(p.x + w, p.y + h, p.z + d)
-    ],
-    // -------------------------------
-    up: [ new THREE.Vector3(p.x, p.y + h, p.z) ],
-    down: [ new THREE.Vector3(p.x, p.y - h, p.z) ],
-    left: [
-      new THREE.Vector3(
-        p.x + w * Math.cos(ry + Math.PI / 2),
-        p.y,
-        p.z + d * Math.sin(ry + Math.PI / 2)
-      ) ,
-      new THREE.Vector3(
-        p.x + w * Math.cos(ry + Math.PI / 2),
-        p.y + h * 1.5,
-        p.z + d * Math.sin(ry + Math.PI / 2)
-      )
-    ],
-    right: [
-      new THREE.Vector3(
-        p.x + w * Math.cos(ry - Math.PI / 2),
-        p.y,
-        p.z + d * Math.sin(ry - Math.PI / 2)
-      ),
-      new THREE.Vector3(
-        p.x + w * Math.cos(ry - Math.PI / 2),
-        p.y + h * 1.5,
-        p.z + d * Math.sin(ry - Math.PI / 2)
-      )
-    ],
-    back: [
-      new THREE.Vector3(
-        p.x + w * Math.cos(ry),
-        p.y,
-        p.z + d * Math.sin(ry)
-      ),
-      new THREE.Vector3(
-        p.x + w * Math.cos(ry),
-        p.y + h * 1.5,
-        p.z + d * Math.sin(ry)
-      )
-    ],
-    forward: [
-      new THREE.Vector3(
-        p.x + w * Math.cos(ry + Math.PI),
-        p.y,
-        p.z + d * Math.sin(ry + Math.PI)
-      ),
-      new THREE.Vector3(
-        p.x + w * Math.cos(ry + Math.PI),
-        p.y + h * 1.5,
-        p.z + d * Math.sin(ry + Math.PI)
-      )
-    ]
-  }
-
-  return {
-    bottom: vertices.bottom.map(check).filter(Boolean),
-    middle: vertices.middle.map(check).filter(Boolean),
-    top: vertices.top.map(check).filter(Boolean),
-    // ----
-    up: vertices.up.map(check).filter(Boolean),
-    down: vertices.down.map(check).filter(Boolean),
-    left: vertices.left.map(check).filter(Boolean),
-    right: vertices.right.map(check).filter(Boolean),
-    forward: vertices.forward.map(check).filter(Boolean),
-    back: vertices.back.map(check).filter(Boolean)
-  }
-
-  function check(vertex) {
-    if (checker) return checker(vertex) && vertex
-    var val = self.voxels.voxelAtPosition(vertex)
-    return val && vertex
-  }
-}
-
 Game.prototype.addLights = function(scene) {
   var ambientLight, directionalLight
   ambientLight = new THREE.AmbientLight(0xcccccc)
@@ -553,41 +463,51 @@ Game.prototype.addLights = function(scene) {
   scene.add( light )
 };
 
-Game.prototype.currentMesh = function() {
-  var cid = this.voxels.chunkAtPosition(this.controls.yawObject.position).join('|')
-  return this.voxels.meshes[cid]
+Game.prototype.checkBlock = function(pos) {
+  var floored = pos.clone().multiplyScalar(1 / this.cubeSize)
+  var bbox
+
+  floored.x = Math.floor(floored.x)
+  floored.y = Math.floor(floored.y)
+  floored.z = Math.floor(floored.z)
+
+  bbox = aabb([floored.x * this.cubeSize, floored.y * this.cubeSize, floored.z * this.cubeSize], [this.cubeSize, this.cubeSize, this.cubeSize])
+
+  for (var i = 0, len = this.items.length; i < len; ++i) {
+    if (this.items[i].blocksCreation && this.items[i].aabb && bbox.intersects(this.items[i].aabb())) {
+      return
+    }
+  }
+
+  var chunkKeyArr = this.voxels.chunkAtPosition(pos)
+  var chunkKey = chunkKeyArr.join('|')
+  var chunk = this.voxels.chunks[chunkKey]
+
+  if(!chunk) {
+    return
+  }
+
+  var chunkPosition = this.chunkspaceToTilespace(chunk.position)
+  var voxelPosition = new THREE.Vector3(
+        floored.x - chunkPosition.i,
+        floored.y - chunkPosition.j,
+        floored.z - chunkPosition.k 
+      )
+
+  return {chunkIndex: chunkKey, voxelVector: voxelPosition}
 }
 
-Game.prototype.checkBlock = function(pos) {
-  var self = this
-  var direction = self.camera.matrixWorld.multiplyVector3(new THREE.Vector3(0,0,-1))
-  var start = self.controls.yawObject.position.clone()
-  var d = direction.subSelf(start).normalize()
+Game.prototype.addChunkToNextUpdate = function(chunk) {
+  this.chunksNeedsUpdate[chunk.position.join('|')] = chunk
+}
 
-  var p = new THREE.Vector3()
-  p.copy(pos)
-  p.x -= 1.1 * d.x
-  p.y -= 1.1 * d.y
-  p.z -= 1.1 * d.z
-  var block = self.getBlock(p)
-  if (block) return false
-
-  var voxelVector = self.voxels.voxelVector(p)
-  var vidx = self.voxels.voxelIndex(voxelVector)
-  var c = self.voxels.chunkAtPosition(p)
-  var ckey = c.join('|')
-  var chunk = self.voxels.chunks[ckey]
-  if (!chunk) return false
-
-  var aabb = this.playerAABB()
-  var bottom = {x: aabb.x0(), y: aabb.y0(), z: aabb.z0()}
-  var playerVector = self.voxels.voxelVector(bottom)
-
-  if ( playerVector.x === voxelVector.x
-    && playerVector.y === voxelVector.y
-    && playerVector.z === voxelVector.z) return false
-  
-  return {chunkIndex: ckey, voxelVector: voxelVector}
+Game.prototype.updateDirtyChunks = function() {
+  var self = this;
+  Object.keys(this.chunksNeedsUpdate).forEach(function showChunkAtIndex(chunkIndex) {
+    var chunk = self.chunksNeedsUpdate[chunkIndex];
+    self.showChunk(chunk);
+  })
+  this.chunksNeedsUpdate = {}
 }
 
 Game.prototype.createBlock = function(pos, val) {
@@ -600,7 +520,7 @@ Game.prototype.createBlock = function(pos, val) {
   var chunk = this.voxels.chunks[newBlock.chunkIndex]
   var old = chunk.voxels[this.voxels.voxelIndex(newBlock.voxelVector)]
   chunk.voxels[this.voxels.voxelIndex(newBlock.voxelVector)] = val
-  this.showChunk(chunk)
+  this.addChunkToNextUpdate(chunk)
   this.spatial.emit('change-block', [pos.x, pos.y, pos.z], pos, old, val)
   return true
 }
@@ -612,7 +532,7 @@ Game.prototype.setBlock = function(pos, val) {
   
   var hitVoxel = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
-  this.showChunk(this.voxels.chunks[c.join('|')])
+  this.addChunkToNextUpdate(this.voxels.chunks[c.join('|')])
 
   this.spatial.emit('change-block', [pos.x, pos.y, pos.z], pos, hitVoxel, val)
 }
@@ -624,7 +544,7 @@ Game.prototype.getBlock = function(pos) {
   return this.voxels.voxelAtPosition(pos)
 }
 
-Game.prototype.showChunk = function(chunk, mesher) {
+Game.prototype.showChunk = function(chunk) {
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
   var cubeSize = this.cubeSize
@@ -638,7 +558,6 @@ Game.prototype.showChunk = function(chunk, mesher) {
   mesh.setPosition(bounds[0][0] * cubeSize, bounds[0][1] * cubeSize, bounds[0][2] * cubeSize)
   mesh.addToScene(this.scene)
   this.materials.paint(mesh.geometry)
-  this.items.forEach(function (item) { item.resting = false })
   return mesh
 }
 
@@ -658,87 +577,43 @@ Game.prototype.playerAABB = function(position) {
   return bbox
 }
 
-Game.prototype.updatePlayerPhysics = function(bbox, controls) {
+Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
+  var spatial = this.spatial
+    , vec3 = [vec.x, vec.y, vec.z]
+
+  i = 0
   var self = this
-  var pos = controls.yawObject.position
-  var yaw = controls.yawObject
-  var size = self.cubeSize
 
-  var base = [ pos.x, pos.y, pos.z ]
-  
-  var velocity = [
-    controls.velocity.x,
-    controls.velocity.y,
-    controls.velocity.z
-  ]
-  
-  var worldVector
-
-  yaw.translateX(velocity[0])
-  yaw.translateY(velocity[1])
-  yaw.translateZ(velocity[2])
-
-  worldVector = [
-    pos.x - base[0],
-    pos.y - base[1],
-    pos.z - base[2]
-  ]
-
-  yaw.translateX(-velocity[0])
-  yaw.translateY(-velocity[1])
-  yaw.translateZ(-velocity[2])
-
-  controls.freedom['y-'] = true
-
-  self.collideVoxels(bbox, worldVector, function(axis, tile, coords, dir, edgeVector) {
-    if (tile) {
-      worldVector[axis] = edgeVector
-      if (axis === 1 && dir === -1) {
-        controls.freedom['y-'] = false
-      }
-      self.spatial.emit(
-        'collide-'+AXISES[axis],
-        [worldVector[0] + base[0], worldVector[1] + base[1], worldVector[2] + base[2]],
-        tile, coords, dir
-      )
-      return true
+  this.collideVoxels(bbox, vec3, function hit(axis, tile, coords, dir, edge) {
+    if(!tile) {
+      return
     }
-  })  
-  
-  var newLocation = new THREE.Vector3(
-    worldVector[0] + base[0], worldVector[1] + base[1], worldVector[2] + base[2]
-  )
 
-  pos.copy(newLocation)
+    if(Math.abs(vec3[axis]) < Math.abs(edge)) {
+      return
+    }
 
-  self.spatial.emit('position', bbox, newLocation)
+    vec3[axis] = vec[AXES[axis]] = edge
+    other.acceleration[AXES[axis]] = 0
 
-}
+    resting[AXES[axis]] = dir 
 
-Game.prototype.bindControls = function (controls) {
-  var self = this
-  var onKeyDown = function ( event ) {
-    var command = self.playerControls[event.keyCode];
-    if (command) { controls.emit('command', command, true); }
-  }
-
-  var onKeyUp = function ( event ) {
-    var command = self.playerControls[event.keyCode];
-    if (command) { controls.emit('command', command, false); }
-  }
-
-  document.addEventListener( 'keydown', onKeyDown, false )
-  document.addEventListener( 'keyup', onKeyUp, false )
+    other.friction[AXES[(axis + 1) % 3]] = 
+    other.friction[AXES[(axis + 2) % 3]] = axis === 1 ? 0.5 : 1.
+    return true
+  })
 }
 
 Game.prototype.tick = function(delta) {
-  var self = this
-  this.controls.tick(delta, function(controls) {
-    var bbox = self.playerAABB()
-    self.updatePlayerPhysics(bbox, controls)
-  })
-  this.items.forEach(function (item) { item.tick(delta) })
-  if (this.materials) this.materials.tick()
+  for(var i = 0, len = this.items.length; i < len; ++i) {
+    this.items[i].tick(delta)
+  }
+  if (this.materials) {
+    this.materials.tick()
+  }
+  if (Object.keys(this.chunksNeedsUpdate).length > 0) {
+    this.updateDirtyChunks()
+  }
   this.emit('tick', delta)
   this.render(delta)
   stats.update()
