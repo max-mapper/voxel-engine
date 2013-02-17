@@ -60,6 +60,8 @@ function Game(opts) {
     [Infinity, Infinity, Infinity],
     [-Infinity, -Infinity, -Infinity]
   )
+  this.timer = this.initializeTimer((opts.tickFPS || 16))
+  this.paused = false
 
   this.spatial = new SpatialEventEmitter
   this.region = regionChange(this.spatial, aabb([0, 0, 0], [this.cubeSize, this.cubeSize, this.cubeSize]), this.chunkSize)
@@ -88,8 +90,11 @@ function Game(opts) {
   }
 
   // client side only
-  if (!process.browser) { return }
+  if (!process.browser) {
+    return
+  }
   
+  this.paused = true
   this.initializeRendering()
   for(var chunkIndex in this.voxels.chunks) {
     this.showChunk(this.voxels.chunks[chunkIndex])
@@ -241,6 +246,46 @@ Game.prototype.getChunkAtPosition = function(pos) {
   return chunk
 }
 
+Game.prototype.initializeTimer = function(rate) {
+  var self = this
+  var accum = 0
+  var now = 0
+  var last = null
+  var dt = 0
+  var wholeTick
+
+  self.frameUpdated = true
+  return self.interval = setInterval(timer, 0)
+  
+  function timer() {
+    if(self.paused) {
+      last = Date.now()
+      accum = 0
+      return
+    }
+    now = Date.now()
+    dt = now - last
+    last = now
+    accum += dt
+    if(accum < rate) {
+      return
+    }
+
+    wholeTick = ((accum / rate)|0)
+
+    if(wholeTick <= 0) {
+      return
+    }
+
+    wholeTick *= rate
+
+    self.tick(wholeTick)
+    accum -= wholeTick
+
+    self.frameUpdated = true
+  }
+}
+
 Game.prototype.initializeRendering = function() {
   var self = this
   var accum = 0
@@ -255,12 +300,6 @@ Game.prototype.initializeRendering = function() {
     var framerate = 1000/(+window.location.hash.slice(1) || 60)
     self.render(dt)
     stats.update()
-
-    accum += dt
-    if(accum >= framerate) {
-      self.tick(~~(accum / framerate) * framerate)
-    }
-    accum = accum % framerate 
   })
 
   self.chunkRegion.on('change', function(newChunk) {
@@ -377,7 +416,8 @@ Game.prototype.removeItem = function(item) {
 }
 
 Game.prototype.onControlChange = function(gained, stream) {
-  console.log('control '+(gained ? 'gained' : 'lost'))
+  this.paused = false
+
   if(!gained && !this.optout) {
     this.buttons.disable()
     return
