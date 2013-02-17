@@ -270,7 +270,7 @@ Game.prototype.initializeRendering = function() {
 
 Game.prototype.removeFarChunks = function(playerPosition) {
   var self = this
-  playerPosition = playerPosition || this.controls.yawObject.position
+  playerPosition = playerPosition || this.controls.target().avatar.position
   var nearbyChunks = this.voxels.nearbyChunks(playerPosition, this.removeDistance).map(function(chunkPos) {
     return chunkPos.join('|')
   })
@@ -581,7 +581,7 @@ Game.prototype.showChunk = function(chunk) {
 }
 
 Game.prototype.playerAABB = function(position) {
-  var pos = position || this.controls.yawObject.position
+  var pos = position || this.controls.target().avatar.position
   var size = this.cubeSize
 
   var bbox = aabb([
@@ -633,8 +633,14 @@ Game.prototype.tick = function(delta) {
   if (Object.keys(this.chunksNeedsUpdate).length > 0) {
     this.updateDirtyChunks()
   }
-  this.emit('tick', delta)
+  var target = this.controls.target()
 
+  if(target) {
+    target = target.avatar
+    this.spatial.emit('position', [target.position.x, target.position.y, target.position.z], target.position)
+  }
+
+  this.emit('tick', delta)
 }
 
 Game.prototype.pin = pin
