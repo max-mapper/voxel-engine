@@ -637,6 +637,8 @@ Game.prototype.tick = function(delta) {
 
 }
 
+Game.prototype.pin = pin
+
 Game.prototype.render = function(delta) {
   this.renderer.render(this.scene, this.camera)
 }
