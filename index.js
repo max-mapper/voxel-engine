@@ -18,6 +18,7 @@ var regionChange = require('voxel-region-change')
 var kb = require('kb-controls')
 var AXES = ['x', 'y', 'z']
 var physical = require('voxel-physical')
+var pin = require('pin-it')
 
 module.exports = Game
 
@@ -242,11 +243,27 @@ Game.prototype.getChunkAtPosition = function(pos) {
 
 Game.prototype.initializeRendering = function() {
   var self = this
-  this.renderer = this.createRenderer()
-  if (!this.statsDisabled) this.addStats()
-  window.addEventListener('resize', this.onWindowResize.bind(this), false)
-  requestAnimationFrame(window).on('data', this.tick.bind(this))
-  this.chunkRegion.on('change', function(newChunk) {
+  var accum = 0
+  var framerate = 1000/(+window.location.hash.slice(1) || 60)
+
+  self.renderer = self.createRenderer()
+  if (!self.statsDisabled) self.addStats()
+
+  window.addEventListener('resize', self.onWindowResize.bind(self), false)
+
+  requestAnimationFrame(window).on('data', function(dt) {
+    var framerate = 1000/(+window.location.hash.slice(1) || 60)
+    self.render(dt)
+    stats.update()
+
+    accum += dt
+    if(accum >= framerate) {
+      self.tick(~~(accum / framerate) * framerate)
+    }
+    accum = accum % framerate 
+  })
+
+  self.chunkRegion.on('change', function(newChunk) {
     self.removeFarChunks()
   })
 }
@@ -335,7 +352,7 @@ Game.prototype.addItem = function(item) {
 
     if(item.velocity) {
       newItem.velocity.copy(item.velocity)
-      newItem.subjectTo(new THREE.Vector3(0, -9.8/100000, 0))
+      newItem.subjectTo(this.GRAVITY)
     } 
 
     newItem.repr = function() { return 'debris' }
@@ -617,8 +634,7 @@ Game.prototype.tick = function(delta) {
     this.updateDirtyChunks()
   }
   this.emit('tick', delta)
-  this.render(delta)
-  stats.update()
+
 }
 
 Game.prototype.render = function(delta) {
