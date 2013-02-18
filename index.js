@@ -113,6 +113,8 @@ function Game(opts) {
 
 inherits(Game, EventEmitter)
 
+Game.prototype.GRAVITY = new THREE.Vector3(0, -0.00009, 0)
+
 Game.prototype.configureChunkLoading = function(opts) {
   var self = this
   if (!opts.generateChunks) return
