@@ -53,8 +53,6 @@ function Game(opts) {
   this.scene.add(this.view.camera)
 
   if (!opts.lightsDisabled) this.addLights(this.scene)
-  this.skyColor = opts.skyColor || 0xBFD1E5
-  this.fogScale = opts.fogScale || 1
   this.collideVoxels = collisions(
     this.getTileAtIJK.bind(this),
     this.cubeSize,
