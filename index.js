@@ -18,6 +18,7 @@ var regionChange = require('voxel-region-change')
 var kb = require('kb-controls')
 var AXES = ['x', 'y', 'z']
 var physical = require('voxel-physical')
+var pin = require('pin-it')
 
 module.exports = Game
 
@@ -59,6 +60,8 @@ function Game(opts) {
     [Infinity, Infinity, Infinity],
     [-Infinity, -Infinity, -Infinity]
   )
+  this.timer = this.initializeTimer((opts.tickFPS || 16))
+  this.paused = false
 
   this.spatial = new SpatialEventEmitter
   this.region = regionChange(this.spatial, aabb([0, 0, 0], [this.cubeSize, this.cubeSize, this.cubeSize]), this.chunkSize)
@@ -87,8 +90,11 @@ function Game(opts) {
   }
 
   // client side only
-  if (!process.browser) { return }
+  if (!process.browser) {
+    return
+  }
   
+  this.paused = true
   this.initializeRendering()
   for(var chunkIndex in this.voxels.chunks) {
     this.showChunk(this.voxels.chunks[chunkIndex])
@@ -240,20 +246,67 @@ Game.prototype.getChunkAtPosition = function(pos) {
   return chunk
 }
 
+Game.prototype.initializeTimer = function(rate) {
+  var self = this
+  var accum = 0
+  var now = 0
+  var last = null
+  var dt = 0
+  var wholeTick
+
+  self.frameUpdated = true
+  return self.interval = setInterval(timer, 0)
+  
+  function timer() {
+    if(self.paused) {
+      last = Date.now()
+      accum = 0
+      return
+    }
+    now = Date.now()
+    dt = now - last
+    last = now
+    accum += dt
+    if(accum < rate) {
+      return
+    }
+
+    wholeTick = ((accum / rate)|0)
+
+    if(wholeTick <= 0) {
+      return
+    }
+
+    wholeTick *= rate
+
+    self.tick(wholeTick)
+    accum -= wholeTick
+
+    self.frameUpdated = true
+  }
+}
+
 Game.prototype.initializeRendering = function() {
   var self = this
-  this.renderer = this.createRenderer()
-  if (!this.statsDisabled) this.addStats()
-  window.addEventListener('resize', this.onWindowResize.bind(this), false)
-  requestAnimationFrame(window).on('data', this.tick.bind(this))
-  this.chunkRegion.on('change', function(newChunk) {
+
+  self.renderer = self.createRenderer()
+  if (!self.statsDisabled) self.addStats()
+
+  window.addEventListener('resize', self.onWindowResize.bind(self), false)
+
+  requestAnimationFrame(window).on('data', function(dt) {
+    self.render(dt)
+    stats.update()
+  })
+
+  self.chunkRegion.on('change', function(newChunk) {
     self.removeFarChunks()
   })
 }
 
 Game.prototype.removeFarChunks = function(playerPosition) {
   var self = this
-  playerPosition = playerPosition || this.controls.yawObject.position
+  playerPosition = playerPosition || this.controls.target().avatar.position
   var nearbyChunks = this.voxels.nearbyChunks(playerPosition, this.removeDistance).map(function(chunkPos) {
     return chunkPos.join('|')
   })
@@ -335,7 +388,7 @@ Game.prototype.addItem = function(item) {
 
     if(item.velocity) {
       newItem.velocity.copy(item.velocity)
-      newItem.subjectTo(new THREE.Vector3(0, -9.8/100000, 0))
+      newItem.subjectTo(this.GRAVITY)
     } 
 
     newItem.repr = function() { return 'debris' }
@@ -360,7 +413,8 @@ Game.prototype.removeItem = function(item) {
 }
 
 Game.prototype.onControlChange = function(gained, stream) {
-  console.log('control '+(gained ? 'gained' : 'lost'))
+  this.paused = false
+
   if(!gained && !this.optout) {
     this.buttons.disable()
     return
@@ -564,7 +618,7 @@ Game.prototype.showChunk = function(chunk) {
 }
 
 Game.prototype.playerAABB = function(position) {
-  var pos = position || this.controls.yawObject.position
+  var pos = position || this.controls.target().avatar.position
   var size = this.cubeSize
 
   var bbox = aabb([
@@ -616,10 +670,17 @@ Game.prototype.tick = function(delta) {
   if (Object.keys(this.chunksNeedsUpdate).length > 0) {
     this.updateDirtyChunks()
   }
+  var target = this.controls.target()
+
+  if(target) {
+    target = target.avatar
+    this.spatial.emit('position', [target.position.x, target.position.y, target.position.z], target.position)
+  }
+
   this.emit('tick', delta)
-  this.render(delta)
-  stats.update()
 }
+
+Game.prototype.pin = pin
 
 Game.prototype.render = function(delta) {
   this.renderer.render(this.scene, this.camera)
