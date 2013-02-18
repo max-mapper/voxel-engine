@@ -288,8 +288,6 @@ Game.prototype.initializeTimer = function(rate) {
 
 Game.prototype.initializeRendering = function() {
   var self = this
-  var accum = 0
-  var framerate = 1000/(+window.location.hash.slice(1) || 60)
 
   self.renderer = self.createRenderer()
   if (!self.statsDisabled) self.addStats()
@@ -297,7 +295,6 @@ Game.prototype.initializeRendering = function() {
   window.addEventListener('resize', self.onWindowResize.bind(self), false)
 
   requestAnimationFrame(window).on('data', function(dt) {
-    var framerate = 1000/(+window.location.hash.slice(1) || 60)
     self.render(dt)
     stats.update()
   })
