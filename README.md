@@ -13,9 +13,7 @@ hello world template repo: http://github.com/maxogden/voxel-hello-world
 ``` js
 var createGame = require('voxel-engine')
 var game = createGame()
-var container = document.body
-game.appendTo(container)
-container.setupPointerLock(container)
+game.appendTo(document.body)
 ```
 
 # API
@@ -34,10 +32,8 @@ Returns a new game instance. `options` defaults to:
   cubeSize: 25,
   chunkSize: 32,
   chunkDistance: 2,
-  startingPosition: [35, 1024, 35],
   worldOrigin: [0,0,0],
-  controlOptions: {jump: 6},
-  controlLayout: 'qwerty',
+  controls: { discreteFire: false },
   lightsDisabled: false,
   fogDisabled: false,
   generateChunks: true,
@@ -112,9 +108,7 @@ This places the player just above the ground.
 var game = createGame({
   generate: function(i,j,k) {
     return j < 1 ? 1 : 0;
-  },
-  startingPosition: [0, 75, 0],
-  texturePath: texturePath // etc
+  }
 })
 
 ```
@@ -124,8 +118,9 @@ var game = createGame({
 When the game renders it draws each voxel at `cubeSize` wide in three.js world coordinates (something like pixels wide). So a default chunk is 32 (`chunkSize`) * 25 (default `cubeSize`) === 800 wide.
 
 ### Get current player position
+
 ```js
-game.controls.yawObject.position
+game.controls.target().yaw.position()
 ```
 
 This returns a THREE.js Vector3 object (which just means an object with 'x', 'y', and 'z'). The coordinates are in world coordinates.
@@ -281,7 +276,6 @@ game.items.length // => 0
 game.addItem(item)
 // use `game.removeItem(item)` to remove
 game.items.length // => 1
-
 ```
 
 ## license
