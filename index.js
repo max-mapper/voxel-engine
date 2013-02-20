@@ -16,7 +16,6 @@ var aabb = require('aabb-3d')
 var SpatialEventEmitter = require('spatial-events')
 var regionChange = require('voxel-region-change')
 var kb = require('kb-controls')
-var AXES = ['x', 'y', 'z']
 var physical = require('voxel-physical')
 var pin = require('pin-it')
 
@@ -29,6 +28,7 @@ function Game(opts) {
   if (process.browser && this.notCapable()) return
   if (!('generateChunks' in opts)) opts.generateChunks = true
   this.generateChunks = opts.generateChunks
+  this.axes = ['x', 'y', 'z']
   this.setConfigurablePositions(opts)
   this.configureChunkLoading(opts)
   this.THREE = THREE
@@ -89,14 +89,12 @@ function Game(opts) {
     this.voxels.requestMissingChunks(this.worldOrigin)
   }
 
-  // client side only
-  if (!process.browser) {
-    return
-  }
+  // client side only after this point
+  if (!process.browser) return
   
   this.paused = true
   this.initializeRendering()
-  for(var chunkIndex in this.voxels.chunks) {
+  for (var chunkIndex in this.voxels.chunks) {
     this.showChunk(this.voxels.chunks[chunkIndex])
   }
 
@@ -119,7 +117,7 @@ function Game(opts) {
 
 inherits(Game, EventEmitter)
 
-Game.prototype.GRAVITY = new THREE.Vector3(0, -0.00009, 0)
+Game.prototype.gravity = new THREE.Vector3(0, -0.00009, 0)
 
 Game.prototype.configureChunkLoading = function(opts) {
   var self = this
@@ -152,7 +150,7 @@ Game.prototype.defaultButtons = {
 }
 
 var temporaryPosition = new THREE.Vector3
-  , temporaryVector = new THREE.Vector3
+var temporaryVector = new THREE.Vector3
 
 Game.prototype.cameraPosition = function() {
   temporaryPosition.multiplyScalar(0)
@@ -241,7 +239,6 @@ Game.prototype.chunkspaceToTilespace = function(pos) {
 
 Game.prototype.getChunkAtPosition = function(pos) {
   var chunkID = this.voxels.chunkAtPosition(pos).join('|') 
-
   var chunk = this.voxels.chunks[chunkID]
   return chunk
 }
@@ -258,7 +255,7 @@ Game.prototype.initializeTimer = function(rate) {
   return self.interval = setInterval(timer, 0)
   
   function timer() {
-    if(self.paused) {
+    if (self.paused) {
       last = Date.now()
       accum = 0
       return
@@ -267,15 +264,11 @@ Game.prototype.initializeTimer = function(rate) {
     dt = now - last
     last = now
     accum += dt
-    if(accum < rate) {
-      return
-    }
+    if (accum < rate) return
 
     wholeTick = ((accum / rate)|0)
 
-    if(wholeTick <= 0) {
-      return
-    }
+    if (wholeTick <= 0) return
 
     wholeTick *= rate
 
@@ -351,13 +344,14 @@ Game.prototype.notCapable = function() {
 Game.prototype.onWindowResize = function() {
   this.camera.aspect = window.innerWidth / window.innerHeight
   this.camera.updateProjectionMatrix()
-  this.renderer.setSize( window.innerWidth, window.innerHeight )
+  this.renderer.setSize(window.innerWidth, window.innerHeight)
 }
 
+// add* methods are mostly for visual debugging
 Game.prototype.addMarker = function(position) {
-  var geometry = new THREE.SphereGeometry( 1, 4, 4 );
-  var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
-  var mesh = new THREE.Mesh( geometry, material );
+  var geometry = new THREE.SphereGeometry( 1, 4, 4 )
+  var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } )
+  var mesh = new THREE.Mesh( geometry, material )
   mesh.position.copy(position)
   this.scene.add(mesh)
 }
@@ -373,22 +367,21 @@ Game.prototype.addAABBMarker = function(aabb, color) {
 
 Game.prototype.addVoxelMarker = function(i, j, k, color) {
   var pos = this.tilespaceToWorldspace(i, j, k)
-    , bbox = aabb([pos.x, pos.y, pos.z], [this.cubeSize, this.cubeSize, this.cubeSize])
-
+  var bbox = aabb([pos.x, pos.y, pos.z], [this.cubeSize, this.cubeSize, this.cubeSize])
   return this.addAABBMarker(bbox, color)
 }
 
 Game.prototype.addItem = function(item) {
-  if(!item.tick) {
+  if (!item.tick) {
     var newItem = physical(
       item.mesh,
       this.potentialCollisionSet.bind(this),
       new THREE.Vector3(item.size, item.size, item.size)
     )
 
-    if(item.velocity) {
+    if (item.velocity) {
       newItem.velocity.copy(item.velocity)
-      newItem.subjectTo(this.GRAVITY)
+      newItem.subjectTo(this.gravity)
     } 
 
     newItem.repr = function() { return 'debris' }
@@ -398,24 +391,20 @@ Game.prototype.addItem = function(item) {
   }
 
   this.items.push(item)
-  if(item.mesh) {
-    this.scene.add(item.mesh)
-  }
+  if (item.mesh) this.scene.add(item.mesh)
 }
 
 Game.prototype.removeItem = function(item) {
   var ix = this.items.indexOf(item)
   if (ix < 0) return
   this.items.splice(ix, 1)
-  if(item.mesh) {
-    this.scene.remove(item.mesh)
-  }
+  if (item.mesh) this.scene.remove(item.mesh)
 }
 
 Game.prototype.onControlChange = function(gained, stream) {
   this.paused = false
 
-  if(!gained && !this.optout) {
+  if (!gained && !this.optout) {
     this.buttons.disable()
     return
   }
@@ -432,32 +421,29 @@ Game.prototype.onFire = function(state) {
   this.emit('fire', this.controlling, state)
 }
 
-Game.prototype.raycast = 
-Game.prototype.intersectAllMeshes = function(start, direction, maxDistance) {
-  if(!start.clone) {
-    return this.raycast(this.cameraPosition(), this.cameraVector(), 10000)
-  }
+// only intersects voxels, not items
+Game.prototype.raycast = // backwards compat
+Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
+  if (!start.clone) return this.raycast(this.cameraPosition(), this.cameraVector(), 10000)
 
   var ray = new THREE.Raycaster(start, direction, 0, maxDistance)
-    , curMaxDist = Infinity
-    , curMaxIDX = null
-    , meshes = []
-    , idx = 0
-    , intersections
-    , closest
-    , point
+  var curMaxDist = Infinity
+  var curMaxIDX = null
+  var meshes = []
+  var idx = 0
+  var intersections
+  var closest
+  var point
 
-  for(var key in this.voxels.meshes) {
+  for (var key in this.voxels.meshes) {
     meshes[idx++] = this.voxels.meshes[key][this.meshType]
   }
 
   intersections = ray.intersectObjects(meshes)
-  if(!intersections.length) {
-    return false
-  }
+  if (!intersections.length) return false
   
-  for(var i = 0, len = intersections.length; i < len; ++i) {
-    if(intersections[i].distance < curMaxDist) {
+  for (var i = 0, len = intersections.length; i < len; ++i) {
+    if (intersections[i].distance < curMaxDist) {
       curMaxDist = intersections[i].distance
       curMaxIDX = i
     }
@@ -476,7 +462,7 @@ Game.prototype.intersectAllMeshes = function(start, direction, maxDistance) {
 }
 
 Game.prototype.createCamera = function() {
-  var camera;
+  var camera
   camera = new THREE.PerspectiveCamera(60, this.width / this.height, 1, 10000)
   camera.lookAt(new THREE.Vector3(0, 0, 0))
   this.scene.add(camera)
@@ -484,9 +470,7 @@ Game.prototype.createCamera = function() {
 }
 
 Game.prototype.createRenderer = function() {
-  this.renderer = new THREE.WebGLRenderer({
-    antialias: true
-  })
+  this.renderer = new THREE.WebGLRenderer({ antialias: true })
   this.renderer.setSize(this.width, this.height)
   this.renderer.setClearColorHex(this.skyColor, 1.0)
   this.renderer.clear()
@@ -495,12 +479,8 @@ Game.prototype.createRenderer = function() {
 }
 
 Game.prototype.appendTo = function (element) {
-  if (typeof element === 'object') {
-    element.appendChild(this.element)
-  }
-  else {
-    document.querySelector(element).appendChild(this.element)
-  }
+  if (typeof element === 'object') element.appendChild(this.element)
+  else document.querySelector(element).appendChild(this.element)
 }
 
 Game.prototype.addStats = function() {
@@ -522,33 +502,32 @@ Game.prototype.addLights = function(scene) {
 Game.prototype.checkBlock = function(pos) {
   var floored = pos.clone().multiplyScalar(1 / this.cubeSize)
   var bbox
+  var size = this.cubeSize
 
   floored.x = Math.floor(floored.x)
   floored.y = Math.floor(floored.y)
   floored.z = Math.floor(floored.z)
 
-  bbox = aabb([floored.x * this.cubeSize, floored.y * this.cubeSize, floored.z * this.cubeSize], [this.cubeSize, this.cubeSize, this.cubeSize])
+  bbox = aabb([floored.x * size, floored.y * size, floored.z * size], [size, size, size])
 
   for (var i = 0, len = this.items.length; i < len; ++i) {
-    if (this.items[i].blocksCreation && this.items[i].aabb && bbox.intersects(this.items[i].aabb())) {
-      return
-    }
+    var item = this.items[i]
+    var itemInTheWay = item.blocksCreation && item.aabb && bbox.intersects(item.aabb())
+    if (itemInTheWay) return
   }
 
   var chunkKeyArr = this.voxels.chunkAtPosition(pos)
   var chunkKey = chunkKeyArr.join('|')
   var chunk = this.voxels.chunks[chunkKey]
 
-  if(!chunk) {
-    return
-  }
+  if (!chunk) return
 
   var chunkPosition = this.chunkspaceToTilespace(chunk.position)
   var voxelPosition = new THREE.Vector3(
-        floored.x - chunkPosition.i,
-        floored.y - chunkPosition.j,
-        floored.z - chunkPosition.k 
-      )
+    floored.x - chunkPosition.i,
+    floored.y - chunkPosition.j,
+    floored.z - chunkPosition.k 
+  )
 
   return {chunkIndex: chunkKey, voxelVector: voxelPosition}
 }
@@ -558,19 +537,16 @@ Game.prototype.addChunkToNextUpdate = function(chunk) {
 }
 
 Game.prototype.updateDirtyChunks = function() {
-  var self = this;
+  var self = this
   Object.keys(this.chunksNeedsUpdate).forEach(function showChunkAtIndex(chunkIndex) {
-    var chunk = self.chunksNeedsUpdate[chunkIndex];
-    self.showChunk(chunk);
+    var chunk = self.chunksNeedsUpdate[chunkIndex]
+    self.showChunk(chunk)
   })
   this.chunksNeedsUpdate = {}
 }
 
 Game.prototype.createBlock = function(pos, val) {
-  if (pos.chunkMatrix) {
-    return this.chunkGroups.createBlock(pos, val)
-  }
-  
+  if (pos.chunkMatrix) return this.chunkGroups.createBlock(pos, val)
   var newBlock = this.checkBlock(pos)
   if (!newBlock) return
   var chunk = this.voxels.chunks[newBlock.chunkIndex]
@@ -582,21 +558,15 @@ Game.prototype.createBlock = function(pos, val) {
 }
 
 Game.prototype.setBlock = function(pos, val) {
-  if (pos.chunkMatrix) {
-    return this.chunkGroups.setBlock(pos, val)
-  }
-  
+  if (pos.chunkMatrix) return this.chunkGroups.setBlock(pos, val)
   var hitVoxel = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
   this.addChunkToNextUpdate(this.voxels.chunks[c.join('|')])
-
   this.spatial.emit('change-block', [pos.x, pos.y, pos.z], pos, hitVoxel, val)
 }
 
 Game.prototype.getBlock = function(pos) {
-  if (pos.chunkMatrix) {
-    return this.chunkGroups.getBlock(pos)
-  }
+  if (pos.chunkMatrix) return this.chunkGroups.getBlock(pos)
   return this.voxels.voxelAtPosition(pos)
 }
 
@@ -635,27 +605,19 @@ Game.prototype.playerAABB = function(position) {
 
 Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
   var spatial = this.spatial
-    , vec3 = [vec.x, vec.y, vec.z]
+  var vec3 = [vec.x, vec.y, vec.z]
 
-  i = 0
+  var i = 0
   var self = this
+  var axes = this.axes
 
   this.collideVoxels(bbox, vec3, function hit(axis, tile, coords, dir, edge) {
-    if(!tile) {
-      return
-    }
-
-    if(Math.abs(vec3[axis]) < Math.abs(edge)) {
-      return
-    }
-
-    vec3[axis] = vec[AXES[axis]] = edge
-    other.acceleration[AXES[axis]] = 0
-
-    resting[AXES[axis]] = dir 
-
-    other.friction[AXES[(axis + 1) % 3]] = 
-    other.friction[AXES[(axis + 2) % 3]] = axis === 1 ? 0.5 : 1.
+    if (!tile) return
+    if (Math.abs(vec3[axis]) < Math.abs(edge)) return
+    vec3[axis] = vec[axes[axis]] = edge
+    other.acceleration[axes[axis]] = 0
+    resting[axes[axis]] = dir 
+    other.friction[axes[(axis + 1) % 3]] = other.friction[axes[(axis + 2) % 3]] = axis === 1 ? 0.5 : 1
     return true
   })
 }
@@ -664,15 +626,14 @@ Game.prototype.tick = function(delta) {
   for(var i = 0, len = this.items.length; i < len; ++i) {
     this.items[i].tick(delta)
   }
-  if (this.materials) {
-    this.materials.tick()
-  }
-  if (Object.keys(this.chunksNeedsUpdate).length > 0) {
-    this.updateDirtyChunks()
-  }
+
+  if (this.materials) this.materials.tick()
+
+  if (Object.keys(this.chunksNeedsUpdate).length > 0) this.updateDirtyChunks()
+
   var target = this.controls.target()
 
-  if(target) {
+  if (target) {
     target = target.avatar
     this.spatial.emit('position', [target.position.x, target.position.y, target.position.z], target.position)
   }
@@ -684,11 +645,4 @@ Game.prototype.pin = pin
 
 Game.prototype.render = function(delta) {
   this.renderer.render(this.scene, this.camera)
-}
-
-function distance (a, b) {
-  var x = a.x - b.x
-  var y = a.y - b.y
-  var z = a.z - b.z
-  return Math.sqrt(x*x + y*y + z*z)
 }
