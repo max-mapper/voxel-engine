@@ -50,7 +50,8 @@ function Game(opts) {
   this.width = typeof window === "undefined" ? 1 : window.innerWidth
   this.scene = new THREE.Scene()
   this.view = opts.view || new voxelView({width:this.width,height:this.height})
-  this.scene.add(this.view.camera)
+  this.view.bindToScene(this.scene)
+  this.camera = this.view.getCamera()
 
   if (!opts.lightsDisabled) this.addLights(this.scene)
   this.collideVoxels = collisions(
