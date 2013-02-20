@@ -278,6 +278,17 @@ game.addItem(item)
 game.items.length // => 1
 ```
 
+## style guide
+
+basically https://github.com/felixge/node-style-guide#nodejs-style-guide with a couple of minor changes (no semicolons, single line ifs/fors when appropriate)
+
+any contributions (pull requests) in any style are welcome, as long as:
+
+- they are written in javascript
+- they merge cleanly
+
+if you send a pull request and you use, for example, 4 space indents it will not be rejected but please try to follow conventions when you can
+
 ## license
 
 BSD
