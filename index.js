@@ -409,12 +409,7 @@ Game.prototype.intersectAllMeshes = function(start, direction, maxDistance) {
 }
 
 Game.prototype.appendTo = function (element) {
-  if (typeof element === 'object') {
-    element.appendChild(this.view.element)
-  }
-  else {
-    document.querySelector(element).appendChild(this.view.element)
-  }
+  this.view.appendTo(element)
 }
 
 Game.prototype.addStats = function() {
