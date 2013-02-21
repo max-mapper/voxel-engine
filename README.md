@@ -107,7 +107,7 @@ This places the player just above the ground.
 ```js
 var game = createGame({
   generate: function(i,j,k) {
-    return j < 1 ? 1 : 0;
+    return j === 1 ? 1 : 0;
   }
 })
 
