@@ -32,7 +32,7 @@ function Game(opts) {
   this.setConfigurablePositions(opts)
   this.configureChunkLoading(opts)
   this.THREE = THREE
-  this.cubeSize = opts.cubeSize || 25
+  this.cubeSize = 1
   this.chunkSize = opts.chunkSize || 32
   // chunkDistance and removeDistance should not be set to the same thing
   // as it causes lag when you go back and forth on a chunk boundary
@@ -117,7 +117,7 @@ function Game(opts) {
 
 inherits(Game, EventEmitter)
 
-Game.prototype.gravity = new THREE.Vector3(0, -0.00009, 0)
+Game.prototype.gravity = new THREE.Vector3(0, -0.0000036, 0)
 
 Game.prototype.configureChunkLoading = function(opts) {
   var self = this
