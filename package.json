@@ -10,6 +10,7 @@
     "voxel": "0.1.5",
     "voxel-mesh": "0.1.1",
     "voxel-chunks": "0.0.2",
+    "voxel-view": "0.0.4",
     "inherits": "1.0.0",
     "three": "0.54.0",
     "raf": "0.0.1",

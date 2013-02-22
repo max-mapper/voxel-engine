@@ -4,6 +4,7 @@ var voxelChunks = require('voxel-chunks')
 var ray = require('voxel-raycast')
 var texture = require('voxel-texture')
 var control = require('voxel-control')
+var voxelView = require('voxel-view')
 var THREE = require('three')
 var Stats = require('./lib/stats')
 var Detector = require('./lib/detector')
@@ -19,9 +20,6 @@ var regionChange = require('voxel-region-change')
 var kb = require('kb-controls')
 var physical = require('voxel-physical')
 var pin = require('pin-it')
-
-var temporaryPosition = new THREE.Vector3
-var temporaryVector = new THREE.Vector3
 
 module.exports = Game
 
@@ -57,10 +55,10 @@ function Game(opts) {
   this.height = typeof window === "undefined" ? 1 : window.innerHeight
   this.width = typeof window === "undefined" ? 1 : window.innerWidth
   this.scene = new THREE.Scene()
-  this.camera = this.createCamera(this.scene)
+  this.view = opts.view || new voxelView(THREE, { width: this.width, height: this.height })
+  this.view.bindToScene(this.scene)
+  this.camera = this.view.getCamera()
   if (!opts.lightsDisabled) this.addLights(this.scene)
-  this.skyColor = opts.skyColor || 0xBFD1E5
-  this.fogScale = opts.fogScale || 1
   
   this.collideVoxels = collisions(
     this.getVoxel.bind(this),
@@ -109,17 +107,11 @@ inherits(Game, EventEmitter)
 // # External API
 
 Game.prototype.cameraPosition = function() {
-  temporaryPosition.multiplyScalar(0)
-  this.camera.matrixWorld.multiplyVector3(temporaryPosition)
-  return temporaryPosition
+  return this.view.cameraPosition()
 }
 
 Game.prototype.cameraVector = function() {
-  temporaryVector.multiplyScalar(0)
-  temporaryVector.z = -1 // forward
-  this.camera.matrixWorld.multiplyVector3(temporaryVector)
-  temporaryVector.subSelf(this.cameraPosition()).normalize()
-  return temporaryVector
+  return this.view.cameraVector()
 }
 
 Game.prototype.makePhysical = function(target, envelope, blocksCreation) {
@@ -246,8 +238,7 @@ Game.prototype.getBlock = function(x, y, z) {
 }
 
 Game.prototype.appendTo = function (element) {
-  if (typeof element === 'object') element.appendChild(this.element)
-  else document.querySelector(element).appendChild(this.element)
+  this.view.appendTo(element)
 }
 
 // # Defaults/options parsing
@@ -289,16 +280,14 @@ Game.prototype.notCapable = function() {
     a.innerHTML = a.title
     a.href = "http://get.webgl.org"
     wrapper.appendChild(a)
-    this.element = wrapper
+    this.view.element = wrapper
     return true
   }
   return false
 }
 
 Game.prototype.onWindowResize = function() {
-  this.camera.aspect = window.innerWidth / window.innerHeight
-  this.camera.updateProjectionMatrix()
-  this.renderer.setSize(window.innerWidth, window.innerHeight)
+  this.view.resizeWindow(window.innerWidth, window.innerHeight)
 }
 
 // # Physics/collision related methods
@@ -347,23 +336,6 @@ Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
 }
 
 // # Three.js specific methods
-
-Game.prototype.createCamera = function() {
-  var camera
-  camera = new THREE.PerspectiveCamera(60, this.width / this.height, 1, 10000)
-  camera.lookAt(new THREE.Vector3(0, 0, 0))
-  this.scene.add(camera)
-  return camera
-}
-
-Game.prototype.createRenderer = function() {
-  this.renderer = new THREE.WebGLRenderer({ antialias: true })
-  this.renderer.setSize(this.width, this.height)
-  this.renderer.setClearColorHex(this.skyColor, 1.0)
-  this.renderer.clear()
-  this.element = this.renderer.domElement
-  return this.renderer
-}
 
 Game.prototype.addStats = function() {
   stats = new Stats()
@@ -563,7 +535,7 @@ Game.prototype.tick = function(delta) {
 }
 
 Game.prototype.render = function(delta) {
-  this.renderer.render(this.scene, this.camera)
+  this.view.render(this.scene)
 }
 
 Game.prototype.initializeTimer = function(rate) {
@@ -605,7 +577,6 @@ Game.prototype.initializeTimer = function(rate) {
 Game.prototype.initializeRendering = function() {
   var self = this
 
-  self.renderer = self.createRenderer()
   if (!self.statsDisabled) self.addStats()
 
   window.addEventListener('resize', self.onWindowResize.bind(self), false)
@@ -625,7 +596,7 @@ Game.prototype.initializeControls = function(opts) {
   this.buttons = kb(document.body, opts.keybindings || this.defaultButtons)
   this.buttons.disable()
   this.optout = false
-  this.interact = interact(this.element)
+  this.interact = interact(this.view.element)
   this.interact
       .on('attain', this.onControlChange.bind(this, true))
       .on('release', this.onControlChange.bind(this, false))
