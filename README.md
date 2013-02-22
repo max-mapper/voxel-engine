@@ -75,7 +75,7 @@ We use various forms to represent positions (this will likely be simplified in t
 
 Worlds have many chunks and chunks have many voxels. Chunks are cube shaped and are `chunkSize` x/y/z (default 32/32/32 - 32768 voxels per chunk). When the game starts it takes the `worldOrigin` and generates `chunkDistance` chunks in every x/y/z dimension (`chunkDistance` default of 2 means the game will render 2 chunks behind you, 2 in front etc for a total of 16 chunks.). 
 
-There is one major coordinate system in voxel.js: "game coordinates" (aka screen coordinates)
+There is one major coordinate system in voxel.js: "game coordinates" (aka world coordinates)
 
 - every object added to a three.js scene gets a x/y/z position in game coordinates. in voxel-engine 1 game coordinate is the width of 1 voxel. when generating the world or interacting with individual voxels you can refer to voxels by coordinates. an example coordinate might be [34, -50, 302] which would mean starting from the `worldOrigin` 34 voxels over, 50 down and 302 forward
 
@@ -278,7 +278,7 @@ basically https://github.com/felixge/node-style-guide#nodejs-style-guide with a 
 
 - no semicolons
 - single line ifs/fors when appropriate for terseness
-- no terse 'tricks' unless they are faster
+- no hard to understand for n00bs 'tricks' unless they are faster
 
 any contributions (pull requests) in any style are welcome, as long as:
 
