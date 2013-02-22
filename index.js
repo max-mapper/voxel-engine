@@ -37,7 +37,8 @@ function Game(opts) {
   this.setConfigurablePositions(opts)
   this.configureChunkLoading(opts)
   this.THREE = THREE
-  this.cubeSize = 1
+
+  this.cubeSize = 1 // backwards compat
   this.chunkSize = opts.chunkSize || 32
   
   // chunkDistance and removeDistance should not be set to the same thing
@@ -45,7 +46,7 @@ function Game(opts) {
   this.chunkDistance = opts.chunkDistance || 2
   this.removeDistance = opts.removeDistance || this.chunkDistance + 1
   
-  this.playerHeight = opts.playerHeight || 1.62 // gets multiplied by cubeSize
+  this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
   this.mesher = opts.mesher || voxel.meshers.greedy
   this.materialType = opts.materialType || THREE.MeshLambertMaterial
@@ -63,7 +64,7 @@ function Game(opts) {
   
   this.collideVoxels = collisions(
     this.getVoxel.bind(this),
-    this.cubeSize,
+    1,
     [Infinity, Infinity, Infinity],
     [-Infinity, -Infinity, -Infinity]
   )
@@ -72,9 +73,9 @@ function Game(opts) {
   this.paused = false
 
   this.spatial = new SpatialEventEmitter
-  this.region = regionChange(this.spatial, aabb([0, 0, 0], [this.cubeSize, this.cubeSize, this.cubeSize]), this.chunkSize)
-  this.voxelRegion = regionChange(this.spatial, this.cubeSize)
-  this.chunkRegion = regionChange(this.spatial, this.cubeSize * this.chunkSize)
+  this.region = regionChange(this.spatial, aabb([0, 0, 0], [1, 1, 1]), this.chunkSize)
+  this.voxelRegion = regionChange(this.spatial, 1)
+  this.chunkRegion = regionChange(this.spatial, this.chunkSize)
 
   // contains chunks that has had an update this tick. Will be generated right before redrawing the frame
   this.chunksNeedsUpdate = {}
@@ -123,7 +124,7 @@ Game.prototype.cameraVector = function() {
 
 Game.prototype.makePhysical = function(target, envelope, blocksCreation) {
   var obj = physical(target, this.potentialCollisionSet(), envelope || new THREE.Vector3(
-    this.cubeSize / 2, this.cubeSize * 1.5, this.cubeSize / 2
+    1/2, 1.5, 1/2
   ))
   obj.blocksCreation = !!blocksCreation
   return obj
@@ -313,16 +314,15 @@ Game.prototype.potentialCollisionSet = function() {
 
 Game.prototype.playerAABB = function(position) {
   var pos = position || this.controls.target().avatar.position
-  var size = this.cubeSize
 
   var bbox = aabb([
-    pos.x - size / 4,
-    pos.y - size * this.playerHeight,
-    pos.z - size / 4
+    pos.x - 1/4,
+    pos.y - this.playerHeight,
+    pos.z - 1/4
   ], [
-    size / 2,
-    size * this.playerHeight,
-    size / 2
+    1/2,
+    this.playerHeight,
+    1/2
   ])
   return bbox
 }
@@ -403,7 +403,7 @@ Game.prototype.configureChunkLoading = function(opts) {
 }
 
 Game.prototype.worldWidth = function() {
-  return this.chunkSize * 2 * this.chunkDistance * this.cubeSize
+  return this.chunkSize * 2 * this.chunkDistance
 }
 
 Game.prototype.getVoxel = function(x, y, z) {
@@ -482,15 +482,14 @@ Game.prototype.getChunkAtPosition = function(pos) {
 Game.prototype.showChunk = function(chunk) {
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
-  var cubeSize = this.cubeSize
-  var scale = new THREE.Vector3(cubeSize, cubeSize, cubeSize)
+  var scale = new THREE.Vector3(1, 1, 1)
   var mesh = voxelMesh(chunk, this.mesher, scale)
   this.voxels.chunks[chunkIndex] = chunk
   if (this.voxels.meshes[chunkIndex]) this.scene.remove(this.voxels.meshes[chunkIndex][this.meshType])
   this.voxels.meshes[chunkIndex] = mesh
   if (this.meshType === 'wireMesh') mesh.createWireMesh()
   else mesh.createSurfaceMesh(new THREE.MeshFaceMaterial(this.materials.get()))
-  mesh.setPosition(bounds[0][0] * cubeSize, bounds[0][1] * cubeSize, bounds[0][2] * cubeSize)
+  mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2])
   mesh.addToScene(this.scene)
   this.materials.paint(mesh.geometry)
   return mesh
@@ -516,7 +515,7 @@ Game.prototype.addAABBMarker = function(aabb, color) {
 }
 
 Game.prototype.addVoxelMarker = function(x, y, z, color) {
-  var bbox = aabb([x, y, z], [this.cubeSize, this.cubeSize, this.cubeSize])
+  var bbox = aabb([x, y, z], [1, 1, 1])
   return this.addAABBMarker(bbox, color)
 }
 
