@@ -19,6 +19,7 @@ var regionChange = require('voxel-region-change')
 var kb = require('kb-controls')
 var physical = require('voxel-physical')
 var pin = require('pin-it')
+
 var temporaryPosition = new THREE.Vector3
 var temporaryVector = new THREE.Vector3
 
