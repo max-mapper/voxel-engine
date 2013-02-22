@@ -62,7 +62,7 @@ function Game(opts) {
   this.fogScale = opts.fogScale || 1
   
   this.collideVoxels = collisions(
-    this.getTileAtIJK.bind(this),
+    this.getVoxel.bind(this),
     this.cubeSize,
     [Infinity, Infinity, Infinity],
     [-Infinity, -Infinity, -Infinity]
@@ -406,7 +406,7 @@ Game.prototype.worldWidth = function() {
   return this.chunkSize * 2 * this.chunkDistance * this.cubeSize
 }
 
-Game.prototype.getTileAtIJK = function(i, j, k) {
+Game.prototype.getVoxel = function(i, j, k) {
   var pos = this.tilespaceToWorldspace(i, j, k)
   // TODO: @chrisdickinson: cache the chunk lookup by `i|j|k`
   // since we'll be seeing the same chunk so often
