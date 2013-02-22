@@ -186,26 +186,26 @@ Game.prototype.checkBlock = function(pos) {
   floored.z = Math.floor(floored.z)
   
   bbox = aabb([floored.x, floored.y, floored.z], [1, 1, 1])
-
+  
   for (var i = 0, len = this.items.length; i < len; ++i) {
     var item = this.items[i]
     var itemInTheWay = item.blocksCreation && item.aabb && bbox.intersects(item.aabb())
     if (itemInTheWay) return
   }
-
+  
   var chunkKeyArr = this.voxels.chunkAtPosition(pos)
   var chunkKey = chunkKeyArr.join('|')
   var chunk = this.voxels.chunks[chunkKey]
-
+  
   if (!chunk) return
-
-  var chunkPosition = this.chunkspaceToTilespace(chunk.position)
+  
+  var chunkPosition = this.chunkToWorld(chunk.position)
   var voxelPosition = new THREE.Vector3(
-    floored.x - chunkPosition.i,
-    floored.y - chunkPosition.j,
-    floored.z - chunkPosition.k
+    floored.x - chunkPosition.x,
+    floored.y - chunkPosition.y,
+    floored.z - chunkPosition.z
   )
-
+  
   return {chunkIndex: chunkKey, voxelVector: voxelPosition}
 }
 
@@ -406,53 +406,35 @@ Game.prototype.worldWidth = function() {
   return this.chunkSize * 2 * this.chunkDistance * this.cubeSize
 }
 
-Game.prototype.getVoxel = function(i, j, k) {
-  var pos = this.tilespaceToWorldspace(i, j, k)
-  // TODO: @chrisdickinson: cache the chunk lookup by `i|j|k`
+Game.prototype.getVoxel = function(x, y, z) {
+  var pos = {x: x, y: y, z: z}
+  // TODO: @chrisdickinson: cache the chunk lookup by `x|y|z`
   // since we'll be seeing the same chunk so often
   var chunk = this.getChunkAtPosition(pos)
-
-  if(!chunk) {
-    return
-  }
-
-  var chunkPosition = this.chunkspaceToTilespace(chunk.position)
+  
+  if (!chunk) return
+  
+  var chunkPosition = this.chunkToWorld(chunk.position)
   var chunkID = this.voxels.chunkAtPosition(pos).join('|')
   var chunk = this.voxels.chunks[chunkID]
   
-  i -= chunkPosition.i
-  j -= chunkPosition.j
-  k -= chunkPosition.k
-
-  var tileOffset =
-    i +
-    j * this.chunkSize +
-    k * this.chunkSize * this.chunkSize
-
-  return chunk.voxels[tileOffset]
+  x -= chunkPosition.x
+  y -= chunkPosition.y
+  z -= chunkPosition.z
+  
+  var voxelIndex =
+    x +
+    y * this.chunkSize +
+    z * this.chunkSize * this.chunkSize
+  
+  return chunk.voxels[voxelIndex]
 }
 
-Game.prototype.tilespaceToWorldspace = function(i, j, k) {
+Game.prototype.chunkToWorld = function(pos) {
   return {
-    x: i * this.cubeSize,
-    y: j * this.cubeSize,
-    z: k * this.cubeSize
-  }
-}
-
-Game.prototype.worldspaceToTilespace = function(pos) {
-  return {
-    i: Math.floor(pos.x / this.cubeSize),
-    j: Math.floor(pos.y / this.cubeSize),
-    k: Math.floor(pos.z / this.cubeSize)
-  }
-}
-
-Game.prototype.chunkspaceToTilespace = function(pos) {
-  return {
-    i: pos[0] * this.chunkSize,
-    j: pos[1] * this.chunkSize,
-    k: pos[2] * this.chunkSize
+    x: pos[0] * this.chunkSize,
+    y: pos[1] * this.chunkSize,
+    z: pos[2] * this.chunkSize
   }
 }
 
@@ -533,9 +515,8 @@ Game.prototype.addAABBMarker = function(aabb, color) {
   return mesh
 }
 
-Game.prototype.addVoxelMarker = function(i, j, k, color) {
-  var pos = this.tilespaceToWorldspace(i, j, k)
-  var bbox = aabb([pos.x, pos.y, pos.z], [this.cubeSize, this.cubeSize, this.cubeSize])
+Game.prototype.addVoxelMarker = function(x, y, z, color) {
+  var bbox = aabb([x, y, z], [this.cubeSize, this.cubeSize, this.cubeSize])
   return this.addAABBMarker(bbox, color)
 }
 

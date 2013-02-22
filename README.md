@@ -29,10 +29,9 @@ Returns a new game instance. `options` defaults to:
     return x*x+y*y+z*z <= 20*20 ? 1 : 0 // sphere world
   },
   materials: [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt'],
-  cubeSize: 25,
   chunkSize: 32,
   chunkDistance: 2,
-  worldOrigin: [0,0,0],
+  worldOrigin: [0, 0, 0],
   controls: { discreteFire: false },
   lightsDisabled: false,
   fogDisabled: false,
@@ -44,12 +43,6 @@ Returns a new game instance. `options` defaults to:
 
 ### Defaults
 
-#### Block Size
-Default block size is 25, accessible via `game.cubeSize`:
-
-```js
-game.cubeSize // => 25
-```
 #### Player Size
 Default 'player size' is a 1/2 block long/wide and 1.5 blocks high:
 
@@ -62,7 +55,7 @@ See implementation of `Game.prototype.playerAABB` for more details.
 ## Terminology
 
 * block/voxel/cube -> mostly interchangeable. The minecrafty blocks you see on the screen.
-* chunk: is a piece of the world that contains voxels
+* chunk: is a piece of the world that contains voxels. try to pretend that these don't exist
 * AABB: [bounding volume](http://en.wikipedia.org/wiki/Bounding_volume)
 * voxeljs: not 100% consistent yet, 'voxel.js' also acceptable, but definitely not 'VoxelJS'.
 * dims: short for 'dimensions'. Perhaps obvious to some.
@@ -82,11 +75,14 @@ We use various forms to represent positions (this will likely be simplified in t
 
 Worlds have many chunks and chunks have many voxels. Chunks are cube shaped and are `chunkSize` x/y/z (default 32/32/32 - 32768 voxels per chunk). When the game starts it takes the `worldOrigin` and generates `chunkDistance` chunks in every x/y/z dimension (`chunkDistance` default of 2 means the game will render 2 chunks behind you, 2 in front etc for a total of 16 chunks.). 
 
-There are three coordinate systems in voxel.js: 
+There is one major coordinate system in voxel.js: "game coordinates" (aka screen coordinates)
 
-- game coordinates (aka screen coordinates): every object added to a three.js scene gets a x/y/z position in game coordinates
-- voxel coordinates: when generating the world or interacting with individual voxels you may need to refer to voxels in voxel coordinates. an example voxel coordinate might be [34, -50, 302] which would mean starting from the `worldOrigin` 34 voxels over, 50 down and 302 forward
+- every object added to a three.js scene gets a x/y/z position in game coordinates. in voxel-engine 1 game coordinate is the width of 1 voxel. when generating the world or interacting with individual voxels you can refer to voxels by coordinates. an example coordinate might be [34, -50, 302] which would mean starting from the `worldOrigin` 34 voxels over, 50 down and 302 forward
+
+There are also some other less used coordinate systems that you should be aware of:
+
 - chunk coordinates: logically the same as voxel coordinates but for chunks. you probably won't need to use these as they are just used internally for rendering the world but it is good to know they exist.
+- local object coordinates: when you add items and other things to the game that aren't voxel terrain you introduce a new relative coordinate system inside each thing. so if you add a player 3d model body and you want to put a hat on the body you could position the hat relative to the body coordinates, etc
 
 When you create a game you can also pass functions that the game will ask for voxel data. Here is an example `generate` function that makes a randomly textured cube world with a diameter of 20 voxels:
 
@@ -97,7 +93,7 @@ function generator(x, y, z) {
 }
 ```
 
-The `generate` function will be called once for each voxel in the world. `x`, `y` and `z` will be values in voxel coordinates.
+The `generate` function will be called once for each voxel in the world. `x`, `y` and `z` will be values in game coordinates.
 
 ### Generate a flat world 1 block high
 
@@ -106,8 +102,8 @@ This places the player just above the ground.
 
 ```js
 var game = createGame({
-  generate: function(i,j,k) {
-    return j === 1 ? 1 : 0;
+  generate: function(x, y, z) {
+    return y === 1 ? 1 : 0
   }
 })
 
@@ -115,21 +111,19 @@ var game = createGame({
 
 ## Interacting with the voxel world
 
-When the game renders it draws each voxel at `cubeSize` wide in three.js world coordinates (something like pixels wide). So a default chunk is 32 (`chunkSize`) * 25 (default `cubeSize`) === 800 wide.
-
 ### Get current player position
 
 ```js
-game.controls.target().yaw.position()
+game.controls.target().avatar.position()
 ```
 
-This returns a THREE.js Vector3 object (which just means an object with 'x', 'y', and 'z'). The coordinates are in world coordinates.
+This returns a THREE.js Vector3 object (which just means an object with 'x', 'y', and 'z').
 
 ### Check if there's a block at a position
 ```js
 
 // returns 0 or 1-9 depending whether block at that position exists and is 'on'
-gameInstance.getVoxel(pos) // pos = game coordinates
+gameInstance.getVoxel(pos)
 ```
 
 ### Toggle a block on/off
@@ -144,11 +138,11 @@ game.setVoxel(pos, 2) // on, with another material
 
 `gameInstance.voxels.chunkAtPosition(position)`
 
-### Get the voxel coordinates at some world coordinates (relative to that voxels chunk):
+### Get the voxel coordinates at some position (relative to that voxels chunk):
 
 `gameInstance.voxels.voxelVector(position)`
 
-### Create a brand new voxel at some world coordinates. 
+### Create a brand new voxel at some position. 
 
 Intended for use in first player contexts as it checks if a player is standing in the way of the new voxel. If you don't care about that then just use `setBlock`:
 
@@ -156,11 +150,11 @@ Intended for use in first player contexts as it checks if a player is standing i
 
 `val` can be 0 or you can also use any single digit integer 0-9. These correspond to the materials array that you pass in to the game.
 
-### Set the value of a voxel at some world coordinates:
+### Set the value of a voxel at some position:
 
 `gameInstance.setBlock(pos, val)`
 
-### Get the value of a voxel at some world coordinates:
+### Get the value of a voxel at some position:
 
 `gameInstance.getBlock(pos)`
 
@@ -234,8 +228,8 @@ Both of these textures come with 6 materials, one for each side of a cube, givin
 
 ```js
 mesh.geometry.faces.forEach(function (face, index) {
-    face.materialIndex = index + 6; // obsidian texture indices 0 - 5, dirt 6 - 11.
-});
+    face.materialIndex = index + 6 // obsidian texture indices 0 - 5, dirt 6 - 11
+})
 
 ```
 
@@ -257,9 +251,9 @@ var mesh = new game.THREE.Mesh(
 );
 
 // move item to some location
-mesh.translateX(87.5);
-mesh.translateY(420);
-mesh.translateZ(12.5);
+mesh.translateX(87.5)
+mesh.translateY(420)
+mesh.translateZ(12.5)
 
 // if these item dimensions don't match the mesh's dimensions,
 // the object's physics will not operate correctly.
@@ -270,7 +264,7 @@ var item = {
     depth: 10,
     collisionRadius: 20, // padding around object dimensions box for collisions
     velocity: { x: 0, y: 0, z: 0 } // initial velocity
-};
+}
 
 game.items.length // => 0
 game.addItem(item)
@@ -280,7 +274,11 @@ game.items.length // => 1
 
 ## style guide
 
-basically https://github.com/felixge/node-style-guide#nodejs-style-guide with a couple of minor changes (no semicolons, single line ifs/fors when appropriate)
+basically https://github.com/felixge/node-style-guide#nodejs-style-guide with a couple of minor changes:
+
+- no semicolons
+- single line ifs/fors when appropriate for terseness
+- no terse 'tricks' unless they are faster
 
 any contributions (pull requests) in any style are welcome, as long as:
 
