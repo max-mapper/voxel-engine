@@ -129,19 +129,19 @@ Game.prototype.addItem = function(item) {
       this.potentialCollisionSet.bind(this),
       new THREE.Vector3(item.size, item.size, item.size)
     )
-
+    
     if (item.velocity) {
       newItem.velocity.copy(item.velocity)
       newItem.subjectTo(this.gravity)
     }
-
+    
     newItem.repr = function() { return 'debris' }
     newItem.mesh = item.mesh
     newItem.blocksCreation = item.blocksCreation
-
+    
     item = newItem
   }
-
+  
   this.items.push(item)
   if (item.mesh) this.scene.add(item.mesh)
 }
@@ -157,11 +157,12 @@ Game.prototype.removeItem = function(item) {
 Game.prototype.raycast = // backwards compat
 Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
   if (!start) return this.raycast(this.cameraPosition(), this.cameraVector(), 10)
-
+  
   var hitNormal = new Array(3)
   var hitPosition = new Array(3)
   var cp = start || this.cameraPosition()
   var cv = direction || this.cameraVector()
+  
   var hitBlock = ray(this, [cp.x, cp.y, cp.z], [cv.x, cv.y, cv.z], maxDistance || 10.0, hitPosition, hitNormal)
   if (hitBlock === -1) return false
   
@@ -453,6 +454,7 @@ Game.prototype.getChunkAtPosition = function(pos) {
 }
 
 Game.prototype.showChunk = function(chunk) {
+  
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
   var scale = new THREE.Vector3(1, 1, 1)
@@ -460,11 +462,13 @@ Game.prototype.showChunk = function(chunk) {
   this.voxels.chunks[chunkIndex] = chunk
   if (this.voxels.meshes[chunkIndex]) this.scene.remove(this.voxels.meshes[chunkIndex][this.meshType])
   this.voxels.meshes[chunkIndex] = mesh
-  if (this.meshType === 'wireMesh') mesh.createWireMesh()
-  else mesh.createSurfaceMesh(new THREE.MeshFaceMaterial(this.materials.get()))
+  if (process.browser) {
+    if (this.meshType === 'wireMesh') mesh.createWireMesh()
+    else mesh.createSurfaceMesh(new THREE.MeshFaceMaterial(this.materials.get()))
+    this.materials.paint(mesh.geometry)
+  }
   mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2])
   mesh.addToScene(this.scene)
-  this.materials.paint(mesh.geometry)
   return mesh
 }
 
@@ -520,19 +524,16 @@ Game.prototype.tick = function(delta) {
   for(var i = 0, len = this.items.length; i < len; ++i) {
     this.items[i].tick(delta)
   }
-
+  
   if (this.materials) this.materials.tick()
-
+  
   if (Object.keys(this.chunksNeedsUpdate).length > 0) this.updateDirtyChunks()
-
-  var target = this.controls.target()
-
-  if (target) {
-    target = target.avatar
-    this.spatial.emit('position', [target.position.x, target.position.y, target.position.z], target.position)
-  }
-
+  
   this.emit('tick', delta)
+  
+  if (!this.controls) return
+  var target = this.controls.target().avatar
+  this.spatial.emit('position', [target.position.x, target.position.y, target.position.z], target.position)
 }
 
 Game.prototype.render = function(delta) {
@@ -546,9 +547,10 @@ Game.prototype.initializeTimer = function(rate) {
   var last = null
   var dt = 0
   var wholeTick
-
+  
   self.frameUpdated = true
-  return self.interval = setInterval(timer, 0)
+  self.interval = setInterval(timer, 0)
+  return self.interval
   
   function timer() {
     if (self.paused) {
@@ -557,20 +559,18 @@ Game.prototype.initializeTimer = function(rate) {
       return
     }
     now = Date.now()
-    dt = now - last
+    dt = now - (last || now)
     last = now
     accum += dt
     if (accum < rate) return
-
     wholeTick = ((accum / rate)|0)
-
     if (wholeTick <= 0) return
-
+    
     wholeTick *= rate
-
+    
     self.tick(wholeTick)
     accum -= wholeTick
-
+    
     self.frameUpdated = true
   }
 }
