@@ -137,6 +137,7 @@ Game.prototype.addItem = function(item) {
 
     newItem.repr = function() { return 'debris' }
     newItem.mesh = item.mesh
+    newItem.blocksCreation = item.blocksCreation
 
     item = newItem
   }
@@ -159,8 +160,8 @@ Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
 
   var hitNormal = new Array(3)
   var hitPosition = new Array(3)
-  var cp = this.cameraPosition()
-  var cv = this.cameraVector()
+  var cp = start || this.cameraPosition()
+  var cv = direction || this.cameraVector()
   var hitBlock = ray(this, [cp.x, cp.y, cp.z], [cv.x, cv.y, cv.z], maxDistance || 10.0, hitPosition, hitNormal)
   if (hitBlock === -1) return false
   
@@ -616,4 +617,9 @@ Game.prototype.handleChunkGeneration = function() {
     if (process.browser) self.showChunk(chunk)
   })
   this.voxels.requestMissingChunks(this.worldOrigin)
+}
+
+// teardown methods
+Game.prototype.destroy = function() {
+  clearInterval(this.timer)
 }

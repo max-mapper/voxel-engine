@@ -26,5 +26,11 @@
     "voxel-control": "0.0.7",
     "voxel-physical": "0.0.5",
     "pin-it": "0.0.1"
+  },
+  "devDependencies": {
+    "tape": "0.2.2"
+  },
+  "scripts": {
+    "test": "node test.js"
   }
 }
