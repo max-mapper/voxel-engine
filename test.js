@@ -104,3 +104,25 @@ test('gravity', function gravity(t) {
     game.destroy()
   }, 300)
 })
+
+test('infinite terrain', function gravity(t) {
+  t.plan(1)
+  var game = createEngine(gameOptions)
+  var item = dummyItem(game.THREE)
+  var physical = game.makePhysical(item)
+  item.position.set(0, 2, 0)
+  physical.mesh = item
+  game.addItem(physical)
+  var buttons = {}
+  game.hookupControls(buttons)
+  game.control(physical)
+  setTimeout(function() {
+    // move player forward 2 chunks
+    game.controls.target().avatar.position.z = 64
+    game.scene.updateMatrixWorld()
+  }, 150)
+  setTimeout(function() {
+    t.equal(!!game.voxels.chunks['1|1|3'], true)
+    game.destroy()
+  }, 300)
+})

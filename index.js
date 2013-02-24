@@ -86,6 +86,10 @@ function Game(opts) {
   })
 
   this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
+  
+  self.chunkRegion.on('change', function(newChunk) {
+    self.removeFarChunks()
+  })
 
   if (process.browser) this.materials.load(this.materialNames)
 
@@ -421,7 +425,9 @@ Game.prototype.removeFarChunks = function(playerPosition) {
   Object.keys(self.voxels.chunks).map(function(chunkIndex) {
     if (nearbyChunks.indexOf(chunkIndex) > -1) return
     var chunk = self.voxels.meshes[chunkIndex]
-
+    
+    if (!chunk) return
+    
     self.scene.remove(chunk[self.meshType])
     chunk[self.meshType].geometry.dispose()
 
@@ -586,10 +592,6 @@ Game.prototype.initializeRendering = function() {
     self.render(dt)
     stats.update()
   })
-
-  self.chunkRegion.on('change', function(newChunk) {
-    self.removeFarChunks()
-  })
 }
 
 Game.prototype.initializeControls = function(opts) {
@@ -602,10 +604,14 @@ Game.prototype.initializeControls = function(opts) {
       .on('attain', this.onControlChange.bind(this, true))
       .on('release', this.onControlChange.bind(this, false))
       .on('opt-out', this.onControlOptOut.bind(this))
+  this.hookupControls(this.buttons, opts)
+}
 
+Game.prototype.hookupControls = function(buttons, opts) {
+  opts = opts || {}
   opts.controls = opts.controls || {}
   opts.controls.onfire = this.onFire.bind(this)
-  this.controls = control(this.buttons, opts.controls)
+  this.controls = control(buttons, opts.controls)
   this.items.push(this.controls)
   this.controlling = null
 }
