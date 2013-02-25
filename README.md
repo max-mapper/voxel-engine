@@ -222,15 +222,14 @@ For example, here we have 4 faces colliding with the bottom of our object:
 
 Loading textures creates multiple "materials".
 
-```var material = game.loadTextures([ 'obsidian', 'dirt' ]);```
+```var materials = game.materials.load(['obsidian', 'dirt'])```
 
 Both of these textures come with 6 materials, one for each side of a cube, giving a total of 12 materials. By default, faces 1 to 6 are assigned materials 1 to 6. You can assign materials to faces in however you want. For example, we could load materials 7 to 12 (e.g. the dirt materials) like so:
 
 ```js
 mesh.geometry.faces.forEach(function (face, index) {
-    face.materialIndex = index + 6 // obsidian texture indices 0 - 5, dirt 6 - 11
+  face.materialIndex = index + 6 // obsidian texture indices 0 - 5, dirt 6 - 11
 })
-
 ```
 
 ### Items
@@ -243,11 +242,13 @@ mesh.geometry.faces.forEach(function (face, index) {
 ####  Example:  Creating an Item
 
 ```js
-// texture for item
-var material = game.loadTextures([ 'obsidian' ]);
+// get a previously loaded texture by name
+var material = game.materials.get('obsidian');
+
+// create a mesh and set the matertial
 var mesh = new game.THREE.Mesh(
-    new game.THREE.CubeGeometry(10, 30, 10), // width, height, depth
-    material
+  new game.THREE.CubeGeometry(10, 30, 10), // width, height, depth
+  new game.THREE.MeshFaceMaterial(material)
 );
 
 // move item to some location
@@ -258,12 +259,12 @@ mesh.translateZ(12.5)
 // if these item dimensions don't match the mesh's dimensions,
 // the object's physics will not operate correctly.
 var item = {
-    mesh: mesh,
-    width: 10,
-    height: 100,
-    depth: 10,
-    collisionRadius: 20, // padding around object dimensions box for collisions
-    velocity: { x: 0, y: 0, z: 0 } // initial velocity
+  mesh: mesh,
+  width: 10,
+  height: 100,
+  depth: 10,
+  collisionRadius: 20, // padding around object dimensions box for collisions
+  velocity: { x: 0, y: 0, z: 0 } // initial velocity
 }
 
 game.items.length // => 0
