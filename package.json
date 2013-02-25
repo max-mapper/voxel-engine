@@ -1,7 +1,7 @@
 {
   "name": "voxel-engine",
   "description": "make games with voxel.js",
-  "version": "0.5.8",
+  "version": "0.6.0",
   "repository": {
     "type": "git",
     "url": "git@github.com:maxogden/voxel-engine.git"
@@ -9,23 +9,23 @@
   "dependencies": {
     "voxel": "0.1.5",
     "voxel-mesh": "0.1.1",
-    "voxel-chunks": "0.0.2",
     "voxel-view": "0.0.4",
-    "inherits": "1.0.0",
-    "three": "0.54.0",
-    "raf": "0.0.1",
-    "interact": "0.0.2",
-    "voxel-texture": "0.3.1",
-    "voxel-region-change": "0.0.2",
-    "collide-3d-tilemap": "0.0.1",
-    "aabb-3d": "0.0.0",
-    "spatial-events": "0.0.1",
-    "spatial-trigger": "0.0.0",
-    "kb-controls": "0.0.2",
+    "voxel-chunks": "0.0.2",
     "voxel-raycast": "0.0.0",
     "voxel-control": "0.0.7",
+    "voxel-texture": "0.3.1",
     "voxel-physical": "0.0.5",
-    "pin-it": "0.0.1"
+    "voxel-region-change": "0.0.2",
+    "raf": "0.0.1",
+    "three": "0.54.0",
+    "pin-it": "0.0.1",
+    "aabb-3d": "0.0.0",
+    "inherits": "1.0.0",
+    "interact": "0.0.2",
+    "kb-controls": "0.0.2",
+    "spatial-events": "0.0.1",
+    "spatial-trigger": "0.0.0",
+    "collide-3d-tilemap": "0.0.1"
   },
   "devDependencies": {
     "tape": "0.2.2"
