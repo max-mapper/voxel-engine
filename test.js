@@ -43,24 +43,24 @@ gameTest(function removeItem(game, t) {
 })
 
 gameTest(function getBlock(game, t) {
-  t.equal(game.getBlock({ x: 50, y: 50, z: 50}), 0)
+  t.equal(game.getBlock([50, 50, 50]), 0)
 })
 
 gameTest(function setBlock(game, t) {
-  game.setBlock({ x: 50, y: 50, z: 50}, 1)
-  t.equal(game.getBlock({ x: 50, y: 50, z: 50}), 1)
+  game.setBlock([50, 50, 50], 1)
+  t.equal(game.getBlock([50, 50, 50]), 1)
 })
 
 gameTest(function createBlock(game, t) {
-  var pos = new game.THREE.Vector3(50, 50, 50)
+  var pos = [50, 50, 50]
   var inTheWay = { mesh: dummyItem(game.THREE), size: 5, blocksCreation: true }
-  inTheWay.mesh.position.copy(pos)
+  inTheWay.mesh.position.copy({x: pos[0], y: pos[1], z: pos[2]})
   game.addItem(inTheWay)
   t.equal(!!game.createBlock(pos), false)
 })
 
 gameTest(function blocksCreation(game, t) {
-  var pos = new game.THREE.Vector3(50, 50, 50)
+  var pos = [50, 50, 50]
   var inTheWay = { mesh: dummyItem(game.THREE), size: 5, blocksCreation: false }
   inTheWay.mesh.position.copy(pos)
   game.addItem(inTheWay)
@@ -68,19 +68,19 @@ gameTest(function blocksCreation(game, t) {
 })
 
 gameTest(function raycastVoxels(game, t) {
-  var pos = new game.THREE.Vector3(50, 50, 50)
+  var pos = [50, 50, 50]
   game.setBlock(pos, 1)
-  var start = new game.THREE.Vector3(50.5, 50.5, 50.5)
-  var direction = new game.THREE.Vector3(0, -1, 0)
+  var start = [50.5, 50.5, 50.5]
+  var direction = [0, -1, 0]
   var hit = game.raycast(start, direction, 10)
   t.equal(!!hit, true)
 })
 
 gameTest(function raycastVoxelsMiss(game, t) {
-  var pos = new game.THREE.Vector3(50, 50, 50)
+  var pos = [50, 50, 50]
   game.setBlock(pos, 0)
-  var start = new game.THREE.Vector3(50.5, 50.5, 50.5)
-  var direction = new game.THREE.Vector3(0, -1, 0)
+  var start = [50.5, 50.5, 50.5]
+  var direction = [0, -1, 0]
   var hit = game.raycast(start, direction, 10)
   t.equal(!!hit, false)
 })

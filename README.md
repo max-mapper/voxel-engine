@@ -119,13 +119,6 @@ game.controls.target().avatar.position()
 
 This returns a THREE.js Vector3 object (which just means an object with 'x', 'y', and 'z').
 
-### Check if there's a block at a position
-```js
-
-// returns 0 or 1-9 depending whether block at that position exists and is 'on'
-gameInstance.getVoxel(pos)
-```
-
 ### Toggle a block on/off
 
 ```js
