@@ -378,7 +378,7 @@ Game.prototype.chunkToWorld = function(pos) {
 
 Game.prototype.removeFarChunks = function(playerPosition) {
   var self = this
-  playerPosition = playerPosition || this.controls.target().avatar.position
+  playerPosition = playerPosition || this.playerPosition()
   var nearbyChunks = this.voxels.nearbyChunks(playerPosition, this.removeDistance).map(function(chunkPos) {
     return chunkPos.join('|')
   })
