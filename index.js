@@ -133,7 +133,7 @@ Game.prototype.addItem = function(item) {
   if (!item.tick) {
     var newItem = physical(
       item.mesh,
-      this.potentialCollisionSet.bind(this),
+      this.potentialCollisionSet(),
       [item.size, item.size, item.size]
     )
     
@@ -313,11 +313,11 @@ Game.prototype.playerAABB = function(position) {
 
 Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
   var axes = ['x', 'y', 'z']
-  var vec = [vec.x, vec.y, vec.z]
-  this.collideVoxels(bbox, vec, function hit(axis, tile, coords, dir, edge) {
+  var vec3 = [vec.x, vec.y, vec.z]
+  this.collideVoxels(bbox, vec3, function hit(axis, tile, coords, dir, edge) {
     if (!tile) return
-    if (Math.abs(vec[axis]) < Math.abs(edge)) return
-    vec[axis] = edge
+    if (Math.abs(vec3[axis]) < Math.abs(edge)) return
+    vec3[axis] = vec[axes[axis]] = edge
     other.acceleration[axes[axis]] = 0
     resting[axes[axis]] = dir
     other.friction[axes[(axis + 1) % 3]] = other.friction[axes[(axis + 2) % 3]] = axis === 1 ? 0.5 : 1
