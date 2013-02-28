@@ -65,11 +65,11 @@ See implementation of `Game.prototype.playerAABB` for more details.
 * `x`, `z`: horizontal plane
 * `y`: vertical plane
 
-We use various forms to represent positions (this will likely be simplified in the future):
+We try to always use arrays to represent vectors (aka positions)
 
-* `{x: Number, y: Number, z: Number}`
-* `[x, y, z]` and
-* Three.js's `Vector3`. Vector3 is rad and has a bunch of operations that allow you to combine vectors in various ways.
+* `[x, y, z]`
+
+Sometimes you may also see objects used, e.g. `{x: 0, y: 0, z: 0}`, this is because three.js uses objects for vectors.
 
 ## Generating voxel worlds
 
