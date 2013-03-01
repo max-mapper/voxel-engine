@@ -1,7 +1,7 @@
 {
   "name": "voxel-engine",
   "description": "make games with voxel.js",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "repository": {
     "type": "git",
     "url": "git@github.com:maxogden/voxel-engine.git"
@@ -11,10 +11,10 @@
     "voxel-mesh": "0.1.1",
     "voxel-view": "0.0.4",
     "voxel-chunks": "0.0.2",
-    "voxel-raycast": "0.0.0",
+    "voxel-raycast": "0.0.1",
     "voxel-control": "0.0.7",
     "voxel-texture": "0.3.1",
-    "voxel-physical": "0.0.6",
+    "voxel-physical": "0.0.7",
     "voxel-region-change": "0.1.0",
     "raf": "0.0.1",
     "three": "0.54.0",

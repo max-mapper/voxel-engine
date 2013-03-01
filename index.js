@@ -169,14 +169,15 @@ Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
   var hitPosition = new Array(3)
   var cp = start || this.cameraPosition()
   var cv = direction || this.cameraVector()
-  
   var hitBlock = ray(this, cp, cv, maxDistance || 10.0, hitPosition, hitNormal)
   if (hitBlock === -1) return false
   
-  hitPosition.direction = direction
-  hitPosition.hitNormal = hitNormal
-  hitPosition.hitValue = hitBlock
-  return hitPosition
+  return {
+    position: hitPosition,
+    direction: direction,
+    value: hitBlock,
+    normal: hitNormal
+  }
 }
 
 Game.prototype.checkBlock = function(pos) {
@@ -229,6 +230,11 @@ Game.prototype.getBlock = function(pos) {
   pos = this.parseVectorArguments(arguments)
   if (pos.chunkMatrix) return this.chunkGroups.getBlock(pos)
   return this.voxels.voxelAtPosition(pos)
+}
+
+Game.prototype.createAdjacent = function(hit, val) {
+  vector.add(hit.position, hit.position, hit.normal)
+  this.createBlock(hit.position, val)
 }
 
 Game.prototype.appendTo = function (element) {

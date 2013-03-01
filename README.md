@@ -153,6 +153,20 @@ Intended for use in first player contexts as it checks if a player is standing i
 
 If you wanna see the lower level API for voxel data manipulation look at `chunker.js` inside the voxel module.
 
+### Raycast
+
+shoots a ray and collides with voxels
+
+`gameInstance.raycast(start, position, distance)`
+
+if you just type `gameInstance.raycast()` it will default to using the current main camera position and direction, and default distance of 10
+
+you will get back an object with the position, direction, face normal and voxel value of the voxel that you intersected, or `false` if there was no collision
+
+### Create a new voxel adjacent to an existing voxel
+
+first do a `.raycast()` then do `gameInstance.createAdjacent(raycastResults, materialIndex)`
+
 ## Game events
 
 There are a number of events you can listen to once you've instantiated a game. we use the node.js event emitter library which uses the following syntax for subscribing:

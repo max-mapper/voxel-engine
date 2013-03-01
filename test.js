@@ -70,7 +70,7 @@ gameTest(function blocksCreation(game, t) {
 gameTest(function raycastVoxels(game, t) {
   var pos = [50, 50, 50]
   game.setBlock(pos, 1)
-  var start = [50.5, 50.5, 50.5]
+  var start = [50.5, 55, 50.5]
   var direction = [0, -1, 0]
   var hit = game.raycast(start, direction, 10)
   t.equal(!!hit, true)
@@ -79,10 +79,20 @@ gameTest(function raycastVoxels(game, t) {
 gameTest(function raycastVoxelsMiss(game, t) {
   var pos = [50, 50, 50]
   game.setBlock(pos, 0)
-  var start = [50.5, 50.5, 50.5]
+  var start = [50.5, 55, 50.5]
   var direction = [0, -1, 0]
   var hit = game.raycast(start, direction, 10)
   t.equal(!!hit, false)
+})
+
+gameTest(function createAdjacent(game, t) {
+  var pos = [50, 50, 50]
+  game.setBlock(pos, 1)
+  var start = [50.5, 55, 50.5]
+  var direction = [0, -1, 0]
+  var hit = game.raycast(start, direction, 10)
+  game.createAdjacent(hit, 1)
+  t.equal(!!game.getBlock(50, 51, 50), true)
 })
 
 test('gravity', function gravity(t) {
