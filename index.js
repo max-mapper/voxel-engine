@@ -165,8 +165,8 @@ Game.prototype.raycast = // backwards compat
 Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
   if (!start) return this.raycast(this.cameraPosition(), this.cameraVector(), 10)
   
-  var hitNormal = new Array(3)
-  var hitPosition = new Array(3)
+  var hitNormal = [0, 0, 0]
+  var hitPosition = [0, 0, 0]
   var cp = start || this.cameraPosition()
   var cv = direction || this.cameraVector()
   var hitBlock = ray(this, cp, cv, maxDistance || 10.0, hitPosition, hitNormal)
