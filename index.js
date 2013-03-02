@@ -160,17 +160,17 @@ Game.prototype.removeItem = function(item) {
   if (item.mesh) this.scene.remove(item.mesh)
 }
 
-// only intersects voxels, not items
+// only intersects voxels, not items (for now)
 Game.prototype.raycast = // backwards compat
 Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
-  if (!start) return this.raycast(this.cameraPosition(), this.cameraVector(), 10)
+  if (!start) return this.raycastVoxels(this.cameraPosition(), this.cameraVector(), 10)
   
   var hitNormal = [0, 0, 0]
   var hitPosition = [0, 0, 0]
   var cp = start || this.cameraPosition()
   var cv = direction || this.cameraVector()
   var hitBlock = ray(this, cp, cv, maxDistance || 10.0, hitPosition, hitNormal)
-  if (hitBlock == 0) return false
+  if (hitBlock <= 0) return false
   var adjacentPosition = [0, 0, 0]
   vector.add(adjacentPosition, hitPosition, hitNormal)
   
@@ -199,8 +199,9 @@ Game.prototype.canCreateBlock = function(pos) {
 
 Game.prototype.createBlock = function(pos, val) {
   if (pos.chunkMatrix) return this.chunkGroups.createBlock(pos, val)
-  if (!this.canCreateBlock(pos)) return
-  return this.setBlock(pos, val);
+  if (!this.canCreateBlock(pos)) return false
+  this.setBlock(pos, val)
+  return true
 }
 
 Game.prototype.setBlock = function(pos, val) {
