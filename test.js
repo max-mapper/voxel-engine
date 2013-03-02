@@ -91,7 +91,7 @@ gameTest(function createAdjacent(game, t) {
   var start = [50.5, 55, 50.5]
   var direction = [0, -1, 0]
   var hit = game.raycast(start, direction, 10)
-  game.createAdjacent(hit, 1)
+  game.createBlock(hit.adjacent, 1)
   t.equal(!!game.getBlock(50, 51, 50), true)
 })
 

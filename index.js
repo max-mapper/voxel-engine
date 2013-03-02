@@ -171,12 +171,15 @@ Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
   var cv = direction || this.cameraVector()
   var hitBlock = ray(this, cp, cv, maxDistance || 10.0, hitPosition, hitNormal)
   if (hitBlock == 0) return false
+  var adjacentPosition = [0, 0, 0]
+  vector.add(adjacentPosition, hitPosition, hitNormal)
   
   return {
     position: hitPosition,
     direction: direction,
     value: hitBlock,
-    normal: hitNormal
+    normal: hitNormal,
+    adjacent: adjacentPosition
   }
 }
 
@@ -232,9 +235,9 @@ Game.prototype.getBlock = function(pos) {
   return this.voxels.voxelAtPosition(pos)
 }
 
+// backwards compat
 Game.prototype.createAdjacent = function(hit, val) {
-  vector.add(hit.position, hit.position, hit.normal)
-  this.createBlock(hit.position, val)
+  this.createBlock(hit.adjacent, val)
 }
 
 Game.prototype.appendTo = function (element) {
