@@ -220,6 +220,15 @@ Game.prototype.getBlock = function(pos) {
   return this.voxels.voxelAtPosition(pos)
 }
 
+Game.prototype.blockPosition = function(pos) {
+  pos = this.parseVectorArguments(arguments)
+  if (pos.chunkMatrix) return this.chunkGroups.blockPosition(pos)
+  var ox = Math.floor(pos[0])
+  var oy = Math.floor(pos[1])
+  var oz = Math.floor(pos[2])
+  return [ox, oy, oz]
+}
+
 // backwards compat
 Game.prototype.createAdjacent = function(hit, val) {
   this.createBlock(hit.adjacent, val)
