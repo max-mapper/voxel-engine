@@ -183,42 +183,24 @@ Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
   }
 }
 
-Game.prototype.checkBlock = function(pos) {
+Game.prototype.canCreateBlock = function(pos) {
   pos = this.parseVectorArguments(arguments)
   var floored = pos.map(function(i) { return Math.floor(i) })
-  var bbox
-  
-  bbox = aabb(floored, [1, 1, 1])
+  var bbox = aabb(floored, [1, 1, 1])
   
   for (var i = 0, len = this.items.length; i < len; ++i) {
     var item = this.items[i]
     var itemInTheWay = item.blocksCreation && item.aabb && bbox.intersects(item.aabb())
-    if (itemInTheWay) return
+    if (itemInTheWay) return false
   }
-  
-  var chunkKeyArr = this.voxels.chunkAtPosition(pos)
-  var chunkIndex = chunkKeyArr.join('|')
-  var chunk = this.voxels.chunks[chunkIndex]
-  
-  if (!chunk) return
-  
-  var chunkPosition = this.chunkToWorld(chunk.position)
-  var voxelPosition = []
-  vector.subtract(voxelPosition, floored, chunkPosition)
-  
-  return {chunkIndex: chunkIndex, voxelVector: voxelPosition}
+
+  return true
 }
 
 Game.prototype.createBlock = function(pos, val) {
   if (pos.chunkMatrix) return this.chunkGroups.createBlock(pos, val)
-  var newBlock = this.checkBlock(pos)
-  if (!newBlock) return
-  var chunk = this.voxels.chunks[newBlock.chunkIndex]
-  var old = chunk.voxels[this.voxels.voxelIndex(newBlock.voxelVector)]
-  chunk.voxels[this.voxels.voxelIndex(newBlock.voxelVector)] = val
-  this.addChunkToNextUpdate(chunk)
-  this.spatial.emit('change-block', pos, old, val)
-  return true
+  if (!this.canCreateBlock(pos)) return
+  return this.setBlock(pos, val);
 }
 
 Game.prototype.setBlock = function(pos, val) {
