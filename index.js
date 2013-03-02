@@ -205,10 +205,10 @@ Game.prototype.createBlock = function(pos, val) {
 
 Game.prototype.setBlock = function(pos, val) {
   if (pos.chunkMatrix) return this.chunkGroups.setBlock(pos, val)
-  var hitVoxel = this.voxels.voxelAtPosition(pos, val)
+  var old = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
   this.addChunkToNextUpdate(this.voxels.chunks[c.join('|')])
-  this.spatial.emit('change-block', pos, hitVoxel, val)
+  this.spatial.emit('change-block', pos, old, val)
 }
 
 Game.prototype.getBlock = function(pos) {
