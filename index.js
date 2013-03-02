@@ -170,7 +170,7 @@ Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
   var cp = start || this.cameraPosition()
   var cv = direction || this.cameraVector()
   var hitBlock = ray(this, cp, cv, maxDistance || 10.0, hitPosition, hitNormal)
-  if (hitBlock === -1) return false
+  if (hitBlock == 0) return false
   
   return {
     position: hitPosition,
