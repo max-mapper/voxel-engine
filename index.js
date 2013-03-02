@@ -165,65 +165,50 @@ Game.prototype.raycast = // backwards compat
 Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
   if (!start) return this.raycast(this.cameraPosition(), this.cameraVector(), 10)
   
-  var hitNormal = new Array(3)
-  var hitPosition = new Array(3)
+  var hitNormal = [0, 0, 0]
+  var hitPosition = [0, 0, 0]
   var cp = start || this.cameraPosition()
   var cv = direction || this.cameraVector()
   var hitBlock = ray(this, cp, cv, maxDistance || 10.0, hitPosition, hitNormal)
-  if (hitBlock === -1) return false
+  if (hitBlock == 0) return false
+  var adjacentPosition = [0, 0, 0]
+  vector.add(adjacentPosition, hitPosition, hitNormal)
   
   return {
     position: hitPosition,
     direction: direction,
     value: hitBlock,
-    normal: hitNormal
+    normal: hitNormal,
+    adjacent: adjacentPosition
   }
 }
 
-Game.prototype.checkBlock = function(pos) {
+Game.prototype.canCreateBlock = function(pos) {
   pos = this.parseVectorArguments(arguments)
   var floored = pos.map(function(i) { return Math.floor(i) })
-  var bbox
-  
-  bbox = aabb(floored, [1, 1, 1])
+  var bbox = aabb(floored, [1, 1, 1])
   
   for (var i = 0, len = this.items.length; i < len; ++i) {
     var item = this.items[i]
     var itemInTheWay = item.blocksCreation && item.aabb && bbox.intersects(item.aabb())
-    if (itemInTheWay) return
+    if (itemInTheWay) return false
   }
-  
-  var chunkKeyArr = this.voxels.chunkAtPosition(pos)
-  var chunkIndex = chunkKeyArr.join('|')
-  var chunk = this.voxels.chunks[chunkIndex]
-  
-  if (!chunk) return
-  
-  var chunkPosition = this.chunkToWorld(chunk.position)
-  var voxelPosition = []
-  vector.subtract(voxelPosition, floored, chunkPosition)
-  
-  return {chunkIndex: chunkIndex, voxelVector: voxelPosition}
+
+  return true
 }
 
 Game.prototype.createBlock = function(pos, val) {
   if (pos.chunkMatrix) return this.chunkGroups.createBlock(pos, val)
-  var newBlock = this.checkBlock(pos)
-  if (!newBlock) return
-  var chunk = this.voxels.chunks[newBlock.chunkIndex]
-  var old = chunk.voxels[this.voxels.voxelIndex(newBlock.voxelVector)]
-  chunk.voxels[this.voxels.voxelIndex(newBlock.voxelVector)] = val
-  this.addChunkToNextUpdate(chunk)
-  this.spatial.emit('change-block', pos, old, val)
-  return true
+  if (!this.canCreateBlock(pos)) return
+  return this.setBlock(pos, val);
 }
 
 Game.prototype.setBlock = function(pos, val) {
   if (pos.chunkMatrix) return this.chunkGroups.setBlock(pos, val)
-  var hitVoxel = this.voxels.voxelAtPosition(pos, val)
+  var old = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
   this.addChunkToNextUpdate(this.voxels.chunks[c.join('|')])
-  this.spatial.emit('change-block', pos, hitVoxel, val)
+  this.spatial.emit('change-block', pos, old, val)
 }
 
 Game.prototype.getBlock = function(pos) {
@@ -232,9 +217,9 @@ Game.prototype.getBlock = function(pos) {
   return this.voxels.voxelAtPosition(pos)
 }
 
+// backwards compat
 Game.prototype.createAdjacent = function(hit, val) {
-  vector.add(hit.position, hit.position, hit.normal)
-  this.createBlock(hit.position, val)
+  this.createBlock(hit.adjacent, val)
 }
 
 Game.prototype.appendTo = function (element) {
