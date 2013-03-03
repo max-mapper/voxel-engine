@@ -230,6 +230,7 @@ Game.prototype.appendTo = function (element) {
 // # Defaults/options parsing
 
 Game.prototype.gravity = [0, -0.0000036, 0]
+Game.prototype.friction = 0.4
 
 Game.prototype.defaultButtons = {
   'W': 'forward'
@@ -305,6 +306,7 @@ Game.prototype.playerAABB = function(position) {
 }
 
 Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
+  var self = this
   var axes = ['x', 'y', 'z']
   var vec3 = [vec.x, vec.y, vec.z]
   this.collideVoxels(bbox, vec3, function hit(axis, tile, coords, dir, edge) {
@@ -313,7 +315,7 @@ Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
     vec3[axis] = vec[axes[axis]] = edge
     other.acceleration[axes[axis]] = 0
     resting[axes[axis]] = dir
-    other.friction[axes[(axis + 1) % 3]] = other.friction[axes[(axis + 2) % 3]] = axis === 1 ? 0.5 : 1
+    other.friction[axes[(axis + 1) % 3]] = other.friction[axes[(axis + 2) % 3]] = axis === 1 ? self.friction  : 1
     return true
   })
 }
