@@ -239,6 +239,7 @@ Game.prototype.defaultButtons = {
 , '<mouse 1>': 'fire'
 , '<mouse 2>': 'firealt'
 , '<space>': 'jump'
+, '<shift>': 'crouch'
 , '<control>': 'alt'
 }
 
