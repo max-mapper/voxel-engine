@@ -51,6 +51,16 @@ gameTest(function setBlock(game, t) {
   t.equal(game.getBlock([50, 50, 50]), 1)
 })
 
+gameTest(function setBlockWithMaterialName(game, t) {
+  game.materials.materials = [
+    { name: 'grass' },
+    { name: 'brick' },
+    { name: 'dirt' },
+  ]
+  game.setBlock([50, 50, 50], 'brick')
+  t.equal(game.getBlock([50, 50, 50]), 2)
+})
+
 gameTest(function blocksCreation(game, t) {
   var pos = [50, 50, 50]
   var inTheWay = { mesh: dummyItem(game.THREE), size: 5, blocksCreation: true }
