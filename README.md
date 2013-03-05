@@ -59,6 +59,8 @@ See implementation of `Game.prototype.playerAABB` for more details.
 * AABB: [bounding volume](http://en.wikipedia.org/wiki/Bounding_volume)
 * voxeljs: not 100% consistent yet, 'voxel.js' also acceptable, but definitely not 'VoxelJS'.
 * dims: short for 'dimensions'. Perhaps obvious to some.
+* yaw: rotation around the vertical axis.
+* pitch: rotation around a horizontal axis.
 
 ## Positions
 
