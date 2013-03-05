@@ -1,20 +1,22 @@
 {
   "name": "voxel-hello-world",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "repository": {
     "type":"git",
     "url": "git@github.com:maxogden/voxel-hello-world.git"
   },
   "dependencies": {
-    "voxel-engine": "0.3.5",
-    "minecraft-skin": "0.0.1",
-    "painterly-textures": "git://github.com/maxogden/painterly-textures.git#relative",
-    "voxel-debris": "0.0.4"
+    "voxel-engine": "0.10.0",
+    "voxel-highlight": "0.0.5",
+    "voxel-player": "0.1.0",
+    "painterly-textures": "0.0.3",
+    "toolbar": "0.0.5"
   },
   "devDependencies": {
-    "browservefy": "0.0.1"
+    "browserify": "1.17.3",
+    "browservefy": "0.0.8"
   },
   "scripts": {
-    "start": "echo \"open localhost:8080/\" && ./node_modules/.bin/browservefy index.js 8080 -- -d"
+    "start": "echo \"open localhost:8080/\" && ./node_modules/browservefy/bin/browservefy index.js:bundle.js 8080 --browserify=./node_modules/browserify/bin/cmd.js -- -d"
   }
 }

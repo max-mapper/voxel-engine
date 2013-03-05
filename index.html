@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="en">
   <head>
-    <title>Voxel Engine</title>
+    <title>Voxel Hello World</title>
     <meta charset="utf-8">
     <style type="text/css">
       body {
@@ -16,6 +16,15 @@
         -webkit-user-select: none;
         user-select: none;
       }
+      #crosshair {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin: -16px 0 0 -16px;
+        width: 32px;
+        height: 32px;
+      }
+
       #stats { bottom: 0px; right: 0px; }
       .bar-tab { right: 33% !important; left: 33% !important; }
       .logo {position: absolute; top: 5px; left: 5px; }
@@ -26,27 +35,20 @@
   <body>
     <img class="logo" src="logo-white.png">
     <div id="container"></div>
+    <div id="crosshair"><img src="crosshair.png"/></div>
     <nav class="bar-tab" id="tools" >
       <ul class="tab-inner">
         <li class="tab-item active">
-          <img class="tab-icon" src="textures/grass.png">
-          <div class="tab-label">grass</div>
+          <img class="tab-icon" src="node_modules/painterly-textures/textures/grass.png">
+          <div class="tab-label" data-id="1">grass</div>
         </li>
         <li class="tab-item">
-          <img class="tab-icon" src="textures/brick.png">
-          <div class="tab-label">brick</div>
+          <img class="tab-icon" src="node_modules/painterly-textures/textures/obsidian.png">
+          <div class="tab-label" data-id="2">obsidian</div>
         </li>
         <li class="tab-item">
-          <img class="tab-icon" src="textures/dirt.png">
-          <div class="tab-label">dirt</div>
-        </li>
-        <li class="tab-item">
-          <img class="tab-icon" src="textures/obsidian.png">
-          <div class="tab-label">obsidian</div>
-        </li>
-        <li class="tab-item">
-          <img class="tab-icon" src="textures/crate.png">
-          <div class="tab-label">crate</div>
+          <img class="tab-icon" src="node_modules/painterly-textures/textures/brick.png">
+          <div class="tab-label" data-id="3">brick</div>
         </li>
       </ul>
     </nav>
