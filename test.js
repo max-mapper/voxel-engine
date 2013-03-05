@@ -77,6 +77,13 @@ gameTest(function createBlock(game, t) {
   t.equal(game.createBlock(pos), true)
 })
 
+gameTest(function blocks(game, t) {
+  var pos = [6,6,6]
+  game.setBlock(pos, 1)
+  var blocks = game.blocks([5,5,5], [7,7,7]).voxels
+  t.equal(!!blocks[7], true)
+})
+
 gameTest(function raycastVoxels(game, t) {
   var pos = [50, 50, 50]
   game.setBlock(pos, 1)
