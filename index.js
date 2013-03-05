@@ -299,10 +299,19 @@ Game.prototype.potentialCollisionSet = function() {
   return [{ collide: this.collideTerrain.bind(this) }]
 }
 
+/**
+ * Get the position of the player under control.
+ * If there is no player under control, return
+ * current position of the game's camera.
+ *
+ * @return {Array} an [x, y, z] tuple
+ */
+
 Game.prototype.playerPosition = function() {
   var target = this.controls.target()
-  if (!target) return false
-  var position = target.avatar.position
+  var position = target
+    ? target.avatar.position
+    : this.camera.localToWorld(this.camera.position)
   return [position.x, position.y, position.z]
 }
 
