@@ -311,7 +311,7 @@ Game.prototype.playerPosition = function() {
   var target = this.controls.target()
   var position = target
     ? target.avatar.position
-    : this.camera.localToWorld(this.camera.position)
+    : this.camera.localToWorld(this.camera.position.clone())
   return [position.x, position.y, position.z]
 }
 
