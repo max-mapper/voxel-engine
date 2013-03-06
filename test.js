@@ -30,9 +30,11 @@ test('create, destroy', function (t) {
 })
 
 gameTest(function addItem(game, t) {
+  t.plan(2)
   var item = { tick: function(){} }
-  game.addItem(item)
+  var newItem = game.addItem(item)
   t.equal(game.items.length, 1)
+  t.equal(newItem, game.items[game.items.length - 1])
 })
 
 gameTest(function removeItem(game, t) {
