@@ -151,6 +151,7 @@ Game.prototype.addItem = function(item) {
   
   this.items.push(item)
   if (item.mesh) this.scene.add(item.mesh)
+  return this.items[this.items.length - 1]
 }
 
 Game.prototype.removeItem = function(item) {
