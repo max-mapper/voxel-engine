@@ -578,9 +578,15 @@ Game.prototype.initializeRendering = function() {
   window.addEventListener('resize', self.onWindowResize.bind(self), false)
 
   requestAnimationFrame(window).on('data', function(dt) {
+    self.emit('prerender', dt)
     self.render(dt)
-    stats.update()
+    self.emit('postrender', dt)
   })
+  if (typeof stats !== 'undefined') {
+    self.on('postrender', function() {
+      stats.update()
+    })
+  }
 }
 
 Game.prototype.initializeControls = function(opts) {
