@@ -112,6 +112,16 @@ gameTest(function createAdjacent(game, t) {
   t.equal(!!game.getBlock(50, 51, 50), true)
 })
 
+test('onRenderChunk', function onRenderChunk(t) {
+  t.plan(1)
+  var game = createEngine(gameOptions)
+  game.on('renderChunk', function(chunk) {
+    t.equal(JSON.stringify(chunk.position), JSON.stringify([1, 1, 1]))
+    game.destroy()
+  })
+  game.setBlock([50, 50, 50], 1)
+})
+
 test('gravity', function gravity(t) {
   t.plan(2)
   var game = createEngine(gameOptions)

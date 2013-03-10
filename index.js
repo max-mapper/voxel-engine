@@ -464,6 +464,7 @@ Game.prototype.showChunk = function(chunk) {
   }
   mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2])
   mesh.addToScene(this.scene)
+  this.emit('renderChunk', chunk)
   return mesh
 }
 
@@ -560,7 +561,6 @@ Game.prototype.initializeTimer = function(rate) {
     if (accum < rate) return
     wholeTick = ((accum / rate)|0)
     if (wholeTick <= 0) return
-    
     wholeTick *= rate
     
     self.tick(wholeTick)

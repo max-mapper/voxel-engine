@@ -173,7 +173,7 @@ first do a `.raycast()` then do `gameInstance.createAdjacent(raycastResults, mat
 
 There are a number of events you can listen to once you've instantiated a game. we use the node.js event emitter library which uses the following syntax for subscribing:
 
-`emitter.on('eventName', function(arg1, arg2, etc) {})`
+`emitter.on('eventname', function(arg1, arg2, etc) {})`
 
 ### `game.on('mouseup', function(pos) {})`, `game.on('mousedown', function(pos) {})`
 
@@ -194,6 +194,10 @@ emits when you move between voxels. pos has x, y, and z voxel coordinates of the
 ### `game.chunkRegion.on('change', function(pos) {})``
 
 emits when you move between chunks. pos has x, y, and z chunk coordinates of the chunk you just entered
+
+### `game.on('renderChunk, function(chunk) {})`
+
+emits when a chunk is drawn (using the `showChunk` method). `chunk` is the full chunk object, which has the voxel data and a `.position` and `.dims`
 
 ### `game.on('missingChunk', function(chunkPosition) {})`
 
