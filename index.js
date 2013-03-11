@@ -180,14 +180,14 @@ Game.prototype.removeItem = function(item) {
 
 // only intersects voxels, not items (for now)
 Game.prototype.raycast = // backwards compat
-Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
+Game.prototype.raycastVoxels = function(start, direction, maxDistance, epilson) {
   if (!start) return this.raycastVoxels(this.cameraPosition(), this.cameraVector(), 10)
   
   var hitNormal = [0, 0, 0]
   var hitPosition = [0, 0, 0]
   var cp = start || this.cameraPosition()
   var cv = direction || this.cameraVector()
-  var hitBlock = ray(this, cp, cv, maxDistance || 10.0, hitPosition, hitNormal)
+  var hitBlock = ray(this, cp, cv, maxDistance || 10.0, hitPosition, hitNormal, epilson || this.epilson)
   if (hitBlock <= 0) return false
   var adjacentPosition = [0, 0, 0]
   var voxelPosition = this.voxelPosition(hitPosition)
@@ -276,6 +276,7 @@ Game.prototype.appendTo = function (element) {
 
 Game.prototype.gravity = [0, -0.0000036, 0]
 Game.prototype.friction = 0.4
+Game.prototype.epilson = 1e-8
 
 Game.prototype.defaultButtons = {
   'W': 'forward'
