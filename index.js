@@ -120,6 +120,16 @@ inherits(Game, EventEmitter)
 
 // # External API
 
+Game.prototype.voxelPosition = function(gamePosition) {
+  var _ = Math.floor
+  var p = gamePosition
+  var v = []
+  v[0] = _(p[0])
+  v[1] = _(p[1])
+  v[2] = _(p[2])
+  return v
+}
+
 Game.prototype.cameraPosition = function() {
   var pos = this.view.cameraPosition()
   return [pos.x, pos.y, pos.z]
@@ -180,10 +190,12 @@ Game.prototype.raycastVoxels = function(start, direction, maxDistance) {
   var hitBlock = ray(this, cp, cv, maxDistance || 10.0, hitPosition, hitNormal)
   if (hitBlock <= 0) return false
   var adjacentPosition = [0, 0, 0]
-  vector.add(adjacentPosition, hitPosition, hitNormal)
+  var voxelPosition = this.voxelPosition(hitPosition)
+  vector.add(adjacentPosition, voxelPosition, hitNormal)
   
   return {
     position: hitPosition,
+    voxel: voxelPosition,
     direction: direction,
     value: hitBlock,
     normal: hitNormal,

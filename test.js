@@ -95,6 +95,15 @@ gameTest(function raycastVoxels(game, t) {
   t.equal(!!hit, true)
 })
 
+gameTest(function raycastVoxelsPrecise(game, t) {
+  var pos = [1, 1, 1]
+  game.setBlock(pos, 1)
+  var start = [1.994133710861206, 3.1129817962646484, 3.9677624702453613]
+  var direction = [-0.16332358934799918, -0.4095857816495397, -0.8975326693959512]
+  var hit = game.raycast(start, direction, 10)
+  t.equal(hit.adjacent[1], 2)
+})
+
 gameTest(function raycastVoxelsMiss(game, t) {
   var start = [50.5, 55, 50.5]
   var direction = [0, -1, 0]
