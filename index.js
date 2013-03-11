@@ -77,9 +77,12 @@ function Game(opts) {
   this.region = regionChange(this.spatial, aabb([0, 0, 0], [1, 1, 1]), this.chunkSize)
   this.voxelRegion = regionChange(this.spatial, 1)
   this.chunkRegion = regionChange(this.spatial, this.chunkSize)
+  this.asyncChunkGeneration = false
 
   // contains chunks that has had an update this tick. Will be generated right before redrawing the frame
   this.chunksNeedsUpdate = {}
+  // contains new chunks yet to be generated. Handled by game.loadPendingChunks
+  this.pendingChunks = []
 
   this.materials = texture({
     THREE: THREE,
@@ -105,6 +108,10 @@ function Game(opts) {
   this.initializeRendering()
   
   for (var chunkIndex in this.voxels.chunks) this.showChunk(this.voxels.chunks[chunkIndex])
+
+  setTimeout(function() {
+    self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : true
+  }, 2000)
 
   this.initializeControls(opts)
 }
@@ -414,8 +421,11 @@ Game.prototype.removeFarChunks = function(playerPosition) {
   })
   Object.keys(self.voxels.chunks).map(function(chunkIndex) {
     if (nearbyChunks.indexOf(chunkIndex) > -1) return
+
     var chunk = self.voxels.meshes[chunkIndex]
-    
+    var pendingIndex = self.pendingChunks.indexOf(chunkIndex)
+
+    if (pendingIndex !== -1) self.pendingChunks.splice(pendingIndex, 1)
     if (!chunk) return
     
     self.scene.remove(chunk[self.meshType])
@@ -441,6 +451,26 @@ Game.prototype.updateDirtyChunks = function() {
     self.showChunk(chunk)
   })
   this.chunksNeedsUpdate = {}
+}
+
+Game.prototype.loadPendingChunks = function(count) {
+  var pendingChunks = this.pendingChunks
+
+  if (!this.asyncChunkGeneration) {
+    count = pendingChunks.length
+  } else {
+    count = count || (pendingChunks.length * 0.1)
+    count = Math.max(1, Math.min(count, pendingChunks.length))
+  }
+
+  for (var i = 0; i < count; i += 1) {
+    var chunkPos = pendingChunks[i].split('|')
+    var chunk = this.voxels.generateChunk(chunkPos[0]|0, chunkPos[1]|0, chunkPos[2]|0)
+
+    if (process.browser) this.showChunk(chunk)
+  }
+
+  if (count) pendingChunks.splice(0, count)
 }
 
 Game.prototype.getChunkAtPosition = function(pos) {
@@ -522,7 +552,8 @@ Game.prototype.tick = function(delta) {
   }
   
   if (this.materials) this.materials.tick()
-  
+
+  if (this.pendingChunks.length) this.loadPendingChunks()
   if (Object.keys(this.chunksNeedsUpdate).length > 0) this.updateDirtyChunks()
   
   this.emit('tick', delta)
@@ -614,10 +645,10 @@ Game.prototype.hookupControls = function(buttons, opts) {
 Game.prototype.handleChunkGeneration = function() {
   var self = this
   this.voxels.on('missingChunk', function(chunkPos) {
-    var chunk = self.voxels.generateChunk(chunkPos[0], chunkPos[1], chunkPos[2])
-    if (process.browser) self.showChunk(chunk)
+    self.pendingChunks.push(chunkPos.join('|'))
   })
   this.voxels.requestMissingChunks(this.worldOrigin)
+  this.loadPendingChunks(this.pendingChunks.length)
 }
 
 // teardown methods
