@@ -420,6 +420,7 @@ Game.prototype.removeFarChunks = function(playerPosition) {
     
     self.scene.remove(chunk[self.meshType])
     chunk[self.meshType].geometry.dispose()
+    self.emit('removeChunk', chunk.data)
 
     delete chunk.data
     delete chunk.geometry
