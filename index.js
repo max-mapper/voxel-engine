@@ -131,13 +131,11 @@ Game.prototype.voxelPosition = function(gamePosition) {
 }
 
 Game.prototype.cameraPosition = function() {
-  var pos = this.view.cameraPosition()
-  return [pos.x, pos.y, pos.z]
+  return this.view.cameraPosition()
 }
 
 Game.prototype.cameraVector = function() {
-  var pos = this.view.cameraVector()
-  return [pos.x, pos.y, pos.z]
+  return this.view.cameraVector()
 }
 
 Game.prototype.makePhysical = function(target, envelope, blocksCreation) {
