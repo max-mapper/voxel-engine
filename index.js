@@ -421,22 +421,22 @@ Game.prototype.removeFarChunks = function(playerPosition) {
   })
   Object.keys(self.voxels.chunks).map(function(chunkIndex) {
     if (nearbyChunks.indexOf(chunkIndex) > -1) return
-
-    var chunk = self.voxels.meshes[chunkIndex]
+    var chunk = self.voxels.chunks[chunkIndex]
+    var mesh = self.voxels.meshes[chunkIndex]
     var pendingIndex = self.pendingChunks.indexOf(chunkIndex)
-
     if (pendingIndex !== -1) self.pendingChunks.splice(pendingIndex, 1)
     if (!chunk) return
-    
-    self.scene.remove(chunk[self.meshType])
-    chunk[self.meshType].geometry.dispose()
-    self.emit('removeChunk', chunk.data)
-
-    delete chunk.data
-    delete chunk.geometry
-    delete chunk.meshed
-    delete chunk.surfaceMesh
+    var chunkPosition = chunk.position
+    if (mesh) {
+      self.scene.remove(mesh[self.meshType])
+      mesh[self.meshType].geometry.dispose()
+      delete mesh.data
+      delete mesh.geometry
+      delete mesh.meshed
+      delete mesh.surfaceMesh
+    }
     delete self.voxels.chunks[chunkIndex]
+    self.emit('removeChunk', chunkPosition)
   })
   self.voxels.requestMissingChunks(playerPosition)
 }

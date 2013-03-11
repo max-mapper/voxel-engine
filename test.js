@@ -122,6 +122,28 @@ test('onRenderChunk', function onRenderChunk(t) {
   game.setBlock([50, 50, 50], 1)
 })
 
+test('onRemoveChunk', function gravity(t) {
+  t.plan(1)
+  var game = createEngine(gameOptions)
+  var item = dummyItem(game.THREE)
+  var physical = game.makePhysical(item)
+  item.position.set(0, 2, 0)
+  physical.mesh = item
+  game.addItem(physical)
+  var buttons = {}
+  game.hookupControls(buttons)
+  game.control(physical)
+  setTimeout(function() {
+    // move player forward 2 chunks
+    game.controls.target().avatar.position.z = 64
+    game.scene.updateMatrixWorld()
+  }, 150)
+  game.once('removeChunk', function(chunk) {
+    t.equal(!!game.voxels.chunks[chunk.join('|')], false)
+    game.destroy()
+  })
+})
+
 test('gravity', function gravity(t) {
   t.plan(2)
   var game = createEngine(gameOptions)
