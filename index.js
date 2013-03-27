@@ -638,7 +638,8 @@ Game.prototype.initializeRendering = function() {
 
 Game.prototype.initializeControls = function(opts) {
   // player control
-  this.buttons = kb(document.body, opts.keybindings || this.defaultButtons)
+  this.keybindings = opts.keybindings || this.defaultButtons
+  this.buttons = kb(document.body, this.keybindings)
   this.buttons.disable()
   this.optout = false
   this.interact = interact(this.view.element)
