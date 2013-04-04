@@ -124,9 +124,9 @@ This returns a THREE.js Vector3 object (which just means an object with 'x', 'y'
 ### Toggle a block on/off
 
 ```js
-game.setVoxel(pos, 0) // off
-game.setVoxel(pos, 1) // on
-game.setVoxel(pos, 2) // on, with another material
+game.setBlock(pos, 0) // off
+game.setBlock(pos, 1) // on
+game.setBlock(pos, 2) // on, with another material
 ```
 
 ### Get the chunk at some world coordinates:
