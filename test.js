@@ -54,11 +54,14 @@ gameTest(function setBlock(game, t) {
 })
 
 gameTest(function setBlockWithMaterialName(game, t) {
-  game.materials.materials = [
-    { name: 'grass' },
-    { name: 'brick' },
-    { name: 'dirt' },
-  ]
+  // simulate a game.materials.load
+  ['grass', 'brick', 'dirt'].forEach(function(material, idx) {
+    for (var i = 0; i < 6; i++) {
+      game.materials.materials.push({name: material})
+    }
+    idx *= 6
+    game.materials.materialIndex.push([idx, idx + 6])
+  })
   game.setBlock([50, 50, 50], 'brick')
   t.equal(game.getBlock([50, 50, 50]), 2)
 })

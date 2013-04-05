@@ -219,7 +219,7 @@ Game.prototype.canCreateBlock = function(pos) {
 }
 
 Game.prototype.createBlock = function(pos, val) {
-  if (typeof val === 'string') val = this.materials.find(val) + 1
+  if (typeof val === 'string') val = this.materials.findIndex(val)
   if (pos.chunkMatrix) return this.chunkGroups.createBlock(pos, val)
   if (!this.canCreateBlock(pos)) return false
   this.setBlock(pos, val)
@@ -227,7 +227,7 @@ Game.prototype.createBlock = function(pos, val) {
 }
 
 Game.prototype.setBlock = function(pos, val) {
-  if (typeof val === 'string') val = this.materials.find(val) + 1
+  if (typeof val === 'string') val = this.materials.findIndex(val)
   if (pos.chunkMatrix) return this.chunkGroups.setBlock(pos, val)
   var old = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
