@@ -35,6 +35,7 @@ function Game(opts) {
   this.generateChunks = opts.generateChunks
   this.setConfigurablePositions(opts)
   this.configureChunkLoading(opts)
+  this.setDimensions(opts)
   this.THREE = THREE
   this.vector = vector
   this.glMatrix = glMatrix
@@ -55,8 +56,6 @@ function Game(opts) {
   this.items = []
   this.voxels = voxel(this)
   this.chunkGroups = voxelChunks(this)
-  this.height = typeof window === "undefined" ? 1 : window.innerHeight
-  this.width = typeof window === "undefined" ? 1 : window.innerWidth
   this.scene = new THREE.Scene()
   this.view = opts.view || new voxelView(THREE, { width: this.width, height: this.height })
   this.view.bindToScene(this.scene)
@@ -304,6 +303,19 @@ Game.prototype.setConfigurablePositions = function(opts) {
   this.startingPosition = sp || [35, 1024, 35]
   var wo = opts.worldOrigin
   this.worldOrigin = wo || [0, 0, 0]
+}
+
+Game.prototype.setDimensions = function(opts) {
+  if (opts.container && opts.container.clientHeight) {
+    this.height = opts.container.clientHeight
+  } else {
+    this.height = typeof window === "undefined" ? 1 : window.innerHeight
+  }
+  if (opts.container && opts.container.clientWidth) {
+    this.width = opts.container.clientWidth
+  } else {
+    this.width = typeof window === "undefined" ? 1 : window.innerWidth
+  }
 }
 
 Game.prototype.notCapable = function() {
