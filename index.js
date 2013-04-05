@@ -29,7 +29,7 @@ function Game(opts) {
   if (!(this instanceof Game)) return new Game(opts)
   var self = this
   if (!opts) opts = {}
-  if (process.browser && this.notCapable()) return
+  if (process.browser && this.notCapable(opts)) return
   
   if (!('generateChunks' in opts)) opts.generateChunks = true
   this.generateChunks = opts.generateChunks
@@ -108,7 +108,7 @@ function Game(opts) {
   if (!process.browser) return
   
   this.paused = true
-  this.initializeRendering()
+  this.initializeRendering(opts)
   
   for (var chunkIndex in this.voxels.chunks) this.showChunk(this.voxels.chunks[chunkIndex])
 
@@ -319,19 +319,28 @@ Game.prototype.setDimensions = function(opts) {
   }
 }
 
-Game.prototype.notCapable = function() {
+Game.prototype.notCapable = function(opts) {
+  var self = this
   if( !Detector().webgl ) {
-    var wrapper = document.createElement('div')
-    wrapper.className = "errorMessage"
-    var a = document.createElement('a')
-    a.title = "You need WebGL and Pointer Lock (Chrome 23/Firefox 14) to play this game. Click here for more information."
-    a.innerHTML = a.title
-    a.href = "http://get.webgl.org"
-    wrapper.appendChild(a)
-    this.view.element = wrapper
+    this.view = {
+      appendTo: function(el) {
+        el.appendChild(self.notCapableMessage())
+      }
+    }
     return true
   }
   return false
+}
+
+Game.prototype.notCapableMessage = function() {
+  var wrapper = document.createElement('div')
+  wrapper.className = "errorMessage"
+  var a = document.createElement('a')
+  a.title = "You need WebGL and Pointer Lock (Chrome 23/Firefox 14) to play this game. Click here for more information."
+  a.innerHTML = a.title
+  a.href = "http://get.webgl.org"
+  wrapper.appendChild(a)
+  return wrapper
 }
 
 Game.prototype.onWindowResize = function() {
@@ -636,10 +645,10 @@ Game.prototype.initializeTimer = function(rate) {
   }
 }
 
-Game.prototype.initializeRendering = function() {
+Game.prototype.initializeRendering = function(opts) {
   var self = this
 
-  if (!self.statsDisabled) self.addStats()
+  if (!opts.statsDisabled) self.addStats()
 
   window.addEventListener('resize', self.onWindowResize.bind(self), false)
 
