@@ -306,6 +306,7 @@ Game.prototype.setConfigurablePositions = function(opts) {
 }
 
 Game.prototype.setDimensions = function(opts) {
+  if (opts.container) this.container = opts.container
   if (opts.container && opts.container.clientHeight) {
     this.height = opts.container.clientHeight
   } else {
@@ -334,7 +335,13 @@ Game.prototype.notCapable = function() {
 }
 
 Game.prototype.onWindowResize = function() {
-  this.view.resizeWindow(window.innerWidth, window.innerHeight)
+  var width = window.innerWidth
+  var height = window.innerHeight
+  if (this.container) {
+    width = this.container.clientWidth
+    height = this.container.clientHeight
+  }
+  this.view.resizeWindow(width, height)
 }
 
 // # Physics/collision related methods
