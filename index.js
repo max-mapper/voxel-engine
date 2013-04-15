@@ -50,7 +50,7 @@ function Game(opts) {
   
   this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
-  this.mesher = opts.mesher || voxel.meshers.greedy
+  this.mesher = opts.mesher || voxel.meshers.culled
   this.materialType = opts.materialType || THREE.MeshLambertMaterial
   this.materialParams = opts.materialParams || {}
   this.items = []
@@ -88,7 +88,7 @@ function Game(opts) {
   this.pendingChunks = []
 
   this.materials = texture({
-    THREE: THREE,
+    game: this,
     texturePath: opts.texturePath || './textures/',
     materialType: opts.materialType || THREE.MeshLambertMaterial,
     materialParams: opts.materialParams || {}
@@ -219,7 +219,7 @@ Game.prototype.canCreateBlock = function(pos) {
 }
 
 Game.prototype.createBlock = function(pos, val) {
-  if (typeof val === 'string') val = this.materials.findIndex(val)
+  if (typeof val === 'string') val = this.materials.find(val)
   if (pos.chunkMatrix) return this.chunkGroups.createBlock(pos, val)
   if (!this.canCreateBlock(pos)) return false
   this.setBlock(pos, val)
@@ -227,7 +227,7 @@ Game.prototype.createBlock = function(pos, val) {
 }
 
 Game.prototype.setBlock = function(pos, val) {
-  if (typeof val === 'string') val = this.materials.findIndex(val)
+  if (typeof val === 'string') val = this.materials.find(val)
   if (pos.chunkMatrix) return this.chunkGroups.setBlock(pos, val)
   var old = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
@@ -533,8 +533,8 @@ Game.prototype.showChunk = function(chunk) {
   this.voxels.meshes[chunkIndex] = mesh
   if (process.browser) {
     if (this.meshType === 'wireMesh') mesh.createWireMesh()
-    else mesh.createSurfaceMesh(new THREE.MeshFaceMaterial(this.materials.get()))
-    this.materials.paint(mesh.geometry)
+    else mesh.createSurfaceMesh(this.materials.material)
+    this.materials.paint(mesh)
   }
   mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2])
   mesh.addToScene(this.scene)
@@ -595,7 +595,7 @@ Game.prototype.tick = function(delta) {
     this.items[i].tick(delta)
   }
   
-  if (this.materials) this.materials.tick()
+  if (this.materials) this.materials.tick(delta)
 
   if (this.pendingChunks.length) this.loadPendingChunks()
   if (Object.keys(this.chunksNeedsUpdate).length > 0) this.updateDirtyChunks()
