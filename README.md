@@ -233,17 +233,11 @@ For example, here we have 4 faces colliding with the bottom of our object:
 
 ### Textures
 
-Loading textures creates multiple "materials".
+Loading textures onto the texture atlas.
 
-```var materials = game.materials.load(['obsidian', 'dirt'])```
+```game.materials.load(['obsidian', 'dirt'], function(textures) { })```
 
-Both of these textures come with 6 materials, one for each side of a cube, giving a total of 12 materials. By default, faces 1 to 6 are assigned materials 1 to 6. You can assign materials to faces in however you want. For example, we could load materials 7 to 12 (e.g. the dirt materials) like so:
-
-```js
-mesh.geometry.faces.forEach(function (face, index) {
-  face.materialIndex = index + 6 // obsidian texture indices 0 - 5, dirt 6 - 11
-})
-```
+Both of these textures will be loaded into the texture atlas and expanded creating 2 voxel block types.
 
 ### Items
 
@@ -255,14 +249,14 @@ mesh.geometry.faces.forEach(function (face, index) {
 ####  Example:  Creating an Item
 
 ```js
-// get a previously loaded texture by name
-var material = game.materials.get('obsidian');
-
-// create a mesh and set the matertial
+// create a mesh and set the matertial of the texture atlas
 var mesh = new game.THREE.Mesh(
   new game.THREE.CubeGeometry(10, 30, 10), // width, height, depth
-  new game.THREE.MeshFaceMaterial(material)
+  game.materials.material
 );
+
+// paint the mesh with a previously loaded texture
+game.materials.paint(mesh, 'obsidian')
 
 // move item to some location
 mesh.translateX(87.5)
