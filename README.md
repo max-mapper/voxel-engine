@@ -322,4 +322,4 @@ if you send a pull request and you use, for example, 4 space indents it will not
 
 ## license
 
-BSD
+BSD (see LICENSE)
