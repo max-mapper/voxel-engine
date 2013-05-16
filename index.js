@@ -231,8 +231,11 @@ Game.prototype.setBlock = function(pos, val) {
   if (pos.chunkMatrix) return this.chunkGroups.setBlock(pos, val)
   var old = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
-  this.addChunkToNextUpdate(this.voxels.chunks[c.join('|')])
+  var chunk = this.voxels.chunks[c.join('|')]
+  if (!chunk) return// todo - does self.emit('missingChunk', c.join('|')) make sense here?
+  this.addChunkToNextUpdate(chunk)
   this.spatial.emit('change-block', pos, old, val)
+  this.emit('setBlock', pos, val, old)
 }
 
 Game.prototype.getBlock = function(pos) {
