@@ -1,7 +1,7 @@
 {
   "name": "voxel-engine",
   "description": "make games with voxel.js",
-  "version": "0.17.2",
+  "version": "0.17.3",
   "repository": {
     "type": "git",
     "url": "git@github.com:maxogden/voxel-engine.git"

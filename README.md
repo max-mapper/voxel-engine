@@ -203,6 +203,9 @@ emits when a chunk is drawn (using the `showChunk` method). `chunk` is the full 
 
 emits when the player moves into range of a chunk that isn't loaded yet. if your game has `generateChunks` set to true it will automatically create the chunk and render it but if you are providing your own chunk generation then you can use this to hook into the game.
 
+### `game.on('dirtyChunkUpdate', function(chunk) {})`
+
+emits when game updates a chunk, this is usually triggered when a chunk gets edited. if `game.setBlock` were to get called 50 times on one chunk in between renders, `dirtyChunkUpdate` will emit once with the chunk the chunk that gets updated
 
 ### `game.on('setBlock', function(pos, val, old) {})`
 

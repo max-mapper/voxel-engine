@@ -495,6 +495,7 @@ Game.prototype.updateDirtyChunks = function() {
   var self = this
   Object.keys(this.chunksNeedsUpdate).forEach(function showChunkAtIndex(chunkIndex) {
     var chunk = self.chunksNeedsUpdate[chunkIndex]
+    self.emit('dirtyChunkUpdate', chunk)
     self.showChunk(chunk)
   })
   this.chunksNeedsUpdate = {}
