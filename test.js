@@ -197,3 +197,11 @@ test('infinite terrain', function gravity(t) {
     game.destroy()
   }, 300)
 })
+
+gameTest(function tic(game, t) {
+  t.plan(3)
+  game.setInterval(function() { t.ok(true) }, 500)
+  game.setTimeout(function() { t.ok(true) }, 500)
+  var interval = setInterval(function() { game.tick(100) }, 100)
+  setTimeout(function() { clearInterval(interval) }, 1200)
+})

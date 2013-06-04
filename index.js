@@ -22,6 +22,7 @@ var regionChange = require('voxel-region-change')
 var kb = require('kb-controls')
 var physical = require('voxel-physical')
 var pin = require('pin-it')
+var tic = require('tic')()
 
 module.exports = Game
 
@@ -594,6 +595,9 @@ Game.prototype.onFire = function(state) {
   this.emit('fire', this.controlling, state)
 }
 
+Game.prototype.setInterval = tic.interval.bind(tic)
+Game.prototype.setTimeout = tic.timeout.bind(tic)
+
 Game.prototype.tick = function(delta) {
   for(var i = 0, len = this.items.length; i < len; ++i) {
     this.items[i].tick(delta)
@@ -604,6 +608,8 @@ Game.prototype.tick = function(delta) {
   if (this.pendingChunks.length) this.loadPendingChunks()
   if (Object.keys(this.chunksNeedsUpdate).length > 0) this.updateDirtyChunks()
   
+  tic.tick(delta)
+
   this.emit('tick', delta)
   
   if (!this.controls) return
