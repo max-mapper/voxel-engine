@@ -92,7 +92,8 @@ function Game(opts) {
     game: this,
     texturePath: opts.texturePath || './textures/',
     materialType: opts.materialType || THREE.MeshLambertMaterial,
-    materialParams: opts.materialParams || {}
+    materialParams: opts.materialParams || {},
+    materialFlatColor: opts.materialFlatColor === true
   })
 
   this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
