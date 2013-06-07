@@ -1,6 +1,5 @@
 var voxel = require('voxel')
 var voxelMesh = require('voxel-mesh')
-var voxelChunks = require('voxel-chunks')
 var ray = require('voxel-raycast')
 var texture = require('voxel-texture')
 var control = require('voxel-control')
@@ -56,7 +55,6 @@ function Game(opts) {
   this.materialParams = opts.materialParams || {}
   this.items = []
   this.voxels = voxel(this)
-  this.chunkGroups = voxelChunks(this)
   this.scene = new THREE.Scene()
   this.view = opts.view || new voxelView(THREE, { width: this.width, height: this.height })
   this.view.bindToScene(this.scene)
@@ -222,7 +220,6 @@ Game.prototype.canCreateBlock = function(pos) {
 
 Game.prototype.createBlock = function(pos, val) {
   if (typeof val === 'string') val = this.materials.find(val)
-  if (pos.chunkMatrix) return this.chunkGroups.createBlock(pos, val)
   if (!this.canCreateBlock(pos)) return false
   this.setBlock(pos, val)
   return true
@@ -230,7 +227,6 @@ Game.prototype.createBlock = function(pos, val) {
 
 Game.prototype.setBlock = function(pos, val) {
   if (typeof val === 'string') val = this.materials.find(val)
-  if (pos.chunkMatrix) return this.chunkGroups.setBlock(pos, val)
   var old = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
   var chunk = this.voxels.chunks[c.join('|')]
@@ -242,13 +238,11 @@ Game.prototype.setBlock = function(pos, val) {
 
 Game.prototype.getBlock = function(pos) {
   pos = this.parseVectorArguments(arguments)
-  if (pos.chunkMatrix) return this.chunkGroups.getBlock(pos)
   return this.voxels.voxelAtPosition(pos)
 }
 
 Game.prototype.blockPosition = function(pos) {
   pos = this.parseVectorArguments(arguments)
-  if (pos.chunkMatrix) return this.chunkGroups.blockPosition(pos)
   var ox = Math.floor(pos[0])
   var oy = Math.floor(pos[1])
   var oz = Math.floor(pos[2])
