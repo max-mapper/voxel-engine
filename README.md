@@ -29,6 +29,7 @@ Returns a new game instance. `options` defaults to:
     return x*x+y*y+z*z <= 20*20 ? 1 : 0 // sphere world
   },
   materials: [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt'],
+  materialFlatColor: false,
   chunkSize: 32,
   chunkDistance: 2,
   worldOrigin: [0, 0, 0],
@@ -246,6 +247,17 @@ Loading textures onto the texture atlas.
 ```game.materials.load(['obsidian', 'dirt'], function(textures) { })```
 
 Both of these textures will be loaded into the texture atlas and expanded creating 2 voxel block types.
+
+### Texture-less worlds with flat colors
+
+You can specify hex colors to use as materials, just pass these options when creating a game:
+
+```js
+{
+  materials: ["#fff", "#000", "#ff0000"],
+  materialFlatColor: true
+}
+```
 
 ### Items
 
