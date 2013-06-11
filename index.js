@@ -142,7 +142,7 @@ Game.prototype.cameraVector = function() {
 }
 
 Game.prototype.makePhysical = function(target, envelope, blocksCreation) {
-  var obj = physical(target, this.potentialCollisionSet(), envelope || [1/2, 1.5, 1/2])
+  var obj = physical(target, this.potentialCollisionSet(), envelope || [1/2, 1.5, 1/2], this.terminalVelocity)
   obj.blocksCreation = !!blocksCreation
   return obj
 }
@@ -275,8 +275,9 @@ Game.prototype.appendTo = function (element) {
 // # Defaults/options parsing
 
 Game.prototype.gravity = [0, -0.0000036, 0]
-Game.prototype.friction = 0.4
+Game.prototype.friction = 0.3
 Game.prototype.epilson = 1e-8
+Game.prototype.terminalVelocity = new THREE.Vector3(0.9, 0.1, 0.9)
 
 Game.prototype.defaultButtons = {
   'W': 'forward'
