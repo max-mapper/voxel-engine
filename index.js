@@ -677,7 +677,7 @@ Game.prototype.initializeControls = function(opts) {
   this.buttons = kb(document.body, this.keybindings)
   this.buttons.disable()
   this.optout = false
-  this.interact = interact(opts.interactElement || this.view.element)
+  this.interact = interact(opts.interactElement || this.view.element, opts.interactMouseDrag)
   this.interact
       .on('attain', this.onControlChange.bind(this, true))
       .on('release', this.onControlChange.bind(this, false))
