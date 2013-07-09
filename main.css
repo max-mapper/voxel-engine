@@ -18,11 +18,10 @@
   -webkit-transform:rotate(-37deg);
   position: absolute;
   width: 100%;
-  font-size: 90;
+  font-size: 90pt;
   top: 50%;
   text-align: center;
   z-index:30;
-  zoom: 4.0; -moz-transform: scale(4.0);
   display: none;
 }
 html,body{
