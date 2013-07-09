@@ -1,7 +1,7 @@
 .controlPanel {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 1%;
+  left: 1%;
   z-index: 10;
   background-color: rgba(129, 129, 129, 0.5);
   padding-top: 10px;
