@@ -10,6 +10,21 @@
   padding-bottom: 10px;
   border-radius: 10px;
 }
+.noWebGL {
+  background-color: red;
+  color: white;
+  transform:rotate(-37deg);
+  -ms-transform:rotate(-37deg);
+  -webkit-transform:rotate(-37deg);
+  position: absolute;
+  width: 100%;
+  font-size: 90;
+  top: 50%;
+  text-align: center;
+  z-index:30;
+  zoom: 4.0; -moz-transform: scale(4.0);
+  display: none;
+}
 html,body{
   font-family: sans-serif;
 }

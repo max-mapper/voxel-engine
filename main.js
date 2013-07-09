@@ -61,7 +61,6 @@ function mipChange() {
   }  
 }
 
-
 shell.on("gl-init", function() {
   var gl = shell.gl
 
@@ -81,6 +80,11 @@ shell.on("gl-init", function() {
   
   selectModel.addEventListener("change", meshChange)
   meshChange()
+})
+
+shell.on("gl-error", function() {
+  document.querySelector(".selectModel").style.display = "none"
+  document.querySelector(".noWebGL").style.display = "none"
 })
 
 shell.on("gl-render", function(t) {
