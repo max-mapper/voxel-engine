@@ -20,7 +20,8 @@
     "ndarray-ops": "~1.1.0",
     "bunny": "~1.0.0",
     "voxelize": "~0.1.0",
-    "brfs": "0.0.6"
+    "brfs": "0.0.6",
+    "teapot": "0.0.1"
   },
   "devDependencies": {},
   "scripts": {
