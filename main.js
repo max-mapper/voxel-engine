@@ -1,6 +1,6 @@
 "use strict"
 
-var shell = require("gl-now")()
+var shell = require("gl-now")({clearColor: [0,0,0,0]})
 var camera = require("game-shell-orbit-camera")(shell)
 var createTileMap = require("gl-tile-map")
 var ndarray = require("ndarray")
