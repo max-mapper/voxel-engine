@@ -1,0 +1,47 @@
+{
+  "name": "voxel-mipmap-demo",
+  "version": "0.0.0",
+  "description": "Demonstration of mipmapping for voxel terrain",
+  "main": "main.js",
+  "dependencies": {
+    "ao-mesher": "~0.2.3",
+    "game-shell-orbit-camera": "~0.0.0",
+    "ao-shader": "~0.2.2",
+    "gl-buffer": "~0.1.0",
+    "gl-matrix": "~2.0.0",
+    "gl-now": "~0.0.3",
+    "gl-shader": "~0.0.5",
+    "gl-vao": "~0.0.2",
+    "gl-tile-map": "~0.3.0",
+    "isabella-texture-pack": "~0.0.1",
+    "lazy-property": "~0.0.0",
+    "ndarray": "~1.0.3",
+    "ndarray-fill": "~0.1.0",
+    "ndarray-ops": "~1.1.0",
+    "bunny": "~1.0.0",
+    "voxelize": "~0.1.0",
+    "brfs": "0.0.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mikolalysenko/voxel-mipmap-demo.git"
+  },
+  "keywords": [
+    "mipmap",
+    "voxel",
+    "terrain"
+  ],
+  "author": "Mikola Lysenko",
+  "license": "MIT",
+  "gitHead": "0f57d9dfbe095ce86f182d2e70c2c0a1f7927ca9",
+  "bugs": {
+    "url": "https://github.com/mikolalysenko/voxel-mipmap-demo/issues"
+  },
+  "browser": {
+    "transform": "brfs"
+  }
+}

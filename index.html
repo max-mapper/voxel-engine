@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Voxel Mipmap Demo</title>
+  <link rel="stylesheet" type="text/css" href="main.css">
+</head>
+<body>
+  <a href="https://github.com/mikolalysenko/voxel-mipmap-demo"><img style="position: absolute; top: 0; right: 0; border: 0;z-index:10;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+  <div class="controlPanel">
+    <p>
+      <label for=selectModel>Model</label>
+      <select id="selectModel">
+      </select>
+    </p>
+    <p>
+      <label for=showWire>Show wireframe</label>
+      <input type="checkbox" id="showWire" />
+    </p>
+    <p>
+      <label for=selectMip>Mip filtering</label>
+      <select id=selectMip>
+        <option value="none">None</option>
+        <option value="linear">Linear</option>
+        <option value="aniso">4x Aniso</option>
+      </select>
+    </p>
+  </div>
+<script type="text/javascript" src="main.js"></script>
+</body>
+</html>
