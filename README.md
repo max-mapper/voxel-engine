@@ -15,7 +15,7 @@ For more information see the following blog post:
 ## How to run locally
 First you will need to install npm, which comes with node.js.  You can get that by going to here:
 
-    https://npmjs.org/
+* [https://nodejs.org/](https://nodejs.org/)
 
 Then, go into the root directory of the project and type:
 
