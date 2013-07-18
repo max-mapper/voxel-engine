@@ -269,35 +269,24 @@ You can specify hex colors to use as materials, just pass these options when cre
 ####  Example:  Creating an Item
 
 ```js
-// create a mesh and set the matertial of the texture atlas
+// create a mesh and use the internal game material (texture atlas)
 var mesh = new game.THREE.Mesh(
-  new game.THREE.CubeGeometry(10, 30, 10), // width, height, depth
+  new game.THREE.CubeGeometry(1, 3, 1), // width, height, depth
   game.materials.material
-);
+)
 
-// paint the mesh with a previously loaded texture
+// paint the mesh with a specific texture in the atlas
 game.materials.paint(mesh, 'obsidian')
 
-// move item to some location
-mesh.translateX(87.5)
-mesh.translateY(420)
-mesh.translateZ(12.5)
+// move the item to some location
+mesh.position.set(0, 3, -5)
 
-// if these item dimensions don't match the mesh's dimensions,
-// the object's physics will not operate correctly.
-var item = {
+var item = game.addItem({
   mesh: mesh,
-  width: 10,
-  height: 100,
-  depth: 10,
-  collisionRadius: 20, // padding around object dimensions box for collisions
+  size: 1,
   velocity: { x: 0, y: 0, z: 0 } // initial velocity
-}
-
-game.items.length // => 0
-game.addItem(item)
+})
 // use `game.removeItem(item)` to remove
-game.items.length // => 1
 ```
 
 ## voxel interchange format
