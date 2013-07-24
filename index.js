@@ -143,7 +143,8 @@ Game.prototype.cameraVector = function() {
 
 Game.prototype.makePhysical = function(target, envelope, blocksCreation) {
   var vel = this.terminalVelocity
-  var obj = physical(target, this.potentialCollisionSet(), envelope || [1/2, 1.5, 1/2], {x: vel[0], y: vel[1], z: vel[2]})
+  envelope = envelope || [2/3, 1.5, 2/3]
+  var obj = physical(target, this.potentialCollisionSet(), envelope, {x: vel[0], y: vel[1], z: vel[2]})
   obj.blocksCreation = !!blocksCreation
   return obj
 }
@@ -547,7 +548,7 @@ Game.prototype.showChunk = function(chunk) {
 // # Debugging methods
 
 Game.prototype.addMarker = function(position) {
-  var geometry = new THREE.SphereGeometry( 0.5, 10, 10 )
+  var geometry = new THREE.SphereGeometry( 0.1, 10, 10 )
   var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } )
   var mesh = new THREE.Mesh( geometry, material )
   mesh.position.copy(position)
