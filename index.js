@@ -51,8 +51,8 @@ function Game(opts) {
   this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
   this.mesher = opts.mesher || voxel.meshers.culled
-  this.materialType = opts.materialType || THREE.MeshLambertMaterial
-  this.materialParams = opts.materialParams || {}
+  //this.materialType = opts.materialType || THREE.MeshLambertMaterial
+  //this.materialParams = opts.materialParams || {}
   this.items = []
   this.voxels = voxel(this)
   this.scene = new THREE.Scene()
@@ -86,21 +86,21 @@ function Game(opts) {
   // contains new chunks yet to be generated. Handled by game.loadPendingChunks
   this.pendingChunks = []
 
-  this.materials = texture({
+  /*this.materials = texture({
     game: this,
     texturePath: opts.texturePath || './textures/',
     materialType: opts.materialType || THREE.MeshLambertMaterial,
     materialParams: opts.materialParams || {},
     materialFlatColor: opts.materialFlatColor === true
-  })
-
-  this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
+  })*/
+  //this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
+  this.materials = opts.materials
   
   self.chunkRegion.on('change', function(newChunk) {
     self.removeFarChunks()
   })
 
-  if (process.browser) this.materials.load(this.materialNames)
+  //if (process.browser) this.materials.load(this.materialNames)
 
   if (this.generateChunks) this.handleChunkGeneration()
 
@@ -431,7 +431,7 @@ Game.prototype.configureChunkLoading = function(opts) {
   if (!opts.generateChunks) return
   if (!opts.generate) {
     this.generate = function(x,y,z) {
-      return x*x+y*y+z*z <= 15*15 ? 1 : 0 // sphere world
+      return x*x+y*y+z*z <= 15*15 ? 1 + (1<<15) : 0 // sphere world
     }
   } else {
     this.generate = opts.generate
@@ -473,7 +473,7 @@ Game.prototype.removeFarChunks = function(playerPosition) {
     var chunkPosition = chunk.position
     if (mesh) {
       self.scene.remove(mesh[self.meshType])
-      mesh[self.meshType].geometry.dispose()
+      //mesh[self.meshType].geometry.dispose()
       delete mesh.data
       delete mesh.geometry
       delete mesh.meshed
@@ -525,6 +525,7 @@ Game.prototype.getChunkAtPosition = function(pos) {
   return chunk
 }
 
+
 Game.prototype.showChunk = function(chunk) {
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
@@ -535,8 +536,7 @@ Game.prototype.showChunk = function(chunk) {
   this.voxels.meshes[chunkIndex] = mesh
   if (process.browser) {
     if (this.meshType === 'wireMesh') mesh.createWireMesh()
-    else mesh.createSurfaceMesh(this.materials.material)
-    this.materials.paint(mesh)
+    else mesh.createSurfaceMesh(this.materials)
   }
   mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2])
   mesh.addToScene(this.scene)
@@ -600,7 +600,7 @@ Game.prototype.tick = function(delta) {
     this.items[i].tick(delta)
   }
   
-  if (this.materials) this.materials.tick(delta)
+  //if (this.materials) this.materials.tick(delta)
 
   if (this.pendingChunks.length) this.loadPendingChunks()
   if (Object.keys(this.chunksNeedsUpdate).length > 0) this.updateDirtyChunks()
