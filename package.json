@@ -7,8 +7,8 @@
     "url": "git@github.com:maxogden/voxel-engine.git"
   },
   "dependencies": {
-    "voxel": "0.3.1",
-    "voxel-mesh": "0.2.1",
+    "voxel": "git://github.com/shama/voxel#ndarray",
+    "voxel-mesh": "git://github.com/shama/voxel-mesh#ndarray",
     "voxel-view": "0.0.6",
     "voxel-raycast": "0.2.1",
     "voxel-control": "0.0.7",
