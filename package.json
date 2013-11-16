@@ -11,7 +11,7 @@
     "voxel-mesh": "0.2.1",
     "voxel-view": "0.0.6",
     "voxel-raycast": "0.2.1",
-    "voxel-control": "0.0.7",
+    "voxel-control": "0.0.8",
     "voxel-texture": "0.5.6",
     "voxel-physical": "0.0.10",
     "voxel-region-change": "0.1.0",
