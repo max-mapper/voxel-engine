@@ -85,14 +85,16 @@ function Game(opts) {
   this.chunksNeedsUpdate = {}
   // contains new chunks yet to be generated. Handled by game.loadPendingChunks
   this.pendingChunks = []
-
-  this.materials = texture({
-    game: this,
-    texturePath: opts.texturePath || './textures/',
-    materialType: opts.materialType || THREE.MeshLambertMaterial,
-    materialParams: opts.materialParams || {},
-    materialFlatColor: opts.materialFlatColor === true
-  })
+  
+  if (process.browser) {
+    this.materials = texture({
+      game: this,
+      texturePath: opts.texturePath || './textures/',
+      materialType: opts.materialType || THREE.MeshLambertMaterial,
+      materialParams: opts.materialParams || {},
+      materialFlatColor: opts.materialFlatColor === true
+    })
+  }
 
   this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
   
