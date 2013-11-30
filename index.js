@@ -297,6 +297,7 @@ Game.prototype.defaultButtons = {
 , '<space>': 'jump'
 , '<shift>': 'crouch'
 , '<control>': 'alt'
+, '<tab>': 'sprint'
 }
 
 // used in methods that have identity function(pos) {}
