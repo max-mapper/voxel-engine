@@ -31,6 +31,9 @@ function Game(opts) {
   if (!opts) opts = {}
   if (process.browser && this.notCapable(opts)) return
   
+  // is this a client or a headless server
+  this.isClient = Boolean( (typeof opts.isClient !== 'undefined') ? opts.isClient : process.browser )
+
   if (!('generateChunks' in opts)) opts.generateChunks = true
   this.generateChunks = opts.generateChunks
   this.setConfigurablePositions(opts)
@@ -100,12 +103,12 @@ function Game(opts) {
     self.removeFarChunks()
   })
 
-  if (process.browser) this.materials.load(this.materialNames)
+  if (this.isClient) this.materials.load(this.materialNames)
 
   if (this.generateChunks) this.handleChunkGeneration()
 
   // client side only after this point
-  if (!process.browser) return
+  if (!this.isClient) return
   
   this.paused = true
   this.initializeRendering(opts)
@@ -518,7 +521,7 @@ Game.prototype.loadPendingChunks = function(count) {
     var chunkPos = pendingChunks[i].split('|')
     var chunk = this.voxels.generateChunk(chunkPos[0]|0, chunkPos[1]|0, chunkPos[2]|0)
 
-    if (process.browser) this.showChunk(chunk)
+    if (this.isClient) this.showChunk(chunk)
   }
 
   if (count) pendingChunks.splice(0, count)
@@ -538,7 +541,7 @@ Game.prototype.showChunk = function(chunk) {
   this.voxels.chunks[chunkIndex] = chunk
   if (this.voxels.meshes[chunkIndex]) this.scene.remove(this.voxels.meshes[chunkIndex][this.meshType])
   this.voxels.meshes[chunkIndex] = mesh
-  if (process.browser) {
+  if (this.isClient) {
     if (this.meshType === 'wireMesh') mesh.createWireMesh()
     else mesh.createSurfaceMesh(this.materials.material)
     this.materials.paint(mesh)
