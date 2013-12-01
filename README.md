@@ -26,7 +26,7 @@ Returns a new game instance. `options` defaults to:
 {
   texturePath: './textures/',
   generate: function(x,y,z) {
-    return x*x+y*y+z*z <= 20*20 ? 1 : 0 // sphere world
+    return x*x+y*y+z*z <= 15*15 ? 1 : 0 // sphere world
   },
   materials: [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt'],
   materialFlatColor: false,
@@ -37,7 +37,7 @@ Returns a new game instance. `options` defaults to:
   lightsDisabled: false,
   fogDisabled: false,
   generateChunks: true,
-  mesher: voxel.meshers.greedy,
+  mesher: voxel.meshers.culled,
   playerHeight: 1.62
 }
 ```
