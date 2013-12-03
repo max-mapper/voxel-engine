@@ -53,7 +53,7 @@ function Game(opts) {
   
   this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
-  this.mesher = opts.mesher || voxel.meshers.culled
+  this.mesher = opts.mesher || voxel.meshers.greedy
   this.materialType = opts.materialType || THREE.MeshLambertMaterial
   this.materialParams = opts.materialParams || {}
   this.items = []
@@ -92,6 +92,7 @@ function Game(opts) {
   if (process.browser) {
     this.materials = texture({
       game: this,
+      THREE: THREE,
       texturePath: opts.texturePath || './textures/',
       materialType: opts.materialType || THREE.MeshLambertMaterial,
       materialParams: opts.materialParams || {},
@@ -226,14 +227,16 @@ Game.prototype.canCreateBlock = function(pos) {
 }
 
 Game.prototype.createBlock = function(pos, val) {
-  if (typeof val === 'string') val = this.materials.find(val)
+  if (typeof val === 'string') val = this.materials.findIndex(val)
+  if (pos.chunkMatrix) return this.chunkGroups.createBlock(pos, val)
   if (!this.canCreateBlock(pos)) return false
   this.setBlock(pos, val)
   return true
 }
 
 Game.prototype.setBlock = function(pos, val) {
-  if (typeof val === 'string') val = this.materials.find(val)
+  if (typeof val === 'string') val = this.materials.findIndex(val)
+  if (pos.chunkMatrix) return this.chunkGroups.setBlock(pos, val)
   var old = this.voxels.voxelAtPosition(pos, val)
   var c = this.voxels.chunkAtPosition(pos)
   var chunk = this.voxels.chunks[c.join('|')]
@@ -546,8 +549,8 @@ Game.prototype.showChunk = function(chunk) {
   this.voxels.meshes[chunkIndex] = mesh
   if (this.isClient) {
     if (this.meshType === 'wireMesh') mesh.createWireMesh()
-    else mesh.createSurfaceMesh(this.materials.material)
-    this.materials.paint(mesh)
+    else mesh.createSurfaceMesh(new THREE.MeshFaceMaterial(this.materials.get()))
+    this.materials.paint(mesh.geometry)
   }
   mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2])
   mesh.addToScene(this.scene)
