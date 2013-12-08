@@ -552,7 +552,10 @@ Game.prototype.showChunk = function(chunk) {
   var scale = new THREE.Vector3(1, 1, 1)
   var mesh = voxelMesh(chunk, this.mesher, scale, this.THREE)
   this.voxels.chunks[chunkIndex] = chunk
-  if (this.voxels.meshes[chunkIndex]) this.scene.remove(this.voxels.meshes[chunkIndex][this.meshType])
+  if (this.voxels.meshes[chunkIndex]) {
+    if (this.voxels.meshes[chunkIndex].surfaceMesh) this.scene.remove(this.voxels.meshes[chunkIndex].surfaceMesh)
+    if (this.voxels.meshes[chunkIndex].wireMesh) this.scene.remove(this.voxels.meshes[chunkIndex].wireMesh)
+  }
   this.voxels.meshes[chunkIndex] = mesh
   if (this.isClient) {
     if (this.meshType === 'wireMesh') mesh.createWireMesh()
