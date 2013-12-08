@@ -498,6 +498,7 @@ Game.prototype.removeFarChunks = function(playerPosition) {
       delete mesh.geometry
       delete mesh.meshed
       delete mesh.surfaceMesh
+      delete mesh.wireMesh
     }
     delete self.voxels.chunks[chunkIndex]
     self.emit('removeChunk', chunkPosition)
