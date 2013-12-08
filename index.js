@@ -112,8 +112,8 @@ function Game(opts) {
   
   this.paused = true
   this.initializeRendering(opts)
-  
-  for (var chunkIndex in this.voxels.chunks) this.showChunk(this.voxels.chunks[chunkIndex])
+ 
+  this.showAllChunks()
 
   setTimeout(function() {
     self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : true
@@ -538,6 +538,12 @@ Game.prototype.getChunkAtPosition = function(pos) {
   var chunkID = this.voxels.chunkAtPosition(pos).join('|')
   var chunk = this.voxels.chunks[chunkID]
   return chunk
+}
+
+Game.prototype.showAllChunks = function() {
+  for (var chunkIndex in this.voxels.chunks) {
+    this.showChunk(this.voxels.chunks[chunkIndex])
+  }
 }
 
 Game.prototype.showChunk = function(chunk) {
