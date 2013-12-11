@@ -106,7 +106,7 @@ function Game(opts) {
     self.removeFarChunks()
   })
 
-  if (this.isClient) this.materials.load(this.materialNames)
+  if (this.isClient && this.materialNames.length) this.materials.load(this.materialNames)
 
   if (this.generateChunks) this.handleChunkGeneration()
 
