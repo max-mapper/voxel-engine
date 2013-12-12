@@ -93,6 +93,7 @@ function Game(opts) {
     this.materials = texture({
       game: this,
       THREE: THREE,
+      useAtlas: true,
       texturePath: opts.texturePath || './textures/',
       materialType: opts.materialType || THREE.MeshLambertMaterial,
       materialParams: opts.materialParams || {},
