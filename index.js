@@ -90,10 +90,8 @@ function Game(opts) {
   this.pendingChunks = []
   
   if (process.browser) {
-    this.materials = texture({
-      game: this,
-      THREE: THREE,
-      useAtlas: false,
+    this.materials = texture(this, {
+      useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
       texturePath: opts.texturePath || './textures/',
       materialType: opts.materialType || THREE.MeshLambertMaterial,
       materialParams: opts.materialParams || {},
