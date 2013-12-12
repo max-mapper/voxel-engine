@@ -93,7 +93,7 @@ function Game(opts) {
     this.materials = texture({
       game: this,
       THREE: THREE,
-      useAtlas: true,
+      useAtlas: false,
       texturePath: opts.texturePath || './textures/',
       materialType: opts.materialType || THREE.MeshLambertMaterial,
       materialParams: opts.materialParams || {},
@@ -564,8 +564,8 @@ Game.prototype.showChunk = function(chunk) {
   this.voxels.meshes[chunkIndex] = mesh
   if (this.isClient) {
     if (this.meshType === 'wireMesh') mesh.createWireMesh()
-    else mesh.createSurfaceMesh(new THREE.MeshFaceMaterial(this.materials.get()))
-    this.materials.paint(mesh.geometry)
+    else mesh.createSurfaceMesh(this.materials.getMesh());
+    this.materials.paintMesh(mesh)
   }
   mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2])
   mesh.addToScene(this.scene)
