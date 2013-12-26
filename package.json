@@ -22,7 +22,7 @@
     "inherits": "1.0.0",
     "interact": "0.0.2",
     "gl-matrix": "2.0.0",
-    "kb-bindings": "0.0.3",
+    "kb-bindings": "0.0.5",
     "spatial-events": "0.0.1",
     "spatial-trigger": "0.0.0",
     "collide-3d-tilemap": "0.0.1",
