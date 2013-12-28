@@ -51,6 +51,7 @@ function Game(opts) {
   this.chunkDistance = opts.chunkDistance || 2
   this.removeDistance = opts.removeDistance || this.chunkDistance + 1
   
+  this.skyColor = opts.skyColor || 0xBFD1E5
   this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
   this.mesher = opts.mesher || voxel.meshers.culled
@@ -59,12 +60,11 @@ function Game(opts) {
   this.items = []
   this.voxels = voxel(this)
   this.scene = new THREE.Scene()
-  this.view = opts.view || new voxelView(THREE, { width: this.width, height: this.height })
+  this.view = opts.view || new voxelView(THREE, { width: this.width, height: this.height, skyColor: this.skyColor })
   this.view.bindToScene(this.scene)
   this.camera = this.view.getCamera()
   if (!opts.lightsDisabled) this.addLights(this.scene)
   
-  this.skyColor = opts.skyColor || 0xBFD1E5
   this.fogScale = opts.fogScale || 32
   if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( this.skyColor, 0.00025, this.worldWidth() * this.fogScale )
   
