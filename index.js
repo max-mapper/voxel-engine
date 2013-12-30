@@ -97,6 +97,8 @@ function Game(opts) {
       materialParams: opts.materialParams || {},
       materialFlatColor: opts.materialFlatColor === true
     })
+    if (opts.appendDocument) this.appendTo(document.body)
+    if (opts.exposeGlobal) window.game = window.g = this
   }
 
   this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
