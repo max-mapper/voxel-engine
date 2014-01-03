@@ -7,7 +7,7 @@
     "url": "git@github.com:maxogden/voxel-engine.git"
   },
   "dependencies": {
-    "voxel": "git://github.com/deathcap/voxel.git#9fe75f0388b1a1d9499076c2e4e1536ebd7a46d1",
+    "voxel": "git://github.com/deathcap/voxel.git#b45d02db42395ac95120eb66073999b846814a77",
     "voxel-mesh": "0.2.1",
     "voxel-view": "git://github.com/deathcap/voxel-view.git#be8a36643ddc5de42c8506d6372510c16665f57c",
     "voxel-raycast": "0.2.1",
