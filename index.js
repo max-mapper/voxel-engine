@@ -45,6 +45,8 @@ function Game(opts) {
   this.arrayType = opts.arrayType || Uint8Array
   this.cubeSize = 1 // backwards compat
   this.chunkSize = opts.chunkSize || 32
+  this.kb_module = opts.kb_module || kb;
+  this.texture_module = opts.texture_module || texture;
   
   // chunkDistance and removeDistance should not be set to the same thing
   // as it causes lag when you go back and forth on a chunk boundary
@@ -90,7 +92,7 @@ function Game(opts) {
   this.pendingChunks = []
   
   if (process.browser) {
-    this.materials = texture(this, {
+    this.materials = this.texture_module(this, {
       useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
       texturePath: opts.texturePath || './textures/',
       materialType: opts.materialType || THREE.MeshLambertMaterial,
@@ -703,7 +705,7 @@ Game.prototype.initializeRendering = function(opts) {
 Game.prototype.initializeControls = function(opts) {
   // player control
   this.keybindings = opts.keybindings || this.defaultButtons
-  this.buttons = kb(document.body, this.keybindings)
+  this.buttons = this.kb_module(document.body, this.keybindings)
   this.buttons.disable()
   this.optout = false
   this.interact = interact(opts.interactElement || this.view.element, opts.interactMouseDrag)
