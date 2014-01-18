@@ -95,6 +95,7 @@ function Game(opts) {
     this.materials = this.texture_module(this, {
       useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
       texturePath: opts.texturePath || './textures/',
+      artPacks: opts.artPacks,
       materialType: opts.materialType || THREE.MeshLambertMaterial,
       materialParams: opts.materialParams || {},
       materialFlatColor: opts.materialFlatColor === true

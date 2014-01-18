@@ -12,7 +12,7 @@
     "voxel-view": "git://github.com/deathcap/voxel-view.git#be8a36643ddc5de42c8506d6372510c16665f57c",
     "voxel-raycast": "0.2.1",
     "voxel-control": "git://github.com/deathcap/voxel-control.git#1de90a89347d9667ce4f9689a0a101b9d8704020",
-    "voxel-texture": "git://github.com/deathcap/voxel-texture.git#094612492644750d7267619dbcf616f82439aa05",
+    "voxel-texture": "git://github.com/deathcap/voxel-texture.git#32d3847a4ed6eafa4200778ff08aa23d053a2515",
     "voxel-physical": "0.0.10",
     "voxel-region-change": "0.1.0",
     "raf": "0.0.1",
