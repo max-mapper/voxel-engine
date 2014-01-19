@@ -94,6 +94,8 @@ function Game(opts) {
   if (process.browser) {
     this.materials = this.texture_module(this, {
       useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
+      atlasWidth: 2048,
+      atlasHeight: 2048,
       texturePath: opts.texturePath || './textures/',
       artPacks: opts.artPacks,
       materialType: opts.materialType || THREE.MeshLambertMaterial,
