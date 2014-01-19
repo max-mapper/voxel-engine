@@ -46,7 +46,7 @@ function Game(opts) {
   this.cubeSize = 1 // backwards compat
   this.chunkSize = opts.chunkSize || 32
   this.kb_module = opts.kb_module || kb;
-  this.texture_module = opts.texture_module || texture;
+  this.texture_modules = opts.texture_modules || [texture];
   
   // chunkDistance and removeDistance should not be set to the same thing
   // as it causes lag when you go back and forth on a chunk boundary
@@ -92,7 +92,7 @@ function Game(opts) {
   this.pendingChunks = []
   
   if (process.browser) {
-    this.materials = this.texture_module({
+    this.materials = this.texture_modules[0](this.texture_opts = {
       game: this,
       useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
       atlasWidth: 2048,
