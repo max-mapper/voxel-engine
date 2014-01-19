@@ -92,7 +92,8 @@ function Game(opts) {
   this.pendingChunks = []
   
   if (process.browser) {
-    this.materials = this.texture_module(this, {
+    this.materials = this.texture_module({
+      game: this,
       useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
       atlasWidth: 2048,
       atlasHeight: 2048,
@@ -569,8 +570,8 @@ Game.prototype.showChunk = function(chunk) {
   this.voxels.meshes[chunkIndex] = mesh
   if (this.isClient) {
     if (this.meshType === 'wireMesh') mesh.createWireMesh()
-    else mesh.createSurfaceMesh(this.materials.getMesh());
-    this.materials.paintMesh(mesh)
+    else mesh.createSurfaceMesh(this.materials.material)
+    this.materials.paint(mesh)
   }
   mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2])
   mesh.addToScene(this.scene)
