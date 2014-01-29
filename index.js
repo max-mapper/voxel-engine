@@ -93,13 +93,13 @@ function Game(opts) {
   
   if (process.browser) {
     this.materials = this.texture_modules[0](this.texture_opts = {
-      game: this,
       useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
       texturePath: opts.texturePath || './textures/',
       artPacks: opts.artPacks,
       materialType: opts.materialType || THREE.MeshLambertMaterial,
       materialParams: opts.materialParams || {},
-      materialFlatColor: opts.materialFlatColor === true
+      materialFlatColor: opts.materialFlatColor === true,
+      game: this
     })
     if (opts.appendDocument) this.appendTo(document.body)
     if (opts.exposeGlobal) window.game = window.g = this
