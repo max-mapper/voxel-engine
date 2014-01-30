@@ -91,7 +91,7 @@ function Game(opts) {
   // contains new chunks yet to be generated. Handled by game.loadPendingChunks
   this.pendingChunks = []
   
-  if (process.browser) {
+  if (this.isClient) {
     this.materials = this.texture_modules[0](this.texture_opts = {
       useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
       texturePath: opts.texturePath || './textures/',
