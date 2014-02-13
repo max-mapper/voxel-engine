@@ -242,17 +242,11 @@ For example, here we have 4 faces colliding with the bottom of our object:
 
 ### Textures
 
-Loading textures creates multiple "materials".
+Loading textures onto the texture atlas.
 
-```var materials = game.materials.load(['obsidian', 'dirt'])```
+```game.materials.load(['obsidian', 'dirt'], function(textures) { })```
 
-Both of these textures come with 6 materials, one for each side of a cube, giving a total of 12 materials. By default, faces 1 to 6 are assigned materials 1 to 6. You can assign materials to faces in however you want. For example, we could load materials 7 to 12 (e.g. the dirt materials) like so:
-
-```js
-mesh.geometry.faces.forEach(function (face, index) {
-  face.materialIndex = index + 6 // obsidian texture indices 0 - 5, dirt 6 - 11
-})
-```
+Both of these textures will be loaded into the texture atlas and expanded creating 2 voxel block types.
 
 ### Texture-less worlds with flat colors
 
