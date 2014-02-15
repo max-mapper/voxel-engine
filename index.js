@@ -42,7 +42,7 @@ function Game(opts) {
   this.THREE = THREE
   this.vector = vector
   this.glMatrix = glMatrix
-  this.arrayType = opts.arrayType || Uint8Array
+  this.arrayType = opts.arrayType || {1:Uint8Array, 2:Uint16Array, 4:Uint32Array}[opts.arrayTypeSize] || Uint8Array
   this.cubeSize = 1 // backwards compat
   this.chunkSize = opts.chunkSize || 32
   this.kb_module = opts.kb_module || kb;
