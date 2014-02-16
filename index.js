@@ -18,7 +18,7 @@ var glMatrix = require('gl-matrix')
 var vector = glMatrix.vec3
 var SpatialEventEmitter = require('spatial-events')
 var regionChange = require('voxel-region-change')
-var kb = require('kb-controls')
+var kb = require('kb-bindings')
 var physical = require('voxel-physical')
 var pin = require('pin-it')
 var tic = require('tic')()
@@ -45,7 +45,6 @@ function Game(opts) {
   this.arrayType = opts.arrayType || {1:Uint8Array, 2:Uint16Array, 4:Uint32Array}[opts.arrayTypeSize] || Uint8Array
   this.cubeSize = 1 // backwards compat
   this.chunkSize = opts.chunkSize || 32
-  this.kb_module = opts.kb_module || kb;
   this.texture_modules = opts.texture_modules || [texture];
   
   // chunkDistance and removeDistance should not be set to the same thing
@@ -707,7 +706,7 @@ Game.prototype.initializeRendering = function(opts) {
 Game.prototype.initializeControls = function(opts) {
   // player control
   this.keybindings = opts.keybindings || this.defaultButtons
-  this.buttons = this.kb_module(document.body, this.keybindings)
+  this.buttons = kb(document.body, this.keybindings)
   this.buttons.disable()
   this.optout = false
   this.interact = interact(opts.interactElement || this.view.element, opts.interactMouseDrag)
