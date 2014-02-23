@@ -55,9 +55,10 @@ function Game(opts) {
   this.skyColor = opts.skyColor || 0xBFD1E5
   this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
-  this.mesher = opts.mesher || voxel.meshers.greedy
+  this.mesher = opts.mesher || voxel.meshers.transgreedy
   this.materialType = opts.materialType || THREE.MeshLambertMaterial
   this.materialParams = opts.materialParams || {}
+  this.materialTransparentTypes = opts.materialTransparentTypes || {} // TODO: automatically get from voxel-texture
   this.items = []
   this.voxels = voxel(this)
   this.scene = new THREE.Scene()
@@ -558,7 +559,8 @@ Game.prototype.showChunk = function(chunk) {
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
   var scale = new THREE.Vector3(1, 1, 1)
-  var mesh = voxelMesh(chunk, this.mesher, scale, this.THREE)
+  var transparentTypes = this.materials.getTransparentVoxelTypes ? this.materials.getTransparentVoxelTypes() : {};
+  var mesh = voxelMesh(chunk, this.mesher, scale, this.THREE, {transparentTypes: transparentTypes})
   this.voxels.chunks[chunkIndex] = chunk
   if (this.voxels.meshes[chunkIndex]) {
     if (this.voxels.meshes[chunkIndex].surfaceMesh) this.scene.remove(this.voxels.meshes[chunkIndex].surfaceMesh)
