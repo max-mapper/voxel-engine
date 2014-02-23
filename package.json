@@ -7,11 +7,11 @@
     "url": "git@github.com:maxogden/voxel-engine.git"
   },
   "dependencies": {
-    "voxel": "git://github.com/deathcap/voxel.git#b45d02db42395ac95120eb66073999b846814a77",
+    "voxel": "git://github.com/deathcap/voxel.git#2fe6ca876a34d9ec654f1ae572c99376256815df",
     "voxel-mesh": "git://github.com/deathcap/voxel-mesh.git#4bc4d2b2f3b5804367360ffd16d506349e1dab09",
     "voxel-view": "git://github.com/deathcap/voxel-view.git#be8a36643ddc5de42c8506d6372510c16665f57c",
     "voxel-raycast": "0.2.1",
-    "voxel-control": "git://github.com/deathcap/voxel-control.git#1de90a89347d9667ce4f9689a0a101b9d8704020",
+    "voxel-control": "git://github.com/deathcap/voxel-control.git#d9ac73b0423ec0deb0ebcd54711bf7c656f9ddb6",
     "voxel-texture": "0.5.8",
     "voxel-physical": "git://github.com/deathcap/voxel-physical.git#4deb6d93aca18aa8b12a813aedd457a451eec2bd",
     "voxel-region-change": "0.1.0",
