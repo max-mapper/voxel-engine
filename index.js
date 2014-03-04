@@ -2,6 +2,7 @@ var voxel = require('voxel')
 var voxelMesh = require('voxel-mesh')
 var ray = require('voxel-raycast')
 var texture = require('voxel-texture')
+var artpacks = require('artpacks');
 var control = require('voxel-control')
 var voxelView = require('voxel-view')
 var THREE = require('three')
@@ -95,7 +96,7 @@ function Game(opts) {
     this.materials = this.texture_modules[0](this.texture_opts = {
       useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
       texturePath: opts.texturePath || './textures/',
-      artPacks: opts.artPacks,
+      artPacks: artpacks(opts.artPacks),
       materialType: opts.materialType || THREE.MeshLambertMaterial,
       materialParams: opts.materialParams || {},
       materialFlatColor: opts.materialFlatColor === true,
