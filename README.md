@@ -16,6 +16,24 @@ var game = createGame()
 game.appendTo(document.body)
 ```
 
+### contributing
+
+voxel-engine is an **OPEN Open Source Project**. This means that:
+
+> Individuals making significant and valuable contributions are given commit-access to the project to contribute as they see fit. This project is more like an open wiki than a standard guarded open source project.
+
+See the [CONTRIBUTING.md](contributing.md) file for more details.
+
+### contributors
+
+multiplex is only possible due to the excellent work of the following contributors:
+
+<table><tbody>
+<tr><th align="left">Max Ogden</th><td><a href="https://github.com/maxogden">GitHub/maxogden</a></td><td><a href="http://twitter.com/maxogden">Twitter/@maxogden</a></td></tr>
+<tr><th align="left">Kumavis</th><td><a href="https://github.com/kumavis/">GitHub/kumavis</a></td><td></td></tr>
+<tr><th align="left">Deathcap</th><td><a href="https://github.com/deathcap/">GitHub/deathcap</a></td><td></td></tr>
+</tbody></table>
+
 # API
 
 ## require('voxel-engine')(options)

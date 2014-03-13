@@ -6,6 +6,11 @@
     "type": "git",
     "url": "git@github.com:maxogden/voxel-engine.git"
   },
+  "contributors": [
+    "Max Ogden <max@maxogden.com> (https://github.com/maxogden)",
+    "Kumavis <a.aa.akio.aaron@gmail.com> (https://github.com/kumavis)",
+    "Deathcap <deathcap@gmx.co.uk> (https://github.com/deathcap)",
+  ],
   "dependencies": {
     "voxel": "0.3.1",
     "voxel-mesh": "0.2.1",
