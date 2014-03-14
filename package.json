@@ -13,7 +13,7 @@
     "voxel-raycast": "0.2.1",
     "voxel-control": "git://github.com/deathcap/voxel-control.git#d9ac73b0423ec0deb0ebcd54711bf7c656f9ddb6",
     "voxel-texture": "0.5.8",
-    "artpacks": "git://github.com/deathcap/artpacks.git#c0a5bfc27df93f7f96f9f87a707a4763e617ff01",
+    "artpacks": "git://github.com/deathcap/artpacks.git#326defb7dbb867456bd918a33143d3729b7ab2f9",
     "voxel-physical": "git://github.com/deathcap/voxel-physical.git#4deb6d93aca18aa8b12a813aedd457a451eec2bd",
     "voxel-region-change": "0.1.0",
     "raf": "0.0.1",
