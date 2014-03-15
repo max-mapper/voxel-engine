@@ -1,11 +1,16 @@
 {
   "name": "voxel-engine",
   "description": "make games with voxel.js",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "repository": {
     "type": "git",
     "url": "git@github.com:maxogden/voxel-engine.git"
   },
+  "contributors": [
+    "Max Ogden <max@maxogden.com> (https://github.com/maxogden)",
+    "Kumavis <a.aa.akio.aaron@gmail.com> (https://github.com/kumavis)",
+    "Deathcap <deathcap@gmx.co.uk> (https://github.com/deathcap)",
+  ],
   "dependencies": {
     "voxel": "git://github.com/deathcap/voxel.git#4ce16e8b8d10362a0114483c21cc66777f5702f2",
     "voxel-mesh": "git://github.com/deathcap/voxel-mesh.git#6a881552c2281648a8ad8f50e6dd71ff610ef770",
