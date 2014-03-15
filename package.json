@@ -9,7 +9,7 @@
   "contributors": [
     "Max Ogden <max@maxogden.com> (https://github.com/maxogden)",
     "Kumavis <a.aa.akio.aaron@gmail.com> (https://github.com/kumavis)",
-    "Deathcap <deathcap@gmx.co.uk> (https://github.com/deathcap)",
+    "Deathcap <deathcap@gmx.co.uk> (https://github.com/deathcap)"
   ],
   "dependencies": {
     "voxel": "git://github.com/deathcap/voxel.git#4ce16e8b8d10362a0114483c21cc66777f5702f2",
