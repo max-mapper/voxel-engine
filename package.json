@@ -12,8 +12,8 @@
     "Deathcap <deathcap@gmx.co.uk> (https://github.com/deathcap)"
   ],
   "dependencies": {
-    "voxel": "git://github.com/shama/voxel#ndarray",
-    "voxel-mesh": "git://github.com/shama/voxel-mesh#ndarray",
+    "voxel": "git://github.com/deathcap/voxel#ndarray",
+    "voxel-mesh": "git://github.com/deathcap/voxel-mesh#ndarray",
     "voxel-view": "0.0.6",
     "voxel-raycast": "0.2.1",
     "voxel-control": "git://github.com/deathcap/voxel-control.git#d9ac73b0423ec0deb0ebcd54711bf7c656f9ddb6",
