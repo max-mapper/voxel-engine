@@ -2,6 +2,7 @@ var voxel = require('voxel')
 var voxelMesh = require('voxel-mesh')
 var ray = require('voxel-raycast')
 var texture = require('voxel-texture')
+var artpacks = require('artpacks');
 var control = require('voxel-control')
 var voxelView = require('voxel-view')
 var THREE = require('three')
@@ -18,7 +19,7 @@ var glMatrix = require('gl-matrix')
 var vector = glMatrix.vec3
 var SpatialEventEmitter = require('spatial-events')
 var regionChange = require('voxel-region-change')
-var kb = require('kb-controls')
+var kb = require('kb-bindings')
 var physical = require('voxel-physical')
 var pin = require('pin-it')
 var tic = require('tic')()
@@ -31,6 +32,9 @@ function Game(opts) {
   if (!opts) opts = {}
   if (process.browser && this.notCapable(opts)) return
   
+  // is this a client or a headless server
+  this.isClient = Boolean( (typeof opts.isClient !== 'undefined') ? opts.isClient : process.browser )
+
   if (!('generateChunks' in opts)) opts.generateChunks = true
   this.generateChunks = opts.generateChunks
   this.setConfigurablePositions(opts)
@@ -39,29 +43,37 @@ function Game(opts) {
   this.THREE = THREE
   this.vector = vector
   this.glMatrix = glMatrix
-  this.arrayType = opts.arrayType || Uint8Array
+  this.arrayType = opts.arrayType || {1:Uint8Array, 2:Uint16Array, 4:Uint32Array}[opts.arrayTypeSize] || Uint8Array
   this.cubeSize = 1 // backwards compat
   this.chunkSize = opts.chunkSize || 32
+  this.texture_modules = opts.texture_modules || [texture];
   
   // chunkDistance and removeDistance should not be set to the same thing
   // as it causes lag when you go back and forth on a chunk boundary
   this.chunkDistance = opts.chunkDistance || 2
   this.removeDistance = opts.removeDistance || this.chunkDistance + 1
   
+  this.skyColor = opts.skyColor || 0xBFD1E5
+  this.antialias = opts.antialias
   this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
-  this.mesher = opts.mesher || voxel.meshers.culled
+  this.mesher = opts.mesher || voxel.meshers.transgreedy
   //this.materialType = opts.materialType || THREE.MeshLambertMaterial
   //this.materialParams = opts.materialParams || {}
+  //this.materialTransparentTypes = opts.materialTransparentTypes || {} // TODO: automatically get from voxel-texture
   this.items = []
   this.voxels = voxel(this)
   this.scene = new THREE.Scene()
-  this.view = opts.view || new voxelView(THREE, { width: this.width, height: this.height })
+  this.view = opts.view || new voxelView(THREE, {
+    width: this.width,
+    height: this.height,
+    skyColor: this.skyColor,
+    antialias: this.antialias
+  })
   this.view.bindToScene(this.scene)
   this.camera = this.view.getCamera()
   if (!opts.lightsDisabled) this.addLights(this.scene)
   
-  this.skyColor = opts.skyColor || 0xBFD1E5
   this.fogScale = opts.fogScale || 32
   if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( this.skyColor, 0.00025, this.worldWidth() * this.fogScale )
   
@@ -85,14 +97,21 @@ function Game(opts) {
   this.chunksNeedsUpdate = {}
   // contains new chunks yet to be generated. Handled by game.loadPendingChunks
   this.pendingChunks = []
+  
+  if (this.isClient) {
+    /*this.materials = this.texture_modules[0](this.texture_opts = {
+      useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
+      texturePath: opts.texturePath || './textures/',
+      artPacks: artpacks(opts.artPacks),
+      materialType: opts.materialType || THREE.MeshLambertMaterial,
+      materialParams: opts.materialParams || {},
+      materialFlatColor: opts.materialFlatColor === true,
+      game: this
+    })*/
+    if (opts.appendDocument) this.appendTo(document.body)
+    if (opts.exposeGlobal) window.game = window.g = this
+  }
 
-  /*this.materials = texture({
-    game: this,
-    texturePath: opts.texturePath || './textures/',
-    materialType: opts.materialType || THREE.MeshLambertMaterial,
-    materialParams: opts.materialParams || {},
-    materialFlatColor: opts.materialFlatColor === true
-  })*/
   //this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
   this.materials = opts.materials
   
@@ -100,17 +119,17 @@ function Game(opts) {
     self.removeFarChunks()
   })
 
-  //if (process.browser) this.materials.load(this.materialNames)
+  //if (this.isClient) this.materials.load(this.materialNames)
 
   if (this.generateChunks) this.handleChunkGeneration()
 
   // client side only after this point
-  if (!process.browser) return
+  if (!this.isClient) return
   
   this.paused = true
   this.initializeRendering(opts)
-  
-  for (var chunkIndex in this.voxels.chunks) this.showChunk(this.voxels.chunks[chunkIndex])
+ 
+  this.showAllChunks()
 
   setTimeout(function() {
     self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : true
@@ -143,7 +162,8 @@ Game.prototype.cameraVector = function() {
 
 Game.prototype.makePhysical = function(target, envelope, blocksCreation) {
   var vel = this.terminalVelocity
-  var obj = physical(target, this.potentialCollisionSet(), envelope || [1/2, 1.5, 1/2], {x: vel[0], y: vel[1], z: vel[2]})
+  envelope = envelope || [2/3, 1.5, 2/3]
+  var obj = physical(target, this.potentialCollisionSet(), envelope, {x: vel[0], y: vel[1], z: vel[2]})
   obj.blocksCreation = !!blocksCreation
   return obj
 }
@@ -285,11 +305,16 @@ Game.prototype.defaultButtons = {
 , 'A': 'left'
 , 'S': 'backward'
 , 'D': 'right'
+, '<up>': 'forward'
+, '<left>': 'left'
+, '<down>': 'backward'
+, '<right>': 'right'
 , '<mouse 1>': 'fire'
 , '<mouse 3>': 'firealt'
 , '<space>': 'jump'
 , '<shift>': 'crouch'
 , '<control>': 'alt'
+, '<tab>': 'sprint'
 }
 
 // used in methods that have identity function(pos) {}
@@ -472,12 +497,19 @@ Game.prototype.removeFarChunks = function(playerPosition) {
     if (!chunk) return
     var chunkPosition = chunk.position
     if (mesh) {
-      self.scene.remove(mesh[self.meshType])
-      //mesh[self.meshType].geometry.dispose()
+      if (mesh.surfaceMesh) {
+        self.scene.remove(mesh.surfaceMesh)
+        //mesh.surfaceMesh.geometry.dispose()
+      }
+      if (mesh.wireMesh) {
+        mesh.wireMesh.geometry.dispose()
+        //self.scene.remove(mesh.wireMesh)
+      }
       delete mesh.data
       delete mesh.geometry
       delete mesh.meshed
       delete mesh.surfaceMesh
+      delete mesh.wireMesh
     }
     delete self.voxels.chunks[chunkIndex]
     self.emit('removeChunk', chunkPosition)
@@ -513,7 +545,7 @@ Game.prototype.loadPendingChunks = function(count) {
     var chunkPos = pendingChunks[i].split('|')
     var chunk = this.voxels.generateChunk(chunkPos[0]|0, chunkPos[1]|0, chunkPos[2]|0)
 
-    if (process.browser) this.showChunk(chunk)
+    if (this.isClient) this.showChunk(chunk)
   }
 
   if (count) pendingChunks.splice(0, count)
@@ -525,16 +557,25 @@ Game.prototype.getChunkAtPosition = function(pos) {
   return chunk
 }
 
+Game.prototype.showAllChunks = function() {
+  for (var chunkIndex in this.voxels.chunks) {
+    this.showChunk(this.voxels.chunks[chunkIndex])
+  }
+}
 
 Game.prototype.showChunk = function(chunk) {
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
   var scale = new THREE.Vector3(1, 1, 1)
-  var mesh = voxelMesh(chunk, this.mesher, scale, this.THREE)
+  var transparentTypes = this.materials.getTransparentVoxelTypes ? this.materials.getTransparentVoxelTypes() : {};
+  var mesh = voxelMesh(chunk, this.mesher, scale, this.THREE, {transparentTypes: transparentTypes})
   this.voxels.chunks[chunkIndex] = chunk
-  if (this.voxels.meshes[chunkIndex]) this.scene.remove(this.voxels.meshes[chunkIndex][this.meshType])
+  if (this.voxels.meshes[chunkIndex]) {
+    if (this.voxels.meshes[chunkIndex].surfaceMesh) this.scene.remove(this.voxels.meshes[chunkIndex].surfaceMesh)
+    if (this.voxels.meshes[chunkIndex].wireMesh) this.scene.remove(this.voxels.meshes[chunkIndex].wireMesh)
+  }
   this.voxels.meshes[chunkIndex] = mesh
-  if (process.browser) {
+  if (this.isClient) {
     if (this.meshType === 'wireMesh') mesh.createWireMesh()
     else mesh.createSurfaceMesh(this.materials)
   }
@@ -547,7 +588,7 @@ Game.prototype.showChunk = function(chunk) {
 // # Debugging methods
 
 Game.prototype.addMarker = function(position) {
-  var geometry = new THREE.SphereGeometry( 0.5, 10, 10 )
+  var geometry = new THREE.SphereGeometry( 0.1, 10, 10 )
   var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } )
   var mesh = new THREE.Mesh( geometry, material )
   mesh.position.copy(position)
