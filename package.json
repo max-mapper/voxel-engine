@@ -5,7 +5,7 @@
   "main": "main.js",
   "dependencies": {
     "ao-mesher": "~0.2.5",
-    "game-shell-orbit-camera": "~0.0.0",
+    "game-shell-fps-camera": "git://github.com/deathcap/game-shell-fps-camera.git",
     "ao-shader": "~0.2.3",
     "gl-buffer": "~0.1.0",
     "gl-matrix": "~2.0.0",
