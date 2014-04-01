@@ -31,7 +31,7 @@ shell.on("gl-init", function() {
     [terrain.stride[0]*16, terrain.stride[1]*16, terrain.stride[0], terrain.stride[1], terrain.stride[2]], 0)
   texture = createTileMap(gl, tiles, 2)
 
-  texture.magFilter = gl.LINEAR
+  texture.magFilter = gl.NEAREST
   texture.minFilter = gl.LINEAR_MIPMAP_LINEAR
   texture.mipSamples = 4
 
