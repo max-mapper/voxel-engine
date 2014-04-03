@@ -38,6 +38,8 @@ shell.on("gl-init", function() {
   mesh = createVoxelMesh(shell.gl, 'Terrain', examples.Terrain)
   var c = mesh.center
   camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
+
+  shell.bind('wireframe', 'F')
 })
 
 shell.on("gl-error", function(err) {
@@ -50,8 +52,6 @@ shell.on("gl-error", function(err) {
 
   document.body.appendChild(a)
 })
-
-var showWire = true;
 
 shell.on("gl-render", function(t) {
   var gl = shell.gl
@@ -78,7 +78,7 @@ shell.on("gl-render", function(t) {
   gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
   mesh.triangleVAO.unbind()
 
-  if(showWire) {
+  if(shell.wasDown('wireframe')) {
     //Bind the wire shader
     wireShader.bind()
     wireShader.attributes.position.location = 0
