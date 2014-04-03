@@ -91,3 +91,6 @@ shell.on("gl-render", function(t) {
     mesh.wireVAO.unbind()
   }
 })
+
+module.exports = shell
+
