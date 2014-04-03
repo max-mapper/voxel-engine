@@ -1,5 +1,16 @@
-voxel-mipmap-demo
-=================
+game-shell-voxel
+================
+
+Experiment with using [game-shell](https://github.com/mikolalysenko/game-shell),
+[gl-now](https://github.com/gl-modules/gl-now),
+[ndarray](https://github.com/mikolalysenko/ndarray), etc. for an interactive voxel world
+
+Based on @mikolalysenko's [voxel-mipmap-demo](https://github.com/mikolalysenko/voxel-mipmap-demo),
+somewhat simplified.
+
+---
+
+## voxel-mipmap-demo
 Demonstration of texture mapping with greedy meshing.
 
 * Left click rotates
