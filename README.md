@@ -5,10 +5,29 @@ Experiment with using [game-shell](https://github.com/mikolalysenko/game-shell),
 [gl-now](https://github.com/gl-modules/gl-now),
 [ndarray](https://github.com/mikolalysenko/ndarray), etc. for an interactive voxel world
 
-Based on @mikolalysenko's [voxel-mipmap-demo](https://github.com/mikolalysenko/voxel-mipmap-demo),
-somewhat simplified.
+Based on @mikolalysenko's [voxel-mipmap-demo](https://github.com/mikolalysenko/voxel-mipmap-demo).
+
+Warning: this is only a test
+
+# Usage
+
+    var createShell = require('game-shell-voxel');
+
+    createShell({require: require, pluginOpts: {
+        // list plugins and options here
+    });
+
+For an example run `npm start` or check out the [live demo](http://deathcap.github.io/game-shell-voxel).
+
+Click the canvas to interact. Added features:
+
+* Mouse and key controls (WASD, space, shift) using [game-shell-fps-camera](https://github.com/deathcap/game-shell-fps-camera)
+* Plugin support using [voxel-plugins](https://github.com/deathcap/voxel-plugins)
+* ...
 
 ---
+
+original voxel-mipmap-demo readme:
 
 ## voxel-mipmap-demo
 Demonstration of texture mapping with greedy meshing.
