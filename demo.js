@@ -1,6 +1,16 @@
 'use strict';
 
 var createShell = require('./');
+var createGUI = require('dat-gui');
 
-createShell();
+require('kb-bindings-ui');
+require('voxel-plugins-ui');
 
+createShell({require: require, pluginOpts:
+  {
+    'voxel-plugins-ui': {gui: new createGUI.GUI()},
+    //'kb-bindings-ui': {gui: new createGUI.GUI()}, // TODO: add compatibility, game-shell bindings object is different than kb-bindings
+  }
+});
+
+document.querySelector('.dg.ac').style.zIndex = 1; // fix datgui behind canvas

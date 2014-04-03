@@ -25,7 +25,12 @@ var main = function(opts) {
   var shell = createShell(opts);
   var camera = require("game-shell-fps-camera")(shell)
 
-  var plugins = createPlugins(shell, {require: shell.require || require});
+  var game = {};
+  game.isClient = true;
+  game.buttons = {};
+  game.buttons.bindings = shell.bindings;
+
+  var plugins = createPlugins(game, {require: opts.require || require});
   shell.plugins = plugins;
 
   for (var name in opts.pluginOpts) {
