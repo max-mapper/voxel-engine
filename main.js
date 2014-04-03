@@ -40,8 +40,15 @@ shell.on("gl-init", function() {
   camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
 })
 
-shell.on("gl-error", function() {
-  // TODO
+shell.on("gl-error", function(err) {
+  var a = document.createElement('a')
+  a.textContent = 'You need a modern WebGL browser (Chrome/Firefox) to play this game. Click here for more information. (WebGL error: ' + err + ')'
+  a.style.webkitUserSelect = ''
+  a.href = 'http://get.webgl.org/';
+
+  while(document.body.firstChild) document.body.removeChild(document.body.firstChild)
+
+  document.body.appendChild(a)
 })
 
 var showWire = true;
