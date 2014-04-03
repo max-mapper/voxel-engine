@@ -17,9 +17,6 @@ var createPlugins = require('voxel-plugins')
 //Tile size parameters
 var TILE_SIZE = Math.floor(terrain.shape[0] / 16)|0
 
-//Config variables
-var texture, shader, mesh, wireShader
-
 var main = function(opts) {
   opts = opts || {};
   opts.clearColor = [0,0,0,0];
@@ -36,6 +33,8 @@ var main = function(opts) {
   }
   plugins.loadAll();
 
+//Config variables
+var texture, shader, mesh, wireShader
 
 shell.on("gl-init", function() {
   var gl = shell.gl
