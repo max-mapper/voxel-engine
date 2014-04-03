@@ -23,7 +23,11 @@ var main = function(opts) {
   opts.pointerLock = true;
 
   var shell = createShell(opts);
-  var camera = require("game-shell-fps-camera")(shell)
+  var camera = createCamera(shell);
+
+  camera.position[0] = -20;
+  camera.position[1] = -33;
+  camera.position[2] = -40;
 
   var game = {};
   game.isClient = true;
