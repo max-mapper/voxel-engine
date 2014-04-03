@@ -18,10 +18,7 @@
     "ndarray": "^1.0.10",
     "ndarray-fill": "^0.1.0",
     "ndarray-ops": "^1.2.1",
-    "bunny": "^1.0.1",
-    "voxelize": "^0.1.0",
-    "brfs": "^1.0.0",
-    "teapot": "^0.0.1"
+    "brfs": "^1.0.0"
   },
   "devDependencies": {
     "beefy": "^1.1.0",
