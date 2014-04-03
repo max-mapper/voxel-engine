@@ -1,5 +1,6 @@
 'use strict';
 
-var shell = require('./');
+var createShell = require('./');
 
+createShell();
 

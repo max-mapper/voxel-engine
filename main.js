@@ -1,7 +1,7 @@
 "use strict"
 
-var shell = require("gl-now")({clearColor: [0,0,0,0], pointerLock: true})
-var camera = require("game-shell-fps-camera")(shell)
+var createShell = require("gl-now")
+var createCamera = require("game-shell-fps-camera")
 var createTileMap = require("gl-tile-map")
 var ndarray = require("ndarray")
 var terrain = require("isabella-texture-pack")
@@ -12,11 +12,30 @@ var createVoxelMesh = require("./lib/createMesh.js")
 var glm = require("gl-matrix")
 var mat4 = glm.mat4
 
+var createPlugins = require('voxel-plugins')
+
 //Tile size parameters
 var TILE_SIZE = Math.floor(terrain.shape[0] / 16)|0
 
 //Config variables
 var texture, shader, mesh, wireShader
+
+var main = function(opts) {
+  opts = opts || {};
+  opts.clearColor = [0,0,0,0];
+  opts.pointerLock = true;
+
+  var shell = createShell(opts);
+  var camera = require("game-shell-fps-camera")(shell)
+
+  var plugins = createPlugins(shell, {require: shell.require || require});
+  shell.plugins = plugins;
+
+  for (var name in opts.pluginOpts) {
+    plugins.add(name, opts.pluginOpts[name]);
+  }
+  plugins.loadAll();
+
 
 shell.on("gl-init", function() {
   var gl = shell.gl
@@ -91,6 +110,7 @@ shell.on("gl-render", function(t) {
     mesh.wireVAO.unbind()
   }
 })
+}
 
-module.exports = shell
+module.exports = main
 
