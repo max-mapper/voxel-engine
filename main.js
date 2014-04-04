@@ -56,11 +56,32 @@ shell.on("gl-init", function() {
   var tiles = ndarray(terrain.data,
     [16,16,terrain.shape[0]>>4,terrain.shape[1]>>4,4],
     [terrain.stride[0]*16, terrain.stride[1]*16, terrain.stride[0], terrain.stride[1], terrain.stride[2]], 0)
+
+  var registry = shell.plugins.get('voxel-registry') // test blocks TODO: move
+  registry.registerBlock('dirt', {texture: 'dirt'})
+  registry.registerBlock('stone', {texture: 'stone'})
+  registry.registerBlock('grass', {texture: 'grass_top'}) // TODO: arrays
+  registry.registerBlock('cobblestone', {texture: 'cobblestone'})
+  registry.registerBlock('lava', {texture: 'lava_still'})
+  registry.registerBlock('oreDiamond', {texture: 'diamond_ore'})
+
+  var stitcher = shell.plugins.get('voxel-stitch') // TODO: load not as a plugin?
+  var updateTexture = function() {
+    texture = createTileMap(gl, stitcher.atlas, 2)
+    texture.magFilter = gl.NEAREST
+    texture.minFilter = gl.LINEAR_MIPMAP_LINEAR
+    texture.mipSamples = 4
+  }
+  stitcher.on('added', updateTexture)
+  stitcher.stitch()
+
+  /*
   texture = createTileMap(gl, tiles, 2)
 
   texture.magFilter = gl.NEAREST
   texture.minFilter = gl.LINEAR_MIPMAP_LINEAR
   texture.mipSamples = 4
+  */
 
   mesh = createVoxelMesh(shell.gl, 'Terrain', examples.Terrain)
   var c = mesh.center
@@ -99,7 +120,7 @@ shell.on("gl-render", function(t) {
   shader.uniforms.view = view
   shader.uniforms.model = model
   shader.uniforms.tileSize = TILE_SIZE
-  shader.uniforms.tileMap = texture.bind()
+  if (texture) shader.uniforms.tileMap = texture.bind() // texture might not have loaded yet
   
   mesh.triangleVAO.bind()
   gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
