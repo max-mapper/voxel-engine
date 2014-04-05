@@ -57,14 +57,6 @@ shell.on("gl-init", function() {
     [16,16,terrain.shape[0]>>4,terrain.shape[1]>>4,4],
     [terrain.stride[0]*16, terrain.stride[1]*16, terrain.stride[0], terrain.stride[1], terrain.stride[2]], 0)
 
-  var registry = shell.plugins.get('voxel-registry') // test blocks TODO: move
-  registry.registerBlock('dirt', {texture: 'dirt'})
-  registry.registerBlock('stone', {texture: 'stone'})
-  registry.registerBlock('cobblestone', {texture: 'cobblestone'})
-  registry.registerBlock('lava', {texture: 'lava_still'})
-  registry.registerBlock('oreDiamond', {texture: 'diamond_ore'})
-  registry.registerBlock('grass', {texture: ['grass_top', 'dirt', 'grass_side']})
-
   var stitcher = shell.plugins.get('voxel-stitch') // TODO: load not as a plugin?
   var updateTexture = function() {
     texture = createTileMap(gl, stitcher.atlas, 2)
