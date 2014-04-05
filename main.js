@@ -64,7 +64,7 @@ shell.on("gl-init", function() {
     texture.minFilter = gl.LINEAR_MIPMAP_LINEAR
     texture.mipSamples = 4
   }
-  stitcher.on('added', updateTexture)
+  stitcher.on('addedAll', updateTexture)
   stitcher.stitch()
 
   /*
