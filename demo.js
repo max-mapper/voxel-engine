@@ -3,8 +3,8 @@
 var createShell = require('./');
 var createGUI = require('dat-gui');
 
-require('kb-bindings-ui');
 require('voxel-plugins-ui');
+//require('kb-bindings-ui');
 require('voxel-registry');
 require('voxel-stitch');
 require('./lib/blocks.js');
