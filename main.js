@@ -23,6 +23,10 @@ var main = function(opts) {
 
   var shell = createShell(opts);
   var camera = createCamera(shell);
+  /* 
+  global.shell = shell
+  global.camera = camera
+  */
 
   camera.position[0] = -20;
   camera.position[1] = -33;
@@ -62,7 +66,7 @@ shell.on("gl-init", function() {
   stitcher.on('addedAll', updateTexture)
   stitcher.stitch()
 
-  mesh = createVoxelMesh(shell.gl, 'Terrain', examples.Terrain)
+  mesh = createVoxelMesh(shell.gl, 'Terrain', examples.Terrain, stitcher.voxelSideTextureIDs)
   var c = mesh.center
   camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
 
