@@ -60,10 +60,10 @@ shell.on("gl-init", function() {
   var registry = shell.plugins.get('voxel-registry') // test blocks TODO: move
   registry.registerBlock('dirt', {texture: 'dirt'})
   registry.registerBlock('stone', {texture: 'stone'})
-  registry.registerBlock('grass', {texture: ['grass_top', 'dirt', 'grass_side']})
   registry.registerBlock('cobblestone', {texture: 'cobblestone'})
   registry.registerBlock('lava', {texture: 'lava_still'})
   registry.registerBlock('oreDiamond', {texture: 'diamond_ore'})
+  registry.registerBlock('grass', {texture: ['grass_top', 'dirt', 'grass_side']})
 
   var stitcher = shell.plugins.get('voxel-stitch') // TODO: load not as a plugin?
   var updateTexture = function() {
