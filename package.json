@@ -5,8 +5,8 @@
   "main": "main.js",
   "dependencies": {
     "ao-mesher": "^0.2.9",
-    "game-shell-fps-camera": "git://github.com/deathcap/game-shell-fps-camera.git#3d69d8d2cde740b69855d92a02a8f9e23666ea40",
-    "voxel-stitch": "git://github.com/deathcap/voxel-stitch.git#f368d5628a746726b69540a3f8767f04049ded2a",
+    "game-shell-fps-camera": "^0.1.0",
+    "voxel-stitch": "^0.1.0",
     "ao-shader": "^0.2.3",
     "gl-buffer": "^2.0.6",
     "gl-matrix": "^2.2.1",
