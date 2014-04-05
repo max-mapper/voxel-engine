@@ -4,7 +4,6 @@ var createShell = require("gl-now")
 var createCamera = require("game-shell-fps-camera")
 var createTileMap = require("gl-tile-map")
 var ndarray = require("ndarray")
-var terrain = require("isabella-texture-pack")
 var createWireShader = require("./lib/wireShader.js")
 var createAOShader = require("ao-shader")
 var examples = require("./lib/examples.js")
@@ -15,7 +14,7 @@ var mat4 = glm.mat4
 var createPlugins = require('voxel-plugins')
 
 //Tile size parameters
-var TILE_SIZE = Math.floor(terrain.shape[0] / 16)|0
+var TILE_SIZE = 16  // TODO: heterogenous
 
 var main = function(opts) {
   opts = opts || {};
@@ -53,10 +52,6 @@ shell.on("gl-init", function() {
   wireShader = createWireShader(gl)
   
   //Create texture atlas
-  var tiles = ndarray(terrain.data,
-    [16,16,terrain.shape[0]>>4,terrain.shape[1]>>4,4],
-    [terrain.stride[0]*16, terrain.stride[1]*16, terrain.stride[0], terrain.stride[1], terrain.stride[2]], 0)
-
   var stitcher = shell.plugins.get('voxel-stitch') // TODO: load not as a plugin?
   var updateTexture = function() {
     texture = createTileMap(gl, stitcher.atlas, 2)
@@ -66,14 +61,6 @@ shell.on("gl-init", function() {
   }
   stitcher.on('addedAll', updateTexture)
   stitcher.stitch()
-
-  /*
-  texture = createTileMap(gl, tiles, 2)
-
-  texture.magFilter = gl.NEAREST
-  texture.minFilter = gl.LINEAR_MIPMAP_LINEAR
-  texture.mipSamples = 4
-  */
 
   mesh = createVoxelMesh(shell.gl, 'Terrain', examples.Terrain)
   var c = mesh.center

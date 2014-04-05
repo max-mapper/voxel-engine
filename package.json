@@ -14,7 +14,6 @@
     "gl-shader": "^3.0.0",
     "gl-vao": "^1.1.2",
     "gl-tile-map": "^0.3.0",
-    "isabella-texture-pack": "^0.0.1",
     "lazy-property": "^0.0.2",
     "ndarray": "^1.0.10",
     "ndarray-fill": "^0.1.0",
