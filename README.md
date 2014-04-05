@@ -23,6 +23,7 @@ Click the canvas to interact. Added features:
 
 * Mouse and key controls (WASD, space, shift) using [game-shell-fps-camera](https://github.com/deathcap/game-shell-fps-camera)
 * Plugin support using [voxel-plugins](https://github.com/deathcap/voxel-plugins)
+* Dynamic texture atlas using [voxel-stitch](https://github.com/deathcap/voxel-stitch)
 * ...
 
 ---

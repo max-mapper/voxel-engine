@@ -29,7 +29,8 @@
     "voxel-plugins-ui": "^0.2.0",
     "voxel-registry": "^0.3.0",
     "beefy": "^1.1.0",
-    "browserify": "^3.38.0"
+    "browserify": "^3.38.0",
+    "voxel-drop": "^0.1.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

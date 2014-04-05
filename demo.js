@@ -8,6 +8,7 @@ require('voxel-plugins-ui');
 require('voxel-registry');
 require('voxel-stitch');
 require('./lib/blocks.js');
+require('voxel-drop');
 
 createShell({require: require, pluginOpts:
   {
@@ -16,6 +17,7 @@ createShell({require: require, pluginOpts:
     'voxel-plugins-ui': {gui: new createGUI.GUI()},
     //'kb-bindings-ui': {gui: new createGUI.GUI()}, // TODO: add compatibility, game-shell bindings object is different than kb-bindings
     './lib/blocks.js': {},
+    'voxel-drop': {},
   }
 });
 
