@@ -18,7 +18,7 @@ var TILE_SIZE = 16  // TODO: heterogenous
 
 var main = function(opts) {
   opts = opts || {};
-  opts.clearColor = [0,0,0,0];
+  opts.clearColor = [0.75, 0.8, 0.9, 1.0]
   opts.pointerLock = true;
 
   var shell = createShell(opts);
