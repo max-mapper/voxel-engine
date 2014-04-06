@@ -81,7 +81,7 @@ shell.on("gl-init", function() {
     }
   }
 
-  mesh = createVoxelMesh(shell.gl, 'Terrain', createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
+  mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
   var c = mesh.center
   camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
 
