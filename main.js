@@ -6,7 +6,7 @@ var createTileMap = require("gl-tile-map")
 var ndarray = require("ndarray")
 var createWireShader = require("./lib/wireShader.js")
 var createAOShader = require("ao-shader")
-var terrain = require("./lib/terrain.js")
+var createTerrain = require("./lib/terrain.js") // TODO: replace with shama's chunker mentioned in https://github.com/voxel/issues/issues/4#issuecomment-39644684
 var createVoxelMesh = require("./lib/createMesh.js")
 var glm = require("gl-matrix")
 var mat4 = glm.mat4
@@ -66,7 +66,19 @@ shell.on("gl-init", function() {
   stitcher.on('addedAll', updateTexture)
   stitcher.stitch()
 
-  mesh = createVoxelMesh(shell.gl, 'Terrain', terrain, stitcher.voxelSideTextureIDs)
+  var registry = plugins.get('voxel-registry')
+  var materials = { // TODO: refactor
+    wool: registry.getBlockID('wool') - 1,
+    logOak: registry.getBlockID('logOak') - 1,
+    leavesOak: registry.getBlockID('leavesOak') - 1,
+    grass: registry.getBlockID('grass') - 1,
+    dirt: registry.getBlockID('dirt') - 1,
+    oreDiamond: registry.getBlockID('oreDiamond') - 1,
+    stone: registry.getBlockID('stone') - 1,
+    lava: registry.getBlockID('lava') - 1
+  };
+
+  mesh = createVoxelMesh(shell.gl, 'Terrain', createTerrain(materials), stitcher.voxelSideTextureIDs)
   var c = mesh.center
   camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
 
