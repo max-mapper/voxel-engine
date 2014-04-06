@@ -54,12 +54,11 @@ var OPAQUE = 1<<15;
 shell.on("gl-init", function() {
   var gl = shell.gl
 
-  /* TODO: fix alpha transparency, this has no effect - maybe need to change ao-shader?
+  // TODO: is this right? see https://github.com/mikolalysenko/ao-shader/issues/2
   //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-  //gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-  gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+  //gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.BLEND)
-  */
   // premultiply alpha when loading textures, so can use gl.ONE blending, see http://stackoverflow.com/questions/11521035/blending-with-html-background-in-webgl
   // TODO: move to gl-texture2d?
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
