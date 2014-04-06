@@ -81,6 +81,9 @@ shell.on("gl-init", function() {
     }
   }
 
+  for (var k = 0; k < 6; k++)
+    stitcher.voxelSideTextureIDs.set(255, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.stone-1, k))
+
   mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
   var c = mesh.center
   camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
