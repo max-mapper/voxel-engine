@@ -4,7 +4,7 @@
   "description": "Demonstration of mipmapping for voxel terrain",
   "main": "main.js",
   "dependencies": {
-    "ao-mesher": "^0.2.10",
+    "ao-mesher": "git://github.com/deathcap/ao-mesher.git#b8aa6eb7e14603a1d6c888c763b90a77a070ddd7",
     "game-shell-fps-camera": "^0.1.0",
     "voxel-stitch": "^0.2.0",
     "ao-shader": "^0.2.3",

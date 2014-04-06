@@ -81,8 +81,12 @@ shell.on("gl-init", function() {
     }
   }
 
+  // test manually assigned high block index - clone stone texture (if shows up as dirt, wrapped around)
+  // before https://github.com/mikolalysenko/ao-mesher/issues/2 max is 255, after max is 32767
+  var highIndex = 32767
+  terrainMaterials.highBlock = OPAQUE|highIndex
   for (var k = 0; k < 6; k++)
-    stitcher.voxelSideTextureIDs.set(255, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.stone-1, k))
+    stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.stone-1, k))
 
   mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
   var c = mesh.center
