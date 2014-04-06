@@ -48,6 +48,9 @@ var main = function(opts) {
 //Config variables
 var texture, shader, mesh, wireShader
 
+// bit in voxel array to indicate voxel is opaque (transparent if not set)
+var OPAQUE = 1<<15;
+
 shell.on("gl-init", function() {
   var gl = shell.gl
 
@@ -66,19 +69,19 @@ shell.on("gl-init", function() {
   stitcher.on('addedAll', updateTexture)
   stitcher.stitch()
 
+  //Lookup voxel materials for terrain generation
   var registry = plugins.get('voxel-registry')
-  var materials = { // TODO: refactor
-    wool: registry.getBlockID('wool') - 1,
-    logOak: registry.getBlockID('logOak') - 1,
-    leavesOak: registry.getBlockID('leavesOak') - 1,
-    grass: registry.getBlockID('grass') - 1,
-    dirt: registry.getBlockID('dirt') - 1,
-    oreDiamond: registry.getBlockID('oreDiamond') - 1,
-    stone: registry.getBlockID('stone') - 1,
-    lava: registry.getBlockID('lava') - 1
-  };
+  var terrainMaterials = {};
+  for (var blockName in registry.blockName2Index) {
+    var blockIndex = registry.blockName2Index[blockName];
+    if (registry.getProp(blockName, 'transparent')) {
+      terrainMaterials[blockName] = blockIndex - 1
+    } else {
+      terrainMaterials[blockName] = OPAQUE|(blockIndex - 1) // TODO: separate arrays? https://github.com/mikolalysenko/ao-mesher/issues/2
+    }
+  }
 
-  mesh = createVoxelMesh(shell.gl, 'Terrain', createTerrain(materials), stitcher.voxelSideTextureIDs)
+  mesh = createVoxelMesh(shell.gl, 'Terrain', createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
   var c = mesh.center
   camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
 
