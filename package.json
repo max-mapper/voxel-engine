@@ -6,7 +6,7 @@
   "dependencies": {
     "ao-mesher": "^0.2.10",
     "game-shell-fps-camera": "^0.1.0",
-    "voxel-stitch": "^0.1.0",
+    "voxel-stitch": "^0.2.0",
     "ao-shader": "^0.2.3",
     "gl-buffer": "^2.0.6",
     "gl-matrix": "^2.2.1",
