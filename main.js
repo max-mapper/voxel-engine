@@ -54,6 +54,16 @@ var OPAQUE = 1<<15;
 shell.on("gl-init", function() {
   var gl = shell.gl
 
+  /* TODO: fix alpha transparency, this has no effect - maybe need to change ao-shader?
+  //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+  //gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+  gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.BLEND)
+  */
+  // premultiply alpha when loading textures, so can use gl.ONE blending, see http://stackoverflow.com/questions/11521035/blending-with-html-background-in-webgl
+  // TODO: move to gl-texture2d?
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
+
   //Create shaders
   shader = createAOShader(gl)
   wireShader = createWireShader(gl)
@@ -81,12 +91,12 @@ shell.on("gl-init", function() {
     }
   }
 
-  // test manually assigned high block index - clone stone texture (if shows up as dirt, wrapped around)
+  // test manually assigned high block index - clone wool texture (if shows up as dirt, wrapped around)
   // before https://github.com/mikolalysenko/ao-mesher/issues/2 max is 255, after max is 32767
   var highIndex = 32767
   terrainMaterials.highBlock = OPAQUE|highIndex
   for (var k = 0; k < 6; k++)
-    stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.stone-1, k))
+    stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
 
   mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
   var c = mesh.center
