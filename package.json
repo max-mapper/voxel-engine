@@ -22,7 +22,7 @@
     "voxel-physical": "git://github.com/deathcap/voxel-physical.git#4deb6d93aca18aa8b12a813aedd457a451eec2bd",
     "voxel-region-change": "0.1.0",
     "raf": "0.0.1",
-    "three": "0.58.9",
+    "three": "0.58.10",
     "pin-it": "0.0.1",
     "aabb-3d": "0.0.0",
     "inherits": "1.0.0",
