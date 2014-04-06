@@ -6,7 +6,7 @@ var createTileMap = require("gl-tile-map")
 var ndarray = require("ndarray")
 var createWireShader = require("./lib/wireShader.js")
 var createAOShader = require("ao-shader")
-var examples = require("./lib/examples.js")
+var terrain = require("./lib/terrain.js")
 var createVoxelMesh = require("./lib/createMesh.js")
 var glm = require("gl-matrix")
 var mat4 = glm.mat4
@@ -66,7 +66,7 @@ shell.on("gl-init", function() {
   stitcher.on('addedAll', updateTexture)
   stitcher.stitch()
 
-  mesh = createVoxelMesh(shell.gl, 'Terrain', examples.Terrain, stitcher.voxelSideTextureIDs)
+  mesh = createVoxelMesh(shell.gl, 'Terrain', terrain.Terrain, stitcher.voxelSideTextureIDs)
   var c = mesh.center
   camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
 
