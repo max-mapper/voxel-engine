@@ -13,7 +13,7 @@
   ],
   "dependencies": {
     "voxel": "git://github.com/deathcap/voxel.git#4ce16e8b8d10362a0114483c21cc66777f5702f2",
-    "voxel-mesh": "git://github.com/deathcap/voxel-mesh.git#6a881552c2281648a8ad8f50e6dd71ff610ef770",
+    "voxel-mesh": "git://github.com/deathcap/voxel-mesh.git#b170a0f18977fb8eac571d445e9522fd6073a63d",
     "voxel-view": "git://github.com/deathcap/voxel-view.git#be8a36643ddc5de42c8506d6372510c16665f57c",
     "voxel-raycast": "0.2.1",
     "voxel-control": "git://github.com/deathcap/voxel-control.git#44540136f963b7aa0dda1363b837540e6b6bcb1e",
@@ -22,7 +22,7 @@
     "voxel-physical": "git://github.com/deathcap/voxel-physical.git#4deb6d93aca18aa8b12a813aedd457a451eec2bd",
     "voxel-region-change": "0.1.0",
     "raf": "0.0.1",
-    "three": "0.58.10",
+    "three": "0.66.2",
     "pin-it": "0.0.1",
     "aabb-3d": "0.0.0",
     "inherits": "1.0.0",
