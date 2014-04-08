@@ -16,6 +16,9 @@ var createPlugins = require('voxel-plugins')
 //Tile size parameters
 var TILE_SIZE = 16  // TODO: heterogenous
 
+var game = {};
+global.game = game; // for debugging
+
 var main = function(opts) {
   opts = opts || {};
   opts.clearColor = [0.75, 0.8, 0.9, 1.0]
@@ -23,22 +26,15 @@ var main = function(opts) {
 
   var shell = createShell(opts);
   var camera = createCamera(shell);
-  /* 
-  global.shell = shell
-  global.camera = camera
-  */
 
   camera.position[0] = -20;
   camera.position[1] = -33;
   camera.position[2] = -40;
 
-  var game = {};
   game.isClient = true;
-  game.buttons = {};
-  game.buttons.bindings = shell.bindings;
+  game.shell = shell;
 
   var plugins = createPlugins(game, {require: opts.require || require});
-  shell.plugins = plugins;
 
   for (var name in opts.pluginOpts) {
     plugins.add(name, opts.pluginOpts[name]);
@@ -68,7 +64,7 @@ shell.on("gl-init", function() {
   wireShader = createWireShader(gl)
   
   //Create texture atlas
-  var stitcher = shell.plugins.get('voxel-stitch') // TODO: load not as a plugin?
+  var stitcher = game.plugins.get('voxel-stitch') // TODO: load not as a plugin?
   var updateTexture = function() {
     texture = createTileMap(gl, stitcher.atlas, 2)
     texture.magFilter = gl.NEAREST
