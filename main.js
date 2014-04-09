@@ -34,6 +34,7 @@ var main = function(opts) {
   game.isClient = true;
   game.shell = shell;
 
+  // TODO: should this be moved into gl-init?? see z-index note below
   var plugins = createPlugins(game, {require: opts.require || require});
 
   for (var name in opts.pluginOpts) {
@@ -49,6 +50,12 @@ var OPAQUE = 1<<15;
 
 shell.on("gl-init", function() {
   var gl = shell.gl
+
+  // since the plugins are loaded before gl-init, the <canvas> element will be
+  // below other UI widgets in the DOM tree, so by default the z-order will cause
+  // the canvas to cover the other widgets - to fix this, set z-index below
+  shell.canvas.style.zIndex = '-1';
+  shell.canvas.parentElement.style.zIndex = '-1';
 
   // TODO: is this right? see https://github.com/mikolalysenko/ao-shader/issues/2
   //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)

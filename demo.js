@@ -10,6 +10,7 @@ require('voxel-stitch');
 require('./lib/blocks.js');
 require('voxel-drop');
 require('voxel-keys');
+require('voxel-artpacks');
 
 createShell({require: require, pluginOpts:
   {
@@ -20,7 +21,7 @@ createShell({require: require, pluginOpts:
     './lib/blocks.js': {},
     'voxel-drop': {},
     'voxel-keys': {},
+    'voxel-artpacks': {}
   }
 });
 
-document.querySelector('.dg.ac').style.zIndex = 1; // fix datgui behind canvas
