@@ -9,6 +9,7 @@ require('voxel-registry');
 require('voxel-stitch');
 require('./lib/blocks.js');
 require('voxel-drop');
+require('voxel-keys');
 
 createShell({require: require, pluginOpts:
   {
@@ -18,6 +19,7 @@ createShell({require: require, pluginOpts:
     'kb-bindings-ui': {},
     './lib/blocks.js': {},
     'voxel-drop': {},
+    'voxel-keys': {},
   }
 });
 
