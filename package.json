@@ -29,7 +29,7 @@
     "browserify": "^3.38.0",
     "voxel-drop": "^0.1.1",
     "voxel-keys": "^0.1.0",
-    "voxel-artpacks": "git://github.com/deathcap/voxel-artpacks.git"
+    "voxel-artpacks": "^0.1.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

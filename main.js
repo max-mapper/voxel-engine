@@ -73,6 +73,7 @@ shell.on("gl-init", function() {
   //Create texture atlas
   var stitcher = game.plugins.get('voxel-stitch') // TODO: load not as a plugin?
   var updateTexture = function() {
+    console.log('updateTexture() calling createTileMap()')
     texture = createTileMap(gl, stitcher.atlas, 2)
     texture.magFilter = gl.NEAREST
     texture.minFilter = gl.LINEAR_MIPMAP_LINEAR
