@@ -4,15 +4,11 @@ var createShell = require("gl-now")
 var createCamera = require("game-shell-fps-camera")
 var ndarray = require("ndarray")
 var createWireShader = require("./lib/wireShader.js")
-var rectMipMap = require('rect-mip-map');
 var createAOShader = require("ao-shader")
 var createTerrain = require("./lib/terrain.js") // TODO: replace with shama's chunker mentioned in https://github.com/voxel/issues/issues/4#issuecomment-39644684
 var createVoxelMesh = require("./lib/createMesh.js")
 var glm = require("gl-matrix")
 var mat4 = glm.mat4
-
-var getPixels = require('get-pixels')
-var createTexture = require('gl-texture2d')
 
 var createPlugins = require('voxel-plugins')
 
@@ -21,29 +17,6 @@ var TILE_SIZE = 16  // TODO: heterogenous
 
 var game = {};
 global.game = game; // for debugging
-
-// like https://github.com/mikolalysenko/gl-tile-map/blob/master/tilemap.js but uses rect-tile-map
-var createTileMap = function(gl, atlas, cb) {
-  getPixels(atlas.canvas.toDataURL(), function(err, array) {
-    if (err) throw new Error('get-pixels failed: '+err);
-
-    var pyramid = rectTileMap(array, atlas);
-    console.log('pyramid=',pyramid);
-
-    var tex = createTexture(gl, pyramid[0]);
-    tex.generateMipmap(); // TODO
-
-    for (var i = 1; i < pyramid.length; ++i) {
-      tex.setPixels(pyramid[i], 0, 0, i);
-    }
-
-    tex.magFilter = gl.NEAREST
-    tex.minFilter = gl.LINEAR_MIPMAP_LINEAR
-    tex.mipSamples = 4
-
-    cb(tex);
-  });
-};
 
 var main = function(opts) {
   opts = opts || {};
@@ -99,17 +72,12 @@ shell.on("gl-init", function() {
   //Create texture atlas
   var stitcher = game.plugins.get('voxel-stitch') // TODO: load not as a plugin?
   var updateTexture = function() {
-    console.log('updateTexture() calling createTileMap()')
-    createTileMap(gl, atlas, function(tex) {
-      texture = tex;
-    });
+    console.log('updateTexture() calling createGLTexture()')
 
-      /*
-    texture = createTileMap(gl, stitcher.atlas, 2)
-    texture.magFilter = gl.NEAREST
-    texture.minFilter = gl.LINEAR_MIPMAP_LINEAR
-    texture.mipSamples = 4
-    */
+    stitcher.createGLTexture(gl, function(err, tex) {
+      if (err) throw new Error('stitcher createGLTexture error: ' + err)
+      texture = tex
+    })
   }
   stitcher.on('addedAll', updateTexture)
   stitcher.stitch()

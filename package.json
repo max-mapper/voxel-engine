@@ -6,7 +6,7 @@
   "dependencies": {
     "ao-mesher": "git://github.com/deathcap/ao-mesher.git#b8aa6eb7e14603a1d6c888c763b90a77a070ddd7",
     "game-shell-fps-camera": "^0.1.1",
-    "voxel-stitch": "git://github.com/deathcap/voxel-stitch.git#7415457267fb9bc995139fef8c9cb58282236ee5",
+    "voxel-stitch": "git://github.com/deathcap/voxel-stitch.git#2c3eae2417c48e038ea72902bfb239884e116b9d",
     "ao-shader": "git://github.com/deathcap/ao-shader.git#08b2f65fc072869a579d2ffd5eb15460e6de9ac6",
     "gl-buffer": "^2.0.6",
     "gl-matrix": "^2.2.1",
@@ -18,9 +18,7 @@
     "ndarray-fill": "^0.1.0",
     "ndarray-ops": "^1.2.1",
     "brfs": "^1.0.1",
-    "voxel-plugins": "^0.3.0",
-    "get-pixels": "^1.0.1",
-    "gl-texture2d": "^1.0.1"
+    "voxel-plugins": "^0.3.0"
   },
   "devDependencies": {
     "dat-gui": "^0.5.0",
