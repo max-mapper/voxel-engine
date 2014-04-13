@@ -15,7 +15,7 @@ require('voxel-artpacks');
 createShell({require: require, pluginOpts:
   {
     'voxel-registry': {},
-    'voxel-stitch': {},
+    'voxel-stitch': {debug: false},
     'voxel-plugins-ui': {gui: new createGUI.GUI()},
     'kb-bindings-ui': {},
     './lib/blocks.js': {},
