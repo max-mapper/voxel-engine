@@ -47,6 +47,8 @@ var texture, shader, mesh, wireShader
 // bit in voxel array to indicate voxel is opaque (transparent if not set)
 var OPAQUE = 1<<15;
 
+var TILE_COUNT = null;
+
 shell.on("gl-init", function() {
   var gl = shell.gl
 
@@ -71,6 +73,7 @@ shell.on("gl-init", function() {
   
   //Create texture atlas
   var stitcher = game.plugins.get('voxel-stitch') // TODO: load not as a plugin?
+  TILE_COUNT = stitcher.tileCount // set for shader below (never changes)
   var updateTexture = function() {
     console.log('updateTexture() calling createGLTexture()')
 
@@ -140,6 +143,7 @@ shell.on("gl-render", function(t) {
   shader.uniforms.view = view
   shader.uniforms.model = model
   shader.uniforms.tileSize = TILE_SIZE
+  shader.uniforms.tileCount = TILE_COUNT
   if (texture) shader.uniforms.tileMap = texture.bind() // texture might not have loaded yet
 
   if(mesh) {
