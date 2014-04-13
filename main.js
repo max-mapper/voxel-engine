@@ -79,6 +79,10 @@ shell.on("gl-init", function() {
       texture = tex
     })
 
+    // for highBlock, clone wool texture (if shows up as dirt, wrapped around)
+    for (var k = 0; k < 6; k++)
+      stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
+
     mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
     var c = mesh.center
     camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
@@ -98,12 +102,10 @@ shell.on("gl-init", function() {
     }
   }
 
-  // test manually assigned high block index - clone wool texture (if shows up as dirt, wrapped around)
+  // test manually assigned high block index
   // before https://github.com/mikolalysenko/ao-mesher/issues/2 max is 255, after max is 32767
   var highIndex = 32767
   terrainMaterials.highBlock = OPAQUE|highIndex
-  for (var k = 0; k < 6; k++)
-    stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
 
   shell.bind('wireframe', 'F')
 })
