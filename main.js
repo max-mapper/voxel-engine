@@ -78,8 +78,12 @@ shell.on("gl-init", function() {
       if (err) throw new Error('stitcher createGLTexture error: ' + err)
       texture = tex
     })
+
+    mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
+    var c = mesh.center
+    camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
   }
-  stitcher.on('addedAll', updateTexture)
+  stitcher.on('updateTexture', updateTexture)
   stitcher.stitch()
 
   //Lookup voxel materials for terrain generation
@@ -100,10 +104,6 @@ shell.on("gl-init", function() {
   terrainMaterials.highBlock = OPAQUE|highIndex
   for (var k = 0; k < 6; k++)
     stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
-
-  mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
-  var c = mesh.center
-  camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
 
   shell.bind('wireframe', 'F')
 })
@@ -139,10 +139,12 @@ shell.on("gl-render", function(t) {
   shader.uniforms.model = model
   shader.uniforms.tileSize = TILE_SIZE
   if (texture) shader.uniforms.tileMap = texture.bind() // texture might not have loaded yet
-  
-  mesh.triangleVAO.bind()
-  gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
-  mesh.triangleVAO.unbind()
+
+  if(mesh) {
+    mesh.triangleVAO.bind()
+    gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
+    mesh.triangleVAO.unbind()
+  }
 
   if(shell.wasDown('wireframe')) {
     //Bind the wire shader
@@ -151,10 +153,12 @@ shell.on("gl-render", function(t) {
     wireShader.uniforms.projection = projection
     wireShader.uniforms.model = model
     wireShader.uniforms.view = view
-    
-    mesh.wireVAO.bind()
-    gl.drawArrays(gl.LINES, 0, mesh.wireVertexCount)
-    mesh.wireVAO.unbind()
+
+    if(mesh) {
+      mesh.wireVAO.bind()
+      gl.drawArrays(gl.LINES, 0, mesh.wireVertexCount)
+      mesh.wireVAO.unbind()
+    }
   }
 })
 }
