@@ -8,15 +8,12 @@ var Detector = require('./lib/detector')
 var inherits = require('inherits')
 var path = require('path')
 var EventEmitter = require('events').EventEmitter
-if (process.browser) var interact = require('interact')
-var requestAnimationFrame = require('raf')
 var collisions = require('collide-3d-tilemap')
 var aabb = require('aabb-3d')
 var glMatrix = require('gl-matrix')
 var vector = glMatrix.vec3
 var SpatialEventEmitter = require('spatial-events')
 var regionChange = require('voxel-region-change')
-var kb = require('kb-bindings')
 var physical = require('voxel-physical')
 var pin = require('pin-it')
 var tic = require('tic')()
@@ -116,7 +113,12 @@ function Game(opts) {
     self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : true
   }, 2000)
 
-  this.initializeControls(opts)
+  // initializeControls()
+  // player control
+  // game-shell handles controls now TODO: provide some compatibility layer? as not covered by https://github.com/deathcap/voxel-keys
+  Object.defineProperty(this, 'keybindings', {get:function() { throw new Error('voxel-engine "keybindings" property removed') }})
+  Object.defineProperty(this, 'buttons', {get:function() { throw new Error('voxel-engine "buttons" property removed') }}) // especially for this one (polling interface)
+  Object.defineProperty(this, 'interact', {get:function() { throw new Error('voxel-engine "interact" property removed') }})
 }
 
 inherits(Game, EventEmitter)
@@ -279,23 +281,6 @@ Game.prototype.friction = 0.3
 Game.prototype.epilson = 1e-8
 Game.prototype.terminalVelocity = [0.9, 0.1, 0.9]
 
-Game.prototype.defaultButtons = {
-  'W': 'forward'
-, 'A': 'left'
-, 'S': 'backward'
-, 'D': 'right'
-, '<up>': 'forward'
-, '<left>': 'left'
-, '<down>': 'backward'
-, '<right>': 'right'
-, '<mouse 1>': 'fire'
-, '<mouse 3>': 'firealt'
-, '<space>': 'jump'
-, '<shift>': 'crouch'
-, '<control>': 'alt'
-, '<tab>': 'sprint'
-}
-
 // used in methods that have identity function(pos) {}
 Game.prototype.parseVectorArguments = function(args) {
   if (!args) return false
@@ -322,16 +307,6 @@ Game.prototype.setDimensions = function(opts) {
   } else {
     this.width = typeof window === "undefined" ? 1 : window.innerWidth
   }
-}
-
-Game.prototype.onWindowResize = function() {
-  var width = window.innerWidth
-  var height = window.innerHeight
-  if (this.container) {
-    width = this.container.clientWidth
-    height = this.container.clientHeight
-  }
-  this.view.resizeWindow(width, height)
 }
 
 // # Physics/collision related methods
@@ -561,22 +536,6 @@ Game.prototype.pin = pin
 
 // # Misc internal methods
 
-Game.prototype.onControlChange = function(gained, stream) {
-  this.paused = false
-
-  if (!gained && !this.optout) {
-    this.buttons.disable()
-    return
-  }
-
-  this.buttons.enable()
-  stream.pipe(this.controls.createWriteRotationStream())
-}
-
-Game.prototype.onControlOptOut = function() {
-  this.optout = true
-}
-
 Game.prototype.onFire = function(state) {
   this.emit('fire', this.controlling, state)
 }
@@ -635,29 +594,6 @@ Game.prototype.initializeTimer = function(rate) {
     
     self.frameUpdated = true
   }
-}
-
-Game.prototype.initializeControls = function(opts) {
-  // player control
-  this.keybindings = opts.keybindings || this.defaultButtons
-  this.buttons = kb(document.body, this.keybindings)
-  this.buttons.disable()
-  this.optout = false
-  this.interact = interact(opts.interactElement || this.view.element, opts.interactMouseDrag)
-  this.interact
-      .on('attain', this.onControlChange.bind(this, true))
-      .on('release', this.onControlChange.bind(this, false))
-      .on('opt-out', this.onControlOptOut.bind(this))
-  this.hookupControls(this.buttons, opts)
-}
-
-Game.prototype.hookupControls = function(buttons, opts) {
-  opts = opts || {}
-  opts.controls = opts.controls || {}
-  opts.controls.onfire = this.onFire.bind(this)
-  this.controls = control(buttons, opts.controls)
-  this.items.push(this.controls)
-  this.controlling = null
 }
 
 Game.prototype.handleChunkGeneration = function() {
