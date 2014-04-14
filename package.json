@@ -4,10 +4,10 @@
   "description": "Demonstration of mipmapping for voxel terrain",
   "main": "main.js",
   "dependencies": {
-    "voxel-mesher": "^0.3.0",
-    "voxel-shader": "^0.4.0",
+    "voxel-mesher": "^0.4.0",
+    "voxel-shader": "^0.5.0",
     "game-shell-fps-camera": "^0.1.1",
-    "voxel-stitch": "^0.4.0",
+    "voxel-stitch": "^0.5.0",
     "gl-buffer": "^2.0.6",
     "gl-matrix": "^2.2.1",
     "gl-now": "^1.3.0",
