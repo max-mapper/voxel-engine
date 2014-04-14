@@ -12,8 +12,8 @@
     "Deathcap <deathcap@gmx.co.uk> (https://github.com/deathcap)"
   ],
   "dependencies": {
+    "game-shell-voxel": "git://github.com/deathcap/game-shell-voxel.git",
     "voxel": "git://github.com/deathcap/voxel#ndarray",
-    "voxel-view": "0.0.6",
     "voxel-raycast": "0.2.1",
     "voxel-control": "git://github.com/deathcap/voxel-control.git#44540136f963b7aa0dda1363b837540e6b6bcb1e",
     "voxel-physical": "git://github.com/deathcap/voxel-physical.git#4deb6d93aca18aa8b12a813aedd457a451eec2bd",

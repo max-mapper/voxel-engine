@@ -1,7 +1,7 @@
 var voxel = require('voxel')
 var ray = require('voxel-raycast')
 var control = require('voxel-control')
-var voxelView = require('voxel-view')
+var createShell = require('game-shell-voxel')
 var THREE = require('three')
 var Stats = require('./lib/stats')
 var Detector = require('./lib/detector')
@@ -56,20 +56,20 @@ function Game(opts) {
   this.mesher = opts.mesher || voxel.meshers.transgreedy
   this.items = []
   this.voxels = voxel(this)
-  this.scene = new THREE.Scene()
-  this.view = opts.view || new voxelView(THREE, {
-    width: this.width,
-    height: this.height,
-    skyColor: this.skyColor,
-    antialias: this.antialias
-  })
-  this.view.bindToScene(this.scene)
-  this.camera = this.view.getCamera()
-  if (!opts.lightsDisabled) this.addLights(this.scene)
-  
-  this.fogScale = opts.fogScale || 32
-  if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( this.skyColor, 0.00025, this.worldWidth() * this.fogScale )
-  
+
+  // was a THREE.Scene instance, mainly used for scene.add(), objects, lights TODO: scene graph replacement?
+  Object.defineProperty(this, 'scene', {get:function() { throw new Error('voxel-engine "scene" property removed') }})
+
+  // hooked up THREE.Scene, created THREE.PerspectiveCamera, added to element
+  // TODO: add this.view.cameraPosition(), this.view.cameraVector()? -> [x,y,z]  to game-shell-fps-camera, very useful
+  Object.defineProperty(this, 'view', {get:function() { throw new Error('voxel-engine "view" property removed') }})
+
+  // used to be a THREE.PerspectiveCamera set by voxel-view; see also basic-camera but API not likely compatible (TODO: make it compatible?)
+  Object.defineProperty(this, 'camera', {get:function() { throw new Error('voxel-engine "camera" property removed') }})
+
+  // handles all rendering
+  this.shell = createShell({require: opts.require || require, pluginOpts: opts.pluginOpts})
+
   this.collideVoxels = collisions(
     this.getBlock.bind(this),
     1,
@@ -92,7 +92,6 @@ function Game(opts) {
   this.pendingChunks = []
   
   if (this.isClient) {
-    if (opts.appendDocument) this.appendTo(document.body)
     if (opts.exposeGlobal) window.game = window.g = this
   }
 
@@ -137,11 +136,13 @@ Game.prototype.voxelPosition = function(gamePosition) {
 }
 
 Game.prototype.cameraPosition = function() {
-  return this.view.cameraPosition()
+  return this.shell.camera.position
 }
 
+var _cameraVector = vector.create();
 Game.prototype.cameraVector = function() {
-  return this.view.cameraVector()
+  this.shell.camera.getCameraVector(_cameraVector)
+  return _cameraVector
 }
 
 Game.prototype.makePhysical = function(target, envelope, blocksCreation) {
@@ -271,10 +272,6 @@ Game.prototype.blocks = function(low, high, iterator) {
 // backwards compat
 Game.prototype.createAdjacent = function(hit, val) {
   this.createBlock(hit.adjacent, val)
-}
-
-Game.prototype.appendTo = function (element) {
-  this.view.appendTo(element)
 }
 
 // # Defaults/options parsing
@@ -422,15 +419,6 @@ Game.prototype.addStats = function() {
   stats.domElement.style.position  = 'absolute'
   stats.domElement.style.bottom  = '0px'
   document.body.appendChild( stats.domElement )
-}
-
-Game.prototype.addLights = function(scene) {
-  var ambientLight, directionalLight
-  ambientLight = new THREE.AmbientLight(0xcccccc)
-  scene.add(ambientLight)
-  var light	= new THREE.DirectionalLight( 0xffffff , 1)
-  light.position.set( 1, 1, 0.5 ).normalize()
-  scene.add( light )
 }
 
 // # Chunk related methods
