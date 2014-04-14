@@ -22,6 +22,7 @@ var main = function(opts) {
 
   var shell = createShell(opts);
   var camera = createCamera(shell);
+  shell.camera = camera;
 
   camera.position[0] = -20;
   camera.position[1] = -33;
