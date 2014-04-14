@@ -4,7 +4,6 @@ var control = require('voxel-control')
 var createShell = require('game-shell-voxel')
 var THREE = require('three')
 var Stats = require('./lib/stats')
-var Detector = require('./lib/detector')
 var inherits = require('inherits')
 var path = require('path')
 var EventEmitter = require('events').EventEmitter
