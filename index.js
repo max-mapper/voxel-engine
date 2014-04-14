@@ -23,6 +23,7 @@ function Game(opts) {
   if (!(this instanceof Game)) return new Game(opts)
   var self = this
   if (!opts) opts = {}
+  if (process.browser && this.notCapable(opts)) return
   
   // is this a client or a headless server
   this.isClient = Boolean( (typeof opts.isClient !== 'undefined') ? opts.isClient : process.browser )
@@ -56,7 +57,7 @@ function Game(opts) {
   Object.defineProperty(this, 'scene', {get:function() { throw new Error('voxel-engine "scene" property removed') }})
 
   // hooked up THREE.Scene, created THREE.PerspectiveCamera, added to element
-  // note: instead of this.view.cameraPosition()/cameraVector(), use this.cameraPosition()/cameraVector()
+  // TODO: add this.view.cameraPosition(), this.view.cameraVector()? -> [x,y,z]  to game-shell-fps-camera, very useful
   Object.defineProperty(this, 'view', {get:function() { throw new Error('voxel-engine "view" property removed') }})
 
   // used to be a THREE.PerspectiveCamera set by voxel-view; see also basic-camera but API not likely compatible (TODO: make it compatible?)
@@ -105,6 +106,7 @@ function Game(opts) {
   if (!this.isClient) return
   
   this.paused = true
+  this.initializeRendering(opts)
  
   this.showAllChunks()
 
@@ -313,8 +315,27 @@ Game.prototype.setDimensions = function(opts) {
 }
 
 Game.prototype.notCapable = function(opts) {
-  // TODO: wire up capability check in game-shell-voxel? maybe restore the capability check here?
+  var self = this
+  if( !Detector().webgl ) {
+    this.view = {
+      appendTo: function(el) {
+        el.appendChild(self.notCapableMessage())
+      }
+    }
+    return true
+  }
   return false
+}
+
+Game.prototype.notCapableMessage = function() {
+  var wrapper = document.createElement('div')
+  wrapper.className = "errorMessage"
+  var a = document.createElement('a')
+  a.title = "You need WebGL and Pointer Lock (Chrome 23/Firefox 14) to play this game. Click here for more information."
+  a.innerHTML = a.title
+  a.href = "http://get.webgl.org"
+  wrapper.appendChild(a)
+  return wrapper
 }
 
 // # Physics/collision related methods
@@ -570,6 +591,10 @@ Game.prototype.tick = function(delta) {
   this.spatial.emit('position', playerPos, playerPos)
 }
 
+Game.prototype.render = function(delta) {
+  this.view.render(this.scene)
+}
+
 Game.prototype.initializeTimer = function(rate) {
   var self = this
   var accum = 0
@@ -603,7 +628,6 @@ Game.prototype.initializeTimer = function(rate) {
     self.frameUpdated = true
   }
 }
-
 Game.prototype.handleChunkGeneration = function() {
   var self = this
   this.voxels.on('missingChunk', function(chunkPos) {
