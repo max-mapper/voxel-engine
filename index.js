@@ -273,6 +273,10 @@ Game.prototype.createAdjacent = function(hit, val) {
   this.createBlock(hit.adjacent, val)
 }
 
+Game.prototype.appendTo = function (element) {
+  // no-op; game-shell to append itself
+}
+
 // # Defaults/options parsing
 
 Game.prototype.gravity = [0, -0.0000036, 0]
@@ -306,6 +310,11 @@ Game.prototype.setDimensions = function(opts) {
   } else {
     this.width = typeof window === "undefined" ? 1 : window.innerWidth
   }
+}
+
+Game.prototype.notCapable = function(opts) {
+  // TODO: wire up capability check in game-shell-voxel? maybe restore the capability check here?
+  return false
 }
 
 // # Physics/collision related methods
