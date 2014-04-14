@@ -171,6 +171,8 @@ shell.on("gl-render", function(t) {
     }
   }
 })
+
+  return shell // TODO: fix indenting
 }
 
 module.exports = main
