@@ -107,7 +107,6 @@ function Game(opts) {
   if (!this.isClient) return
   
   this.paused = true
-  this.initializeRendering(opts)
  
   this.showAllChunks()
 
