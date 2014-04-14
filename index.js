@@ -1,7 +1,5 @@
 var voxel = require('voxel')
 var ray = require('voxel-raycast')
-var texture = require('voxel-texture')
-var artpacks = require('artpacks');
 var control = require('voxel-control')
 var voxelView = require('voxel-view')
 var THREE = require('three')
@@ -45,7 +43,6 @@ function Game(opts) {
   this.arrayType = opts.arrayType || {1:Uint8Array, 2:Uint16Array, 4:Uint32Array}[opts.arrayTypeSize] || Uint8Array
   this.cubeSize = 1 // backwards compat
   this.chunkSize = opts.chunkSize || 32
-  this.texture_modules = opts.texture_modules || [texture];
   
   // chunkDistance and removeDistance should not be set to the same thing
   // as it causes lag when you go back and forth on a chunk boundary
@@ -57,9 +54,6 @@ function Game(opts) {
   this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
   this.mesher = opts.mesher || voxel.meshers.transgreedy
-  //this.materialType = opts.materialType || THREE.MeshLambertMaterial
-  //this.materialParams = opts.materialParams || {}
-  //this.materialTransparentTypes = opts.materialTransparentTypes || {} // TODO: automatically get from voxel-texture
   this.items = []
   this.voxels = voxel(this)
   this.scene = new THREE.Scene()
@@ -98,15 +92,6 @@ function Game(opts) {
   this.pendingChunks = []
   
   if (this.isClient) {
-    /*this.materials = this.texture_modules[0](this.texture_opts = {
-      useAtlas: (opts.useAtlas === undefined) ? false : opts.useAtlas,
-      texturePath: opts.texturePath || './textures/',
-      artPacks: artpacks(opts.artPacks),
-      materialType: opts.materialType || THREE.MeshLambertMaterial,
-      materialParams: opts.materialParams || {},
-      materialFlatColor: opts.materialFlatColor === true,
-      game: this
-    })*/
     if (opts.appendDocument) this.appendTo(document.body)
     if (opts.exposeGlobal) window.game = window.g = this
   }
