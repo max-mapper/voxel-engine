@@ -71,42 +71,49 @@ shell.on("gl-init", function() {
   
   //Create texture atlas
   var stitcher = game.plugins.get('voxel-stitch') // TODO: load not as a plugin?
-  TILE_COUNT = stitcher.tileCount // set for shader below (never changes)
-  var updateTexture = function() {
-    console.log('updateTexture() calling createGLTexture()')
+  if (stitcher) {
+    TILE_COUNT = stitcher.tileCount // set for shader below (never changes)
+    var updateTexture = function() {
+      console.log('updateTexture() calling createGLTexture()')
 
-    stitcher.createGLTexture(gl, function(err, tex) {
-      if (err) throw new Error('stitcher createGLTexture error: ' + err)
-      texture = tex
-    })
+      stitcher.createGLTexture(gl, function(err, tex) {
+        if (err) throw new Error('stitcher createGLTexture error: ' + err)
+        texture = tex
+      })
 
-    // for highBlock, clone wool texture (if shows up as dirt, wrapped around)
-    for (var k = 0; k < 6; k++)
-      stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
+      // for highBlock, clone wool texture (if shows up as dirt, wrapped around)
+      for (var k = 0; k < 6; k++)
+        stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
 
-    mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
-    var c = mesh.center
-    camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
+      mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
+      var c = mesh.center
+      camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
+    }
+    stitcher.on('updateTexture', updateTexture)
+    stitcher.stitch()
+  } else {
+    console.warn('voxel-stitch plugin not found, expect no textures')
   }
-  stitcher.on('updateTexture', updateTexture)
-  stitcher.stitch()
 
   //Lookup voxel materials for terrain generation
   var registry = plugins.get('voxel-registry')
-  var terrainMaterials = {};
-  for (var blockName in registry.blockName2Index) {
-    var blockIndex = registry.blockName2Index[blockName];
-    if (registry.getProp(blockName, 'transparent')) {
-      terrainMaterials[blockName] = blockIndex - 1
-    } else {
-      terrainMaterials[blockName] = OPAQUE|(blockIndex - 1) // TODO: separate arrays? https://github.com/mikolalysenko/ao-mesher/issues/2
+  if (registry) {
+    var terrainMaterials = {};
+    for (var blockName in registry.blockName2Index) {
+      var blockIndex = registry.blockName2Index[blockName];
+      if (registry.getProp(blockName, 'transparent')) {
+        terrainMaterials[blockName] = blockIndex - 1
+      } else {
+        terrainMaterials[blockName] = OPAQUE|(blockIndex - 1) // TODO: separate arrays? https://github.com/mikolalysenko/ao-mesher/issues/2
+      }
     }
+    // test manually assigned high block index
+    // before https://github.com/mikolalysenko/ao-mesher/issues/2 max is 255, after max is 32767
+    var highIndex = 32767
+    terrainMaterials.highBlock = OPAQUE|highIndex
+  } else {
+    console.warn('voxel-registry plugin not found, expect no textures')
   }
-
-  // test manually assigned high block index
-  // before https://github.com/mikolalysenko/ao-mesher/issues/2 max is 255, after max is 32767
-  var highIndex = 32767
-  terrainMaterials.highBlock = OPAQUE|highIndex
 
   shell.bind('wireframe', 'F')
 })
