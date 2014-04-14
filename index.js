@@ -1,5 +1,4 @@
 var voxel = require('voxel')
-var voxelMesh = require('voxel-mesh')
 var ray = require('voxel-raycast')
 var texture = require('voxel-texture')
 var artpacks = require('artpacks');
@@ -568,6 +567,7 @@ Game.prototype.showChunk = function(chunk) {
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
   var scale = new THREE.Vector3(1, 1, 1)
   var transparentTypes = this.materials.getTransparentVoxelTypes ? this.materials.getTransparentVoxelTypes() : {};
+  /* TODO
   var mesh = voxelMesh(chunk, this.mesher, scale, this.THREE, {transparentTypes: transparentTypes})
   this.voxels.chunks[chunkIndex] = chunk
   if (this.voxels.meshes[chunkIndex]) {
@@ -583,6 +583,7 @@ Game.prototype.showChunk = function(chunk) {
   mesh.addToScene(this.scene)
   this.emit('renderChunk', chunk)
   return mesh
+  */
 }
 
 // # Debugging methods
