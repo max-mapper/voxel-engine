@@ -69,32 +69,6 @@ shell.on("gl-init", function() {
   shader = createAOShader(gl)
   wireShader = createWireShader(gl)
   
-  //Create texture atlas
-  var stitcher = game.plugins.get('voxel-stitch') // TODO: load not as a plugin?
-  if (stitcher) {
-    TILE_COUNT = stitcher.tileCount // set for shader below (never changes)
-    var updateTexture = function() {
-      console.log('updateTexture() calling createGLTexture()')
-
-      stitcher.createGLTexture(gl, function(err, tex) {
-        if (err) throw new Error('stitcher createGLTexture error: ' + err)
-        texture = tex
-      })
-
-      // for highBlock, clone wool texture (if shows up as dirt, wrapped around)
-      for (var k = 0; k < 6; k++)
-        stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
-
-      mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
-      var c = mesh.center
-      camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
-    }
-    stitcher.on('updateTexture', updateTexture)
-    stitcher.stitch()
-  } else {
-    console.warn('voxel-stitch plugin not found, expect no textures')
-  }
-
   //Lookup voxel materials for terrain generation
   var registry = plugins.get('voxel-registry')
   if (registry) {
@@ -113,6 +87,33 @@ shell.on("gl-init", function() {
     terrainMaterials.highBlock = OPAQUE|highIndex
   } else {
     console.warn('voxel-registry plugin not found, expect no textures')
+  }
+
+  //Create texture atlas
+  var stitcher = game.plugins.get('voxel-stitch')
+  if (stitcher) {
+    TILE_COUNT = stitcher.tileCount // set for shader below (never changes)
+    var updateTexture = function() {
+      console.log('updateTexture() calling createGLTexture()')
+
+      stitcher.createGLTexture(gl, function(err, tex) {
+        if (err) throw new Error('stitcher createGLTexture error: ' + err)
+        texture = tex
+      })
+
+      // for highBlock, clone wool texture (if shows up as dirt, wrapped around)
+      for (var k = 0; k < 6; k++)
+        stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
+
+      // the voxels!
+      mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
+      var c = mesh.center
+      camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
+    }
+    stitcher.on('updateTexture', updateTexture)
+    stitcher.stitch()
+  } else {
+    console.warn('voxel-stitch plugin not found, expect no textures')
   }
 
   shell.bind('wireframe', 'F')
