@@ -10,6 +10,10 @@ var glm = require("gl-matrix")
 var mat4 = glm.mat4
 
 var createPlugins = require('voxel-plugins')
+require('voxel-registry')
+require('voxel-stitch')
+
+var BUILTIN_PLUGINS = ['voxel-registry', 'voxel-stitch'];
 
 var game = {};
 global.game = game; // for debugging
@@ -30,11 +34,26 @@ var main = function(opts) {
   game.isClient = true;
   game.shell = shell;
 
-  // TODO: should this be moved into gl-init?? see z-index note below
-  var plugins = createPlugins(game, {require: opts.require || require});
+  // TODO: should plugin creation this be moved into gl-init?? see z-index note below
 
-  for (var name in opts.pluginOpts) {
-    plugins.add(name, opts.pluginOpts[name]);
+  var plugins = createPlugins(game, {require: function(name) {
+    // we provide the built-in plugins ourselves; otherwise check caller's require, if any
+    // TODO: allow caller to override built-ins? better way to do this?
+    if (BUILTIN_PLUGINS.indexOf(name) !== -1) {
+      return require(name);
+    } else {
+      return opts.require ? opts.require(name) : require(name);
+    }
+  }});
+
+  var pluginOpts = opts.pluginOpts || {}; // TODO: persist
+
+  BUILTIN_PLUGINS.forEach(function(name) {
+    opts.pluginOpts[name] = opts.pluginOpts[name] || {};
+  });
+
+  for (var name in pluginOpts) {
+    plugins.add(name, pluginOpts[name]);
   }
   plugins.loadAll();
 
