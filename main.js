@@ -26,6 +26,7 @@ var main = function(opts) {
   var shell = createShell(opts);
   var camera = createCamera(shell);
   shell.camera = camera;
+  shell.meshes = []; // populated below TODO: move to voxels.meshes
 
   camera.position[0] = -20;
   camera.position[1] = -33;
@@ -58,7 +59,7 @@ var main = function(opts) {
   plugins.loadAll();
 
 //Config variables
-var texture, shader, mesh
+var texture, shader
 
 // bit in voxel array to indicate voxel is opaque (transparent if not set)
 var OPAQUE = 1<<15;
@@ -123,8 +124,8 @@ shell.on("gl-init", function() {
         stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
 
       // the voxels!
-      mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
-      shell.mesh = mesh // for voxel-wireframe TODO: refactor
+      var mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
+      shell.meshes = [mesh] // for voxel-wireframe TODO: refactor
       var c = mesh.center
       camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
     }
@@ -172,7 +173,8 @@ shell.on("gl-render", function(t) {
   shader.uniforms.tileCount = TILE_COUNT
   if (texture) shader.uniforms.tileMap = texture.bind() // texture might not have loaded yet
 
-  if(mesh) {
+  for (var i = 0; i < shell.meshes.length; ++i) {
+    var mesh = shell.meshes[i];
     mesh.triangleVAO.bind()
     gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
     mesh.triangleVAO.unbind()
