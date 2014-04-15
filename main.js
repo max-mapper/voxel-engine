@@ -3,7 +3,6 @@
 var createShell = require("gl-now")
 var createCamera = require("game-shell-fps-camera")
 var ndarray = require("ndarray")
-var createWireShader = require("./lib/wireShader.js")
 var createAOShader = require("voxel-shader")
 var createTerrain = require("./lib/terrain.js") // TODO: replace with shama's chunker mentioned in https://github.com/voxel/issues/issues/4#issuecomment-39644684
 var createVoxelMesh = require("voxel-mesher")
@@ -40,7 +39,7 @@ var main = function(opts) {
   plugins.loadAll();
 
 //Config variables
-var texture, shader, mesh, wireShader
+var texture, shader, mesh
 
 // bit in voxel array to indicate voxel is opaque (transparent if not set)
 var OPAQUE = 1<<15;
@@ -67,7 +66,6 @@ shell.on("gl-init", function() {
 
   //Create shaders
   shader = createAOShader(gl)
-  wireShader = createWireShader(gl)
   
   //Lookup voxel materials for terrain generation
   var registry = plugins.get('voxel-registry')
@@ -107,6 +105,7 @@ shell.on("gl-init", function() {
 
       // the voxels!
       mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
+      shell.mesh = mesh // for voxel-wireframe TODO: refactor
       var c = mesh.center
       camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
     }
@@ -137,7 +136,12 @@ shell.on("gl-render", function(t) {
   var projection = mat4.perspective(new Float32Array(16), Math.PI/4.0, shell.width/shell.height, 1.0, 1000.0)
   var model = mat4.identity(new Float32Array(16))
   var view = camera.view()
-  
+
+  // for voxel-wireframe rendering TODO: refactor
+  shell.projection = projection
+  shell.model = model
+  shell.view = view
+
   gl.enable(gl.CULL_FACE)
   gl.enable(gl.DEPTH_TEST)
 
@@ -155,21 +159,6 @@ shell.on("gl-render", function(t) {
     mesh.triangleVAO.bind()
     gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
     mesh.triangleVAO.unbind()
-  }
-
-  if(shell.wasDown('wireframe')) {
-    //Bind the wire shader
-    wireShader.bind()
-    wireShader.attributes.position.location = 0
-    wireShader.uniforms.projection = projection
-    wireShader.uniforms.model = model
-    wireShader.uniforms.view = view
-
-    if(mesh) {
-      mesh.wireVAO.bind()
-      gl.drawArrays(gl.LINES, 0, mesh.wireVertexCount)
-      mesh.wireVAO.unbind()
-    }
   }
 })
 

@@ -11,6 +11,7 @@ require('./lib/blocks.js');
 require('voxel-drop');
 require('voxel-keys');
 require('voxel-artpacks');
+require('voxel-wireframe');
 
 createShell({require: require, pluginOpts:
   {
@@ -21,7 +22,8 @@ createShell({require: require, pluginOpts:
     './lib/blocks.js': {},
     'voxel-drop': {},
     'voxel-keys': {},
-    'voxel-artpacks': {}
+    'voxel-artpacks': {},
+    'voxel-wireframe': {},
   }
 });
 
