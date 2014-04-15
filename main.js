@@ -6,7 +6,7 @@ var ndarray = require("ndarray")
 var createWireShader = require("./lib/wireShader.js")
 var createAOShader = require("voxel-shader")
 var createTerrain = require("./lib/terrain.js") // TODO: replace with shama's chunker mentioned in https://github.com/voxel/issues/issues/4#issuecomment-39644684
-var createVoxelMesh = require("./lib/createMesh.js")
+var createVoxelMesh = require("voxel-mesher")
 var glm = require("gl-matrix")
 var mat4 = glm.mat4
 
