@@ -114,8 +114,6 @@ shell.on("gl-init", function() {
   } else {
     console.warn('voxel-stitch plugin not found, expect no textures')
   }
-
-  shell.bind('wireframe', 'F')
 })
 
 shell.on("gl-error", function(err) {
