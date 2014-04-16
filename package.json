@@ -4,27 +4,27 @@
   "description": "Demonstration of mipmapping for voxel terrain",
   "main": "main.js",
   "dependencies": {
-    "voxel-mesher": "^0.5.0",
-    "voxel-shader": "git://github.com/deathcap/voxel-shader.git#fa7d12388aa9df49dc159a08e47cb58af67d270d",
+    "voxel-mesher": "^0.6.0",
+    "voxel-shader": "^0.7.0",
     "game-shell-fps-camera": "^0.1.1",
     "gl-now": "^1.3.0",
     "ndarray": "^1.0.10",
     "ndarray-fill": "^0.1.0",
     "brfs": "^1.0.1",
-    "voxel-stitch": "git://github.com/deathcap/voxel-stitch.git#e2f981afed46dcbaace478449faef4a3565e1511",
+    "voxel-stitch": "^0.6.0",
     "voxel-registry": "^0.3.0",
     "voxel-plugins": "^0.3.0"
   },
   "devDependencies": {
-    "voxel-wireframe": "^0.1.0",
+    "voxel-wireframe": "^0.2.0",
     "dat-gui": "^0.5.0",
     "kb-bindings-ui": "^0.3.0",
     "voxel-plugins-ui": "^0.2.0",
     "beefy": "^1.1.0",
     "browserify": "^3.38.0",
-    "voxel-drop": "^0.1.1",
+    "voxel-drop": "^0.1.2",
     "voxel-keys": "^0.1.0",
-    "voxel-artpacks": "^0.1.0"
+    "voxel-artpacks": "^0.1.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

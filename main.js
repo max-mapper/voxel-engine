@@ -4,17 +4,18 @@ var createShell = require("gl-now")
 var createCamera = require("game-shell-fps-camera")
 var ndarray = require("ndarray")
 var createTerrain = require("./lib/terrain.js") // TODO: replace with shama's chunker mentioned in https://github.com/voxel/issues/issues/4#issuecomment-39644684
-var createVoxelMesh = require("voxel-mesher")
 
 var createPlugins = require('voxel-plugins')
 require('voxel-registry')
 require('voxel-stitch')
 require('voxel-shader')
+require('voxel-mesher')
 
 var BUILTIN_PLUGIN_OPTS = {
   'voxel-registry': {},
   'voxel-stitch': {},
-  'voxel-shader': {}
+  'voxel-shader': {},
+  'voxel-mesher': {},
 };
 
 var game = {};
@@ -88,18 +89,10 @@ shell.on("gl-init", function() {
     console.warn('voxel-registry plugin not found, expect no textures')
   }
 
-  //Create texture atlas
-  var stitcher = game.plugins.get('voxel-stitch')
-  if (stitcher) {
-    var addVoxels = function() {
-      var mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
-      shell.meshes = [mesh] // for voxel-wireframe TODO: refactor
-      var c = mesh.center
-      camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
-    }
-    stitcher.on('updatedSides', addVoxels)
-  } else {
-    console.warn('voxel-stitch plugin not found, expect no textures')
+  // add voxels
+  var mesher = plugins.get('voxel-mesher');
+  if (mesher) {
+    mesher.addVoxelArray(createTerrain(terrainMaterials));
   }
 })
 
