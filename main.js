@@ -118,14 +118,7 @@ shell.on("gl-init", function() {
 })
 
 shell.on("gl-error", function(err) {
-  var a = document.createElement('a')
-  a.textContent = 'You need a modern WebGL browser (Chrome/Firefox) to play this game. Click here for more information. (WebGL error: ' + err + ')'
-  a.style.webkitUserSelect = ''
-  a.href = 'http://get.webgl.org/';
-
-  while(document.body.firstChild) document.body.removeChild(document.body.firstChild)
-
-  document.body.appendChild(a)
+  document.body.appendChild(document.createTextNode('Fatal WebGL error: ' + err))
 })
 
   return shell // TODO: fix indenting
