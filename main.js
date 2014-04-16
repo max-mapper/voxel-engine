@@ -3,17 +3,15 @@
 var createShell = require("gl-now")
 var createCamera = require("game-shell-fps-camera")
 var ndarray = require("ndarray")
-var createAOShader = require("voxel-shader")
 var createTerrain = require("./lib/terrain.js") // TODO: replace with shama's chunker mentioned in https://github.com/voxel/issues/issues/4#issuecomment-39644684
 var createVoxelMesh = require("voxel-mesher")
-var glm = require("gl-matrix")
-var mat4 = glm.mat4
 
 var createPlugins = require('voxel-plugins')
 require('voxel-registry')
 require('voxel-stitch')
+require('voxel-shader')
 
-var BUILTIN_PLUGINS = ['voxel-registry', 'voxel-stitch'];
+var BUILTIN_PLUGINS = ['voxel-registry', 'voxel-stitch', 'voxel-shader'];
 
 var game = {};
 global.game = game; // for debugging
@@ -25,7 +23,7 @@ var main = function(opts) {
 
   var shell = createShell(opts);
   var camera = createCamera(shell);
-  shell.camera = camera;
+  shell.camera = camera; // TODO: move to a plugin instead of hanging off shell instance?
   shell.meshes = []; // populated below TODO: move to voxels.meshes
 
   camera.position[0] = -20;
@@ -58,13 +56,8 @@ var main = function(opts) {
   }
   plugins.loadAll();
 
-//Config variables
-var texture, shader
-
 // bit in voxel array to indicate voxel is opaque (transparent if not set)
 var OPAQUE = 1<<15;
-
-var TILE_COUNT = null;
 
 shell.on("gl-init", function() {
   var gl = shell.gl
@@ -84,9 +77,6 @@ shell.on("gl-init", function() {
   // TODO: move to gl-texture2d?
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
 
-  //Create shaders
-  shader = createAOShader(gl)
-  
   //Lookup voxel materials for terrain generation
   var registry = plugins.get('voxel-registry')
   if (registry) {
@@ -106,13 +96,12 @@ shell.on("gl-init", function() {
   //Create texture atlas
   var stitcher = game.plugins.get('voxel-stitch')
   if (stitcher) {
-    TILE_COUNT = stitcher.tileCount // set for shader below (never changes)
     var updateTexture = function() {
       console.log('updateTexture() calling createGLTexture()')
 
       stitcher.createGLTexture(gl, function(err, tex) {
         if (err) throw new Error('stitcher createGLTexture error: ' + err)
-        texture = tex
+        stitcher.texture = tex // TODO: fix this awkward roundaboutness. voxel-shader uses this
       })
 
       // the voxels!
@@ -142,35 +131,6 @@ shell.on("gl-error", function(err) {
 shell.on("gl-render", function(t) {
   var gl = shell.gl
  
-  //Calculation projection matrix
-  var projection = mat4.perspective(new Float32Array(16), Math.PI/4.0, shell.width/shell.height, 1.0, 1000.0)
-  var model = mat4.identity(new Float32Array(16))
-  var view = camera.view()
-
-  // for voxel-wireframe rendering TODO: refactor
-  shell.projection = projection
-  shell.model = model
-  shell.view = view
-
-  gl.enable(gl.CULL_FACE)
-  gl.enable(gl.DEPTH_TEST)
-
-  //Bind the shader
-  shader.bind()
-  shader.attributes.attrib0.location = 0
-  shader.attributes.attrib1.location = 1
-  shader.uniforms.projection = projection
-  shader.uniforms.view = view
-  shader.uniforms.model = model
-  shader.uniforms.tileCount = TILE_COUNT
-  if (texture) shader.uniforms.tileMap = texture.bind() // texture might not have loaded yet
-
-  for (var i = 0; i < shell.meshes.length; ++i) {
-    var mesh = shell.meshes[i];
-    mesh.triangleVAO.bind()
-    gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
-    mesh.triangleVAO.unbind()
-  }
 })
 
   return shell // TODO: fix indenting
