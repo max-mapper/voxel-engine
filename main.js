@@ -128,11 +128,6 @@ shell.on("gl-error", function(err) {
   document.body.appendChild(a)
 })
 
-shell.on("gl-render", function(t) {
-  var gl = shell.gl
- 
-})
-
   return shell // TODO: fix indenting
 }
 
