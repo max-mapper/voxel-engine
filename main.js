@@ -115,7 +115,6 @@ shell.on("gl-init", function() {
       camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
     }
     stitcher.on('updateTexture', updateTexture)
-    stitcher.stitch()
   } else {
     console.warn('voxel-stitch plugin not found, expect no textures')
   }
