@@ -11,7 +11,11 @@ require('voxel-registry')
 require('voxel-stitch')
 require('voxel-shader')
 
-var BUILTIN_PLUGINS = ['voxel-registry', 'voxel-stitch', 'voxel-shader'];
+var BUILTIN_PLUGIN_OPTS = {
+  'voxel-registry': {},
+  'voxel-stitch': {},
+  'voxel-shader': {}
+};
 
 var game = {};
 global.game = game; // for debugging
@@ -38,7 +42,7 @@ var main = function(opts) {
   var plugins = createPlugins(game, {require: function(name) {
     // we provide the built-in plugins ourselves; otherwise check caller's require, if any
     // TODO: allow caller to override built-ins? better way to do this?
-    if (BUILTIN_PLUGINS.indexOf(name) !== -1) {
+    if (name in BUILTIN_PLUGIN_OPTS) {
       return require(name);
     } else {
       return opts.require ? opts.require(name) : require(name);
@@ -47,9 +51,9 @@ var main = function(opts) {
 
   var pluginOpts = opts.pluginOpts || {}; // TODO: persist
 
-  BUILTIN_PLUGINS.forEach(function(name) {
-    opts.pluginOpts[name] = opts.pluginOpts[name] || {};
-  });
+  for (var name in BUILTIN_PLUGIN_OPTS) {
+    opts.pluginOpts[name] = opts.pluginOpts[name] || BUILTIN_PLUGIN_OPTS[name];
+  }
 
   for (var name in pluginOpts) {
     plugins.add(name, pluginOpts[name]);
