@@ -10,12 +10,16 @@ require('voxel-registry')
 require('voxel-stitch')
 require('voxel-shader')
 require('voxel-mesher')
+require('./lib/blocks.js') // temporary
+require('./lib/terrain.js') // temporary
 
 var BUILTIN_PLUGIN_OPTS = {
   'voxel-registry': {},
   'voxel-stitch': {},
   'voxel-shader': {},
   'voxel-mesher': {},
+  './lib/blocks.js': {},
+  './lib/terrain.js': {},
 };
 
 var game = {};
@@ -61,9 +65,6 @@ var main = function(opts) {
   }
   plugins.loadAll();
 
-// bit in voxel array to indicate voxel is opaque (transparent if not set)
-var OPAQUE = 1<<15;
-
 shell.on("gl-init", function() {
   var gl = shell.gl
 
@@ -74,26 +75,6 @@ shell.on("gl-init", function() {
   shell.canvas.parentElement.style.zIndex = '-1';
 
   //Lookup voxel materials for terrain generation
-  var registry = plugins.get('voxel-registry')
-  if (registry) {
-    var terrainMaterials = {};
-    for (var blockName in registry.blockName2Index) {
-      var blockIndex = registry.blockName2Index[blockName];
-      if (registry.getProp(blockName, 'transparent')) {
-        terrainMaterials[blockName] = blockIndex - 1
-      } else {
-        terrainMaterials[blockName] = OPAQUE|(blockIndex - 1) // TODO: separate arrays? https://github.com/mikolalysenko/ao-mesher/issues/2
-      }
-    }
-  } else {
-    console.warn('voxel-registry plugin not found, expect no textures')
-  }
-
-  // add voxels
-  var mesher = plugins.get('voxel-mesher');
-  if (mesher) {
-    mesher.addVoxelArray(createTerrain(terrainMaterials));
-  }
 })
 
 shell.on("gl-error", function(err) {
