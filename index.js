@@ -317,11 +317,8 @@ Game.prototype.setDimensions = function(opts) {
 Game.prototype.notCapable = function(opts) {
   var self = this
   if( !Detector().webgl ) {
-    this.view = {
-      appendTo: function(el) {
-        el.appendChild(self.notCapableMessage())
-      }
-    }
+    if (!this.reportedNotCapable) document.body.appendChild(self.notCapableMessage())
+    this.reportedNotCapable = true // only once
     return true
   }
   return false
