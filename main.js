@@ -99,10 +99,6 @@ shell.on("gl-init", function() {
         terrainMaterials[blockName] = OPAQUE|(blockIndex - 1) // TODO: separate arrays? https://github.com/mikolalysenko/ao-mesher/issues/2
       }
     }
-    // test manually assigned high block index
-    // before https://github.com/mikolalysenko/ao-mesher/issues/2 max is 255, after max is 32767
-    var highIndex = 32767
-    terrainMaterials.highBlock = OPAQUE|highIndex
   } else {
     console.warn('voxel-registry plugin not found, expect no textures')
   }
@@ -118,10 +114,6 @@ shell.on("gl-init", function() {
         if (err) throw new Error('stitcher createGLTexture error: ' + err)
         texture = tex
       })
-
-      // for highBlock, clone wool texture (if shows up as dirt, wrapped around)
-      for (var k = 0; k < 6; k++)
-        stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
 
       // the voxels!
       var mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
