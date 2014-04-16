@@ -100,21 +100,13 @@ shell.on("gl-init", function() {
   //Create texture atlas
   var stitcher = game.plugins.get('voxel-stitch')
   if (stitcher) {
-    var updateTexture = function() {
-      console.log('updateTexture() calling createGLTexture()')
-
-      stitcher.createGLTexture(gl, function(err, tex) {
-        if (err) throw new Error('stitcher createGLTexture error: ' + err)
-        stitcher.texture = tex // TODO: fix this awkward roundaboutness. voxel-shader uses this
-      })
-
-      // the voxels!
+    var addVoxels = function() {
       var mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
       shell.meshes = [mesh] // for voxel-wireframe TODO: refactor
       var c = mesh.center
       camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
     }
-    stitcher.on('updateTexture', updateTexture)
+    stitcher.on('updatedSides', addVoxels)
   } else {
     console.warn('voxel-stitch plugin not found, expect no textures')
   }
