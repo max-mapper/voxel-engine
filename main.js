@@ -65,23 +65,23 @@ var main = function(opts) {
   }
   plugins.loadAll();
 
-shell.on("gl-init", function() {
-  var gl = shell.gl
+  shell.on("gl-init", function() {
+    var gl = shell.gl
 
-  // since the plugins are loaded before gl-init, the <canvas> element will be
-  // below other UI widgets in the DOM tree, so by default the z-order will cause
-  // the canvas to cover the other widgets - to fix this, set z-index below
-  shell.canvas.style.zIndex = '-1';
-  shell.canvas.parentElement.style.zIndex = '-1';
+    // since the plugins are loaded before gl-init, the <canvas> element will be
+    // below other UI widgets in the DOM tree, so by default the z-order will cause
+    // the canvas to cover the other widgets - to fix this, set z-index below
+    shell.canvas.style.zIndex = '-1';
+    shell.canvas.parentElement.style.zIndex = '-1';
 
-  //Lookup voxel materials for terrain generation
-})
+    //Lookup voxel materials for terrain generation
+  })
 
-shell.on("gl-error", function(err) {
-  document.body.appendChild(document.createTextNode('Fatal WebGL error: ' + err))
-})
+  shell.on("gl-error", function(err) {
+    document.body.appendChild(document.createTextNode('Fatal WebGL error: ' + err))
+  })
 
-  return shell // TODO: fix indenting
+  return shell
 }
 
 module.exports = main
