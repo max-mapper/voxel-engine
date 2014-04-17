@@ -9,6 +9,8 @@ require('voxel-drop');
 require('voxel-keys');
 require('voxel-artpacks');
 require('voxel-wireframe');
+require('./lib/blocks.js');
+require('./lib/terrain.js');
 
 createShell({require: require, pluginOpts:
   {
@@ -19,6 +21,8 @@ createShell({require: require, pluginOpts:
     'voxel-keys': {},
     'voxel-artpacks': {},
     'voxel-wireframe': {},
+    './lib/blocks.js': {},
+    './lib/terrain.js': {},
   }
 });
 
