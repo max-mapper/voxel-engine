@@ -26,15 +26,13 @@ global.game = game; // for debugging
 
 var main = function(opts) {
   opts = opts || {};
-  opts.clearColor = [0.75, 0.8, 0.9, 1.0]
-  opts.pointerLock = true;
+  opts.clearColor = opts.clearColor || [0.75, 0.8, 0.9, 1.0]
+  opts.pointerLock = opts.pointerLock !== undefined ? opts.pointerLock : true;
 
   var shell = createShell(opts);
 
   game.isClient = true;
   game.shell = shell;
-
-  // TODO: should plugin creation this be moved into gl-init?? see z-index note below
 
   var plugins = createPlugins(game, {require: function(name) {
     // we provide the built-in plugins ourselves; otherwise check caller's require, if any
@@ -46,7 +44,7 @@ var main = function(opts) {
     }
   }});
 
-  var pluginOpts = opts.pluginOpts || {}; // TODO: persist
+  var pluginOpts = opts.pluginOpts || {};
 
   for (var name in BUILTIN_PLUGIN_OPTS) {
     opts.pluginOpts[name] = opts.pluginOpts[name] || BUILTIN_PLUGIN_OPTS[name];
@@ -62,11 +60,9 @@ var main = function(opts) {
 
     // since the plugins are loaded before gl-init, the <canvas> element will be
     // below other UI widgets in the DOM tree, so by default the z-order will cause
-    // the canvas to cover the other widgets - to fix this, set z-index below
+    // the canvas to cover the other widgets - to allow plugins to cover the canvas,
+    // we lower the z-index of the canvas below
     shell.canvas.style.zIndex = '-1';
-    shell.canvas.parentElement.style.zIndex = '-1';
-
-    //Lookup voxel materials for terrain generation
   })
 
   shell.on("gl-error", function(err) {
