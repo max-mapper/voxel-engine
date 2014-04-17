@@ -9,10 +9,20 @@
   "contributors": [
     "Max Ogden <max@maxogden.com> (https://github.com/maxogden)",
     "Kumavis <a.aa.akio.aaron@gmail.com> (https://github.com/kumavis)",
-    "Deathcap <deathcap@gmx.co.uk> (https://github.com/deathcap)"
+    "Deathcap <deathcap@gmx.co.uk> (https://github.com/deathcap)",
+    "Mikola Lysenko <mikolalysenko@gmail.com> (https://github.com/mikolalysenko/)"
   ],
   "dependencies": {
-    "game-shell-voxel": "git://github.com/deathcap/game-shell-voxel.git",
+    "voxel-mesher": "^0.6.0",
+    "voxel-shader": "^0.8.0",
+    "gl-now": "^1.3.0",
+    "ndarray": "^1.0.10",
+    "ndarray-fill": "^0.1.0",
+    "brfs": "^1.0.1",
+    "game-shell-fps-camera": "^0.2.0",
+    "voxel-stitch": "^0.6.0",
+    "voxel-registry": "^0.3.0",
+    "voxel-plugins": "^0.3.0",
     "voxel": "git://github.com/deathcap/voxel#ndarray",
     "voxel-raycast": "0.2.1",
     "voxel-control": "git://github.com/deathcap/voxel-control.git#44540136f963b7aa0dda1363b837540e6b6bcb1e",
