@@ -5,12 +5,12 @@
   "main": "main.js",
   "dependencies": {
     "voxel-mesher": "^0.6.0",
-    "voxel-shader": "^0.7.0",
+    "voxel-shader": "^0.8.0",
     "gl-now": "^1.3.0",
     "ndarray": "^1.0.10",
     "ndarray-fill": "^0.1.0",
     "brfs": "^1.0.1",
-    "voxel-camera": "git://github.com/deathcap/voxel-camera.git",
+    "game-shell-fps-camera": "^0.2.0",
     "voxel-stitch": "^0.6.0",
     "voxel-registry": "^0.3.0",
     "voxel-plugins": "^0.3.0"

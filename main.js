@@ -7,7 +7,7 @@ require('voxel-registry')
 require('voxel-stitch')
 require('voxel-shader')
 require('voxel-mesher')
-require('voxel-camera')
+require('game-shell-fps-camera')
 require('./lib/blocks.js') // temporary
 require('./lib/terrain.js') // temporary
 
@@ -16,7 +16,7 @@ var BUILTIN_PLUGIN_OPTS = {
   'voxel-stitch': {},
   'voxel-shader': {},
   'voxel-mesher': {},
-  'voxel-camera': {},
+  'game-shell-fps-camera': {},
   './lib/blocks.js': {},
   './lib/terrain.js': {},
 };
