@@ -1,15 +1,13 @@
 "use strict"
 
 var createShell = require("gl-now")
-var createCamera = require("game-shell-fps-camera")
-var ndarray = require("ndarray")
-var createTerrain = require("./lib/terrain.js") // TODO: replace with shama's chunker mentioned in https://github.com/voxel/issues/issues/4#issuecomment-39644684
 
 var createPlugins = require('voxel-plugins')
 require('voxel-registry')
 require('voxel-stitch')
 require('voxel-shader')
 require('voxel-mesher')
+require('voxel-camera')
 require('./lib/blocks.js') // temporary
 require('./lib/terrain.js') // temporary
 
@@ -18,6 +16,7 @@ var BUILTIN_PLUGIN_OPTS = {
   'voxel-stitch': {},
   'voxel-shader': {},
   'voxel-mesher': {},
+  'voxel-camera': {},
   './lib/blocks.js': {},
   './lib/terrain.js': {},
 };
@@ -31,13 +30,6 @@ var main = function(opts) {
   opts.pointerLock = true;
 
   var shell = createShell(opts);
-  var camera = createCamera(shell);
-  shell.camera = camera; // TODO: move to a plugin instead of hanging off shell instance?
-  shell.meshes = []; // populated below TODO: move to voxels.meshes
-
-  camera.position[0] = -20;
-  camera.position[1] = -33;
-  camera.position[2] = -40;
 
   game.isClient = true;
   game.shell = shell;
