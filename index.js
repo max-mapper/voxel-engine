@@ -63,7 +63,7 @@ function Game(opts) {
   this.chunkDistance = opts.chunkDistance || 2
   this.removeDistance = opts.removeDistance || this.chunkDistance + 1
   
-  this.skyColor = opts.skyColor || 0xBFD1E5 // TODO: ≈ clearColor array
+  this.skyColor = opts.skyColor || 0xBFD1E5
   this.antialias = opts.antialias
   this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
@@ -83,7 +83,10 @@ function Game(opts) {
 
   // the game-shell
   var shellOpts = shellOpts || {}
-  shellOpts.clearColor = opts.clearColor || [0.75, 0.8, 0.9, 1.0] // TODO: take from skyColor, packed hex
+  shellOpts.clearColor = [
+    (this.skyColor >> 16) / 255.0,
+    ((this.skyColor >> 8) & 0xff) / 255.0,
+    (this.skyColor & 0xff) / 255.0]
   shellOpts.pointerLock = opts.pointerLock !== undefined ? opts.pointerLock : true
   var shell = createShell(shellOpts)
   shell.on('gl-init', function() {
