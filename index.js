@@ -19,6 +19,7 @@ var physical = require('voxel-physical')
 var pin = require('pin-it')
 var tic = require('tic')()
 var createShell = require('gl-now')
+var ndarray = require('ndarray')
 
 var createPlugins = require('voxel-plugins')
 require('voxel-registry')
@@ -67,7 +68,10 @@ function Game(opts) {
   this.antialias = opts.antialias
   this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
-  this.mesher = opts.mesher || voxel.meshers.transgreedy
+
+  // was a 'voxel' module meshers object, now using voxel-mesher(ao-mesher)
+  Object.defineProperty(this, 'mesher', {get:function() { throw new Error('voxel-engine "mesher" property removed') }})
+
   this.items = []
   this.voxels = voxel(this)
 
@@ -126,6 +130,7 @@ function Game(opts) {
   }
   plugins.loadAll()
 
+  this.mesherPlugin = plugins.get('voxel-mesher')
 
   this.collideVoxels = collisions(
     this.getBlock.bind(this),
@@ -152,27 +157,31 @@ function Game(opts) {
     if (opts.exposeGlobal) window.game = window.g = this
   }
 
-  //this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
-  this.materials = opts.materials
-  
+ 
   self.chunkRegion.on('change', function(newChunk) {
     self.removeFarChunks()
   })
 
-  //if (this.isClient) this.materials.load(this.materialNames)
-
-  if (this.generateChunks) this.handleChunkGeneration()
-
   // client side only after this point
   if (!this.isClient) return
-  
-  this.paused = true
- 
-  this.showAllChunks()
 
-  setTimeout(function() {
-    self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : true
-  }, 2000)
+  // materials
+  //this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
+  this.materials = opts.materials
+ 
+  // textures loaded, now can render chunks
+  var stitcher = plugins.get('voxel-stitch')
+  stitcher.on('updatedSides', function() {
+    if (self.generateChunks) self.handleChunkGeneration()
+    self.showAllChunks()
+
+    // TODO: ?
+    setTimeout(function() {
+      self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : true
+    }, 2000)
+  })
+
+  this.paused = true
 
   // initializeControls()
   // player control
@@ -573,25 +582,30 @@ Game.prototype.showAllChunks = function() {
 Game.prototype.showChunk = function(chunk) {
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
-  var scale = new THREE.Vector3(1, 1, 1)
-  var transparentTypes = this.materials.getTransparentVoxelTypes ? this.materials.getTransparentVoxelTypes() : {};
-  /* TODO
-  var mesh = voxelMesh(chunk, this.mesher, scale, this.THREE, {transparentTypes: transparentTypes})
+
+  var voxelArray = ndarray(chunk.voxels, chunk.dims) // TODO: detect and use ndarray natively if passed in (isndarray)
+  var mesh = this.mesherPlugin.createMesh(voxelArray)
+  if (!mesh) {
+    // no voxels
+    // TODO: not quite right - this occurs if all the voxels are the _same_ (a superset of
+    // whether all the voxels are air). If a chunk is solid stone, we still need to render it;
+    // I guess this is why mikolalysenko made the chunks 33,33,33 in voxel-mipmap-demo. We could
+    // leave the edges empty (air) so solid chunks always render (unless entirely air).
+    // But for now, skip these chunks.
+    return null;
+  }
+
   this.voxels.chunks[chunkIndex] = chunk
   if (this.voxels.meshes[chunkIndex]) {
-    if (this.voxels.meshes[chunkIndex].surfaceMesh) this.scene.remove(this.voxels.meshes[chunkIndex].surfaceMesh)
-    if (this.voxels.meshes[chunkIndex].wireMesh) this.scene.remove(this.voxels.meshes[chunkIndex].wireMesh)
+    // TODO: remove mesh if exists
+    //if (this.voxels.meshes[chunkIndex].surfaceMesh) this.scene.remove(this.voxels.meshes[chunkIndex].surfaceMesh)
+    //if (this.voxels.meshes[chunkIndex].wireMesh) this.scene.remove(this.voxels.meshes[chunkIndex].wireMesh)
   }
   this.voxels.meshes[chunkIndex] = mesh
-  if (this.isClient) {
-    if (this.meshType === 'wireMesh') mesh.createWireMesh()
-    else mesh.createSurfaceMesh(this.materials)
-  }
-  mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2])
-  mesh.addToScene(this.scene)
+  //mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2]) // TODO: chunk position
+  //mesh.addToScene(this.scene)  // TODO: something
   this.emit('renderChunk', chunk)
   return mesh
-  */
 }
 
 // # Debugging methods
