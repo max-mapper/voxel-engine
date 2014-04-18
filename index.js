@@ -20,6 +20,7 @@ var pin = require('pin-it')
 var tic = require('tic')()
 var createShell = require('gl-now')
 var ndarray = require('ndarray')
+var isndarray = require('isndarray')
 
 var createPlugins = require('voxel-plugins')
 require('voxel-registry')
@@ -579,11 +580,13 @@ Game.prototype.showAllChunks = function() {
   }
 }
 
-Game.prototype.showChunk = function(chunk) {
+Game.prototype.showChunk = function(chunk, optionalPosition) {
+  if (optionalPosition) chunk.position = optionalPosition
+
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
 
-  var voxelArray = ndarray(chunk.voxels, chunk.dims) // TODO: detect and use ndarray natively if passed in (isndarray)
+  var voxelArray = isndarray(chunk) ? chunk : ndarray(chunk.voxels, chunk.dims)
   var mesh = this.mesherPlugin.createMesh(voxelArray)
   if (!mesh) {
     // no voxels
@@ -592,6 +595,7 @@ Game.prototype.showChunk = function(chunk) {
     // I guess this is why mikolalysenko made the chunks 33,33,33 in voxel-mipmap-demo. We could
     // leave the edges empty (air) so solid chunks always render (unless entirely air).
     // But for now, skip these chunks.
+    console.log('Skipping empty/solid chunk',chunk.position)
     return null;
   }
 
