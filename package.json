@@ -14,7 +14,7 @@
   ],
   "dependencies": {
     "voxel-mesher": "git://github.com/deathcap/voxel-mesher.git#05ed980d31b0d1d0a4c5444876613ac0b3ccbc44",
-    "voxel-shader": "git://github.com/deathcap/voxel-shader.git#eb5e9bbf9d6f0fd5e24621732b6ac8d8c80a0823",
+    "voxel-shader": "git://github.com/deathcap/voxel-shader.git#ef900c1d1830773fd86f896936686860dc63bfe7",
     "gl-now": "^1.3.0",
     "ndarray": "^1.0.10",
     "ndarray-fill": "^0.1.0",
