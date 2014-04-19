@@ -176,9 +176,9 @@ function Game(opts) {
     if (self.generateChunks) self.handleChunkGeneration()
     self.showAllChunks()
 
-    // TODO: ?
+    // TODO: fix async chunk gen, loadPendingChunks() may load 1 even if this.pendingChunks empty
     setTimeout(function() {
-      self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : true
+      self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : false
     }, 2000)
   })
 
