@@ -2,7 +2,6 @@
 var voxel = require('voxel')
 var ray = require('voxel-raycast')
 var control = require('voxel-control')
-var createShell = require('game-shell-voxel')
 var THREE = require('three')
 var Stats = require('./lib/stats')
 var Detector = require('./lib/detector')
