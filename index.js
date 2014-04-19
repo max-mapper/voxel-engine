@@ -469,9 +469,7 @@ Game.prototype.configureChunkLoading = function(opts) {
   var self = this
   if (!opts.generateChunks) return
   if (!opts.generate) {
-    this.generate = function(x,y,z) {
-      return x*x+y*y+z*z <= 15*15 ? 1 + (1<<15) : 0 // sphere world
-    }
+    this.generate = voxel.generator.Sphere
   } else {
     this.generate = opts.generate
   }
