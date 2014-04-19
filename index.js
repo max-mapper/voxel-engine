@@ -587,7 +587,7 @@ Game.prototype.showChunk = function(chunk, optionalPosition) {
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
 
   var voxelArray = isndarray(chunk) ? chunk : ndarray(chunk.voxels, chunk.dims)
-  var mesh = this.mesherPlugin.createMesh(voxelArray)
+  var mesh = this.mesherPlugin.createMesh(voxelArray, chunk.position)
   if (!mesh) {
     // no voxels
     // TODO: not quite right - this occurs if all the voxels are the _same_ (a superset of
@@ -595,8 +595,10 @@ Game.prototype.showChunk = function(chunk, optionalPosition) {
     // I guess this is why mikolalysenko made the chunks 33,33,33 in voxel-mipmap-demo. We could
     // leave the edges empty (air) so solid chunks always render (unless entirely air).
     // But for now, skip these chunks.
-    console.log('Skipping empty/solid chunk',chunk.position)
-    return null;
+    //console.log('Skipping empty/solid chunk',chunk.position)
+    return null
+  } else {
+    console.log('Mesh for ',chunkIndex,'=',mesh)
   }
 
   this.voxels.chunks[chunkIndex] = chunk
