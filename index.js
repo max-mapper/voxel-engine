@@ -2,7 +2,6 @@
 var voxel = require('voxel')
 var ray = require('voxel-raycast')
 var control = require('voxel-control')
-var THREE = require('three')
 var Stats = require('./lib/stats')
 var Detector = require('./lib/detector')
 var inherits = require('inherits')
@@ -51,7 +50,7 @@ function Game(opts) {
   this.setConfigurablePositions(opts)
   this.configureChunkLoading(opts)
   this.setDimensions(opts)
-  this.THREE = THREE
+  Object.defineProperty(this, 'THREE', {get:function() { throw new Error('voxel-engine "THREE property removed') }})
   this.vector = vector
   this.glMatrix = glMatrix
   this.arrayType = opts.arrayType || {1:Uint8Array, 2:Uint16Array, 4:Uint32Array}[opts.arrayTypeSize] || Uint8Array
@@ -75,14 +74,14 @@ function Game(opts) {
   this.voxels = voxel(this)
   BUILTIN_PLUGIN_OPTS['voxel-shader'].meshes = this.voxels.meshes
 
-  // was a THREE.Scene instance, mainly used for scene.add(), objects, lights TODO: scene graph replacement?
+  // was a three.js Scene instance, mainly used for scene.add(), objects, lights TODO: scene graph replacement? or can do without?
   Object.defineProperty(this, 'scene', {get:function() { throw new Error('voxel-engine "scene" property removed') }})
 
-  // hooked up THREE.Scene, created THREE.PerspectiveCamera, added to element
+  // hooked up three.js Scene, created three.js PerspectiveCamera, added to element
   // TODO: add this.view.cameraPosition(), this.view.cameraVector()? -> [x,y,z]  to game-shell-fps-camera, very useful
   Object.defineProperty(this, 'view', {get:function() { throw new Error('voxel-engine "view" property removed') }})
 
-  // used to be a THREE.PerspectiveCamera set by voxel-view; see also basic-camera but API not likely compatible (TODO: make it compatible?)
+  // used to be a three.js PerspectiveCamera set by voxel-view; see also basic-camera but API not likely compatible (TODO: make it compatible?)
   Object.defineProperty(this, 'camera', {get:function() { throw new Error('voxel-engine "camera" property removed') }})
 
   // the game-shell
@@ -613,20 +612,11 @@ Game.prototype.showChunk = function(chunk, optionalPosition) {
 // # Debugging methods
 
 Game.prototype.addMarker = function(position) {
-  var geometry = new THREE.SphereGeometry( 0.1, 10, 10 )
-  var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } )
-  var mesh = new THREE.Mesh( geometry, material )
-  mesh.position.copy(position)
-  this.scene.add(mesh)
+  throw new Error('voxel-engine addMarker not yet implemented TODO: figure out how to fit this into the rendering pipeline')
 }
 
 Game.prototype.addAABBMarker = function(aabb, color) {
-  var geometry = new THREE.CubeGeometry(aabb.width(), aabb.height(), aabb.depth())
-  var material = new THREE.MeshBasicMaterial({ color: color || 0xffffff, wireframe: true, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
-  var mesh = new THREE.Mesh(geometry, material)
-  mesh.position.set(aabb.x0() + aabb.width() / 2, aabb.y0() + aabb.height() / 2, aabb.z0() + aabb.depth() / 2)
-  this.scene.add(mesh)
-  return mesh
+  throw new Error('voxel-engine addAABBMarker not yet implemented TODO')
 }
 
 Game.prototype.addVoxelMarker = function(x, y, z, color) {
