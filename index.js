@@ -470,6 +470,8 @@ Game.prototype.configureChunkLoading = function(opts) {
   if (!opts.generateChunks) return
   if (!opts.generate) {
     this.generate = voxel.generator.Sphere
+  } else if (typeof opts.generate === 'string') {
+    this.generate = voxel.generator[opts.generate]
   } else {
     this.generate = opts.generate
   }
