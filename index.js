@@ -75,6 +75,7 @@ function Game(opts) {
 
   this.items = []
   this.voxels = voxel(this)
+  BUILTIN_PLUGIN_OPTS['voxel-shader'].meshes = this.voxels.meshes
 
   // was a THREE.Scene instance, mainly used for scene.add(), objects, lights TODO: scene graph replacement?
   Object.defineProperty(this, 'scene', {get:function() { throw new Error('voxel-engine "scene" property removed') }})

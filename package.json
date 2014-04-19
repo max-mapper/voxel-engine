@@ -13,8 +13,8 @@
     "Mikola Lysenko <mikolalysenko@gmail.com> (https://github.com/mikolalysenko/)"
   ],
   "dependencies": {
-    "voxel-mesher": "git://github.com/deathcap/voxel-mesher.git#fc59631fe3ab7df470bdd2b2dd9dbff99db07591",
-    "voxel-shader": "git://github.com/deathcap/voxel-shader.git#424946b4f05d95a5498942729e68fe91ae48ff68",
+    "voxel-mesher": "git://github.com/deathcap/voxel-mesher.git#0e5adaae6ac7d6a96dc32056e956b25a283be4a5",
+    "voxel-shader": "git://github.com/deathcap/voxel-shader.git#eb5e9bbf9d6f0fd5e24621732b6ac8d8c80a0823",
     "gl-now": "^1.3.0",
     "ndarray": "^1.0.10",
     "ndarray-fill": "^0.1.0",
@@ -23,7 +23,7 @@
     "voxel-stitch": "^0.6.0",
     "voxel-registry": "^0.3.0",
     "voxel-plugins": "^0.3.0",
-    "voxel": "git://github.com/deathcap/voxel#005cefa451d6acf11359959ac2890f19fe57ada7",
+    "voxel": "git://github.com/deathcap/voxel#4ce16e8b8d10362a0114483c21cc66777f5702f2",
     "voxel-raycast": "0.2.1",
     "voxel-control": "git://github.com/deathcap/voxel-control.git#44540136f963b7aa0dda1363b837540e6b6bcb1e",
     "voxel-physical": "git://github.com/deathcap/voxel-physical.git#4deb6d93aca18aa8b12a813aedd457a451eec2bd",
