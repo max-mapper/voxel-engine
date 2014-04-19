@@ -23,7 +23,7 @@
     "voxel-stitch": "^0.6.0",
     "voxel-registry": "^0.3.0",
     "voxel-plugins": "^0.3.0",
-    "voxel": "git://github.com/deathcap/voxel#005cefa451d6acf11359959ac2890f19fe57ada7",
+    "voxel": "git://github.com/deathcap/voxel.git#005cefa451d6acf11359959ac2890f19fe57ada7",
     "voxel-raycast": "0.2.1",
     "voxel-control": "git://github.com/deathcap/voxel-control.git#44540136f963b7aa0dda1363b837540e6b6bcb1e",
     "voxel-physical": "git://github.com/deathcap/voxel-physical.git#4deb6d93aca18aa8b12a813aedd457a451eec2bd",
