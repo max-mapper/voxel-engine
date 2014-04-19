@@ -595,8 +595,6 @@ Game.prototype.showChunk = function(chunk, optionalPosition) {
     // But for now, skip these chunks.
     //console.log('Skipping empty/solid chunk',chunk.position)
     return null
-  } else {
-    console.log('Mesh for ',chunkIndex,'=',mesh)
   }
 
   this.voxels.chunks[chunkIndex] = chunk
