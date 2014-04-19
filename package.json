@@ -13,7 +13,7 @@
     "Mikola Lysenko <mikolalysenko@gmail.com> (https://github.com/mikolalysenko/)"
   ],
   "dependencies": {
-    "voxel-mesher": "git://github.com/deathcap/voxel-mesher.git#0e5adaae6ac7d6a96dc32056e956b25a283be4a5",
+    "voxel-mesher": "git://github.com/deathcap/voxel-mesher.git#edbe93a7b76549bd40fa48c560de4edfae9c7691",
     "voxel-shader": "git://github.com/deathcap/voxel-shader.git#eb5e9bbf9d6f0fd5e24621732b6ac8d8c80a0823",
     "gl-now": "^1.3.0",
     "ndarray": "^1.0.10",

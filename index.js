@@ -21,12 +21,12 @@ var tic = require('tic')()
 var createShell = require('gl-now')
 var ndarray = require('ndarray')
 var isndarray = require('isndarray')
+var createVoxelMesh = require('voxel-mesher')
 
 var createPlugins = require('voxel-plugins')
 require('voxel-registry')
 require('voxel-stitch')
 require('voxel-shader')
-require('voxel-mesher')
 require('game-shell-fps-camera')
 
 module.exports = Game
@@ -35,7 +35,6 @@ var BUILTIN_PLUGIN_OPTS = {
   'voxel-registry': {},
   'voxel-stitch': {},
   'voxel-shader': {},
-  'voxel-mesher': {},
   'game-shell-fps-camera': {},
 };
 
@@ -132,8 +131,6 @@ function Game(opts) {
   }
   plugins.loadAll()
 
-  this.mesherPlugin = plugins.get('voxel-mesher')
-
   this.collideVoxels = collisions(
     this.getBlock.bind(this),
     1,
@@ -172,8 +169,8 @@ function Game(opts) {
   this.materials = opts.materials
  
   // textures loaded, now can render chunks
-  var stitcher = plugins.get('voxel-stitch')
-  stitcher.on('updatedSides', function() {
+  this.stitcher = plugins.get('voxel-stitch')
+  this.stitcher.on('updatedSides', function() {
     if (self.generateChunks) self.handleChunkGeneration()
     self.showAllChunks()
 
@@ -588,7 +585,8 @@ Game.prototype.showChunk = function(chunk, optionalPosition) {
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
 
   var voxelArray = isndarray(chunk) ? chunk : ndarray(chunk.voxels, chunk.dims)
-  var mesh = this.mesherPlugin.createMesh(voxelArray, chunk.position)
+  var mesh = createVoxelMesh(this.shell.gl, voxelArray, this.stitcher.voxelSideTextureIDs, this.stitcher.voxelSideTextureSizes, chunk.position)
+
   if (!mesh) {
     // no voxels
     // TODO: not quite right - this occurs if all the voxels are the _same_ (a superset of
