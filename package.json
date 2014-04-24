@@ -13,14 +13,14 @@
     "Mikola Lysenko <mikolalysenko@gmail.com> (https://github.com/mikolalysenko/)"
   ],
   "dependencies": {
-    "voxel-mesher": "git://github.com/deathcap/voxel-mesher.git#c4550ef120564518cd8a000657587328038f1736",
-    "voxel-shader": "git://github.com/deathcap/voxel-shader.git#ef900c1d1830773fd86f896936686860dc63bfe7",
+    "voxel-mesher": "git://github.com/deathcap/voxel-mesher.git#0b8e2542f527535e715de0fb24f54563d0d4fe82",
+    "voxel-shader": "git://github.com/deathcap/voxel-shader.git#0cbaded092e01380fc49cf5de85ef5f4eab52e2d",
     "gl-now": "^1.3.0",
     "ndarray": "^1.0.10",
     "ndarray-fill": "^0.1.0",
     "brfs": "^1.0.1",
     "game-shell-fps-camera": "git://github.com/deathcap/game-shell-fps-camera.git#b0df4a2c639065e7c6b83c7402668e77c6a79ac8",
-    "voxel-stitch": "^0.6.0",
+    "voxel-stitch": "git://github.com/deathcap/voxel-stitch.git#996b0240b10052a0694591275b6f9ca0e796c4fd",
     "voxel-registry": "^0.3.0",
     "voxel-plugins": "^0.3.0",
     "voxel": "git://github.com/deathcap/voxel.git#03c82f4ea95809110fe9afce98c2fa65ca9e8417",
