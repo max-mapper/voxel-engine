@@ -19,12 +19,12 @@ var tic = require('tic')()
 var createShell = require('gl-now')
 var ndarray = require('ndarray')
 var isndarray = require('isndarray')
-var createVoxelMesh = require('voxel-mesher')
 
 var createPlugins = require('voxel-plugins')
 require('voxel-registry')
 require('voxel-stitch')
 require('voxel-shader')
+require('voxel-mesher')
 require('game-shell-fps-camera')
 
 module.exports = Game
@@ -33,6 +33,7 @@ var BUILTIN_PLUGIN_OPTS = {
   'voxel-registry': {},
   'voxel-stitch': {},
   'voxel-shader': {},
+  'voxel-mesher': {},
   'game-shell-fps-camera': {},
 };
 
@@ -176,6 +177,7 @@ function Game(opts) {
       self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : false
     }, 2000)
   })
+  this.mesherPlugin = plugins.get('voxel-mesher')
 
   this.paused = true
 
@@ -582,7 +584,7 @@ Game.prototype.showChunk = function(chunk, optionalPosition) {
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
 
   var voxelArray = isndarray(chunk) ? chunk : ndarray(chunk.voxels, chunk.dims)
-  var mesh = createVoxelMesh(this.shell.gl, voxelArray, this.stitcher.voxelSideTextureIDs, this.stitcher.voxelSideTextureSizes, chunk.position)
+  var mesh = this.mesherPlugin.createVoxelMesh(this.shell.gl, voxelArray, this.stitcher.voxelSideTextureIDs, this.stitcher.voxelSideTextureSizes, chunk.position)
 
   if (!mesh) {
     // no voxels
