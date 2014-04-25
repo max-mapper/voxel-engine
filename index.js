@@ -179,6 +179,8 @@ function Game(opts) {
   })
   this.mesherPlugin = plugins.get('voxel-mesher')
 
+  this.cameraPlugin = plugins.get('game-shell-fps-camera') // TODO: support other plugins implementing same API
+
   this.paused = true
 
   // initializeControls()
@@ -204,12 +206,12 @@ Game.prototype.voxelPosition = function(gamePosition) {
 }
 
 Game.prototype.cameraPosition = function() {
-  return this.shell.camera.position
+  return this.cameraPlugin.camera.position
 }
 
 var _cameraVector = vector.create();
 Game.prototype.cameraVector = function() {
-  this.shell.camera.getCameraVector(_cameraVector)
+  this.cameraPlugin.camera.getCameraVector(_cameraVector)
   return _cameraVector
 }
 
