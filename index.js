@@ -174,14 +174,14 @@ function Game(opts) {
 
     // TODO: fix async chunk gen, loadPendingChunks() may load 1 even if this.pendingChunks empty
     setTimeout(function() {
-      self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : false
+      self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : true
     }, 2000)
   })
   this.mesherPlugin = plugins.get('voxel-mesher')
 
   this.cameraPlugin = plugins.get('game-shell-fps-camera') // TODO: support other plugins implementing same API
 
-  this.paused = true
+  //this.paused = true // TODO: should it start paused, then unpause when pointer lock is acquired?
 
   // initializeControls()
   // player control
@@ -553,6 +553,8 @@ Game.prototype.updateDirtyChunks = function() {
 Game.prototype.loadPendingChunks = function(count) {
   var pendingChunks = this.pendingChunks
 
+  console.log('loadPendingChunks=',pendingChunks)
+
   if (!this.asyncChunkGeneration) {
     count = pendingChunks.length
   } else {
@@ -655,7 +657,7 @@ Game.prototype.tick = function(delta) {
 
   this.emit('tick', delta)
   
-  if (!this.controls) return
+  //if (!this.controls) return // this.controls removed; still load chunks
   var playerPos = this.playerPosition()
   this.spatial.emit('position', playerPos, playerPos)
 }
@@ -664,6 +666,7 @@ Game.prototype.render = function(delta) {
   this.view.render(this.scene)
 }
 
+// TODO: merge with game-shell render loop?
 Game.prototype.initializeTimer = function(rate) {
   var self = this
   var accum = 0
@@ -700,6 +703,7 @@ Game.prototype.initializeTimer = function(rate) {
 Game.prototype.handleChunkGeneration = function() {
   var self = this
   this.voxels.on('missingChunk', function(chunkPos) {
+    console.log('handleChunkGeneration missingChunk',chunkPos)
     self.pendingChunks.push(chunkPos.join('|'))
   })
   this.voxels.requestMissingChunks(this.worldOrigin)
