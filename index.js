@@ -424,11 +424,14 @@ Game.prototype.potentialCollisionSet = function() {
  */
 
 Game.prototype.playerPosition = function() {
+  return this.cameraPosition()
+  /* TODO: cameraPosition != playerPosition?
   var target = this.controls.target()
   var position = target
     ? target.avatar.position
     : this.camera.localToWorld(this.camera.position.clone())
   return [position.x, position.y, position.z]
+  */
 }
 
 Game.prototype.playerAABB = function(position) {
