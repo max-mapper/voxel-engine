@@ -19,7 +19,7 @@
     "ndarray": "^1.0.10",
     "ndarray-fill": "^0.1.0",
     "brfs": "^1.0.1",
-    "game-shell-fps-camera": "^0.3.0",
+    "game-shell-fps-camera": "^0.3.1",
     "voxel-stitch": "^0.6.2",
     "voxel-registry": "^0.3.0",
     "voxel-plugins": "^0.3.0",
