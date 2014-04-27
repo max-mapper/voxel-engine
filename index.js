@@ -205,12 +205,11 @@ Game.prototype.voxelPosition = function(gamePosition) {
   return v
 }
 
+var _position = new Array(3)
 Game.prototype.cameraPosition = function() {
-  var p = this.cameraPlugin.camera.position
+  this.cameraPlugin.getPosition(_position)
 
-  // Negate since basic-camera consides -Y up, but we use +Y for up
-  // TODO: do X and Z need to be negated too?
-  return [-p[0], -p[1], -p[2]]
+  return _position
 }
 
 var _cameraVector = vector.create();
