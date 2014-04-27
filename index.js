@@ -206,7 +206,11 @@ Game.prototype.voxelPosition = function(gamePosition) {
 }
 
 Game.prototype.cameraPosition = function() {
-  return this.cameraPlugin.camera.position
+  var p = this.cameraPlugin.camera.position
+
+  // Negate since basic-camera consides -Y up, but we use +Y for up
+  // TODO: do X and Z need to be negated too?
+  return [-p[0], -p[1], -p[2]]
 }
 
 var _cameraVector = vector.create();
@@ -607,7 +611,7 @@ Game.prototype.showChunk = function(chunk, optionalPosition) {
 
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
-  console.log('showChunk',chunkIndex,'density=',JSON.stringify(chunkDensity(chunk)))
+  //console.log('showChunk',chunkIndex,'density=',JSON.stringify(chunkDensity(chunk)))
 
   var voxelArray = isndarray(chunk) ? chunk : ndarray(chunk.voxels, chunk.dims)
   var mesh = this.mesherPlugin.createVoxelMesh(this.shell.gl, voxelArray, this.stitcher.voxelSideTextureIDs, this.stitcher.voxelSideTextureSizes, chunk.position)
