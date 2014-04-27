@@ -584,11 +584,30 @@ Game.prototype.showAllChunks = function() {
   }
 }
 
+// Calculate fraction of each voxel type in chunk, for debugging
+var chunkDensity = function(chunk) {
+  var counts = {};
+  var length = chunk.data.length;
+  for (var i = 0; i < length; i += 1) {
+    var val = chunk.data[i]
+    if (!(val in counts)) counts[val] = 0
+
+    counts[val] += 1
+  }
+
+  var densities = {}
+  for (var val in counts) {
+    densities[val] = counts[val] / length
+  }
+  return densities
+}
+
 Game.prototype.showChunk = function(chunk, optionalPosition) {
   if (optionalPosition) chunk.position = optionalPosition
 
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
+  console.log('showChunk',chunkIndex,'density=',JSON.stringify(chunkDensity(chunk)))
 
   var voxelArray = isndarray(chunk) ? chunk : ndarray(chunk.voxels, chunk.dims)
   var mesh = this.mesherPlugin.createVoxelMesh(this.shell.gl, voxelArray, this.stitcher.voxelSideTextureIDs, this.stitcher.voxelSideTextureSizes, chunk.position)
