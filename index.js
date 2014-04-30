@@ -549,8 +549,6 @@ Game.prototype.updateDirtyChunks = function() {
 Game.prototype.loadPendingChunks = function(count) {
   var pendingChunks = this.pendingChunks
 
-  console.log('loadPendingChunks=',pendingChunks)
-
   if (!this.asyncChunkGeneration) {
     count = pendingChunks.length
   } else {
@@ -718,7 +716,6 @@ Game.prototype.initializeTimer = function(rate) {
 Game.prototype.handleChunkGeneration = function() {
   var self = this
   this.voxels.on('missingChunk', function(chunkPos) {
-    console.log('handleChunkGeneration missingChunk',chunkPos)
     self.pendingChunks.push(chunkPos.join('|'))
   })
   this.voxels.requestMissingChunks(this.worldOrigin)
