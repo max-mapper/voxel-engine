@@ -519,21 +519,14 @@ Game.prototype.removeFarChunks = function(playerPosition) {
     if (!chunk) return
     var chunkPosition = chunk.position
     if (mesh) {
-      if (mesh.surfaceMesh) {
-        self.scene.remove(mesh.surfaceMesh)
-        //mesh.surfaceMesh.geometry.dispose()
-      }
-      if (mesh.wireMesh) {
-        mesh.wireMesh.geometry.dispose()
-        //self.scene.remove(mesh.wireMesh)
-      }
-      delete mesh.data
-      delete mesh.geometry
-      delete mesh.meshed
-      delete mesh.surfaceMesh
-      delete mesh.wireMesh
+      // dispose of the gl-vao meshes
+      // TODO: refactor so each plugin is responsible, instead of having to list each here
+      if (mesh.triangleVAO) mesh.triangleVAO.dispose() // voxel-mesher
+      if (mesh.wireVAO) mesh.wireVAO.dispose() // voxel-wireframe
+      if (mesh.borderVAO) mesh.borderVAO.dispose() // voxel-chunkborder
     }
     delete self.voxels.chunks[chunkIndex]
+    delete self.voxels.meshes[chunkIndex]
     self.emit('removeChunk', chunkPosition)
   })
   self.voxels.requestMissingChunks(playerPosition)
