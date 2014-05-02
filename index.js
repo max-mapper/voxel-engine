@@ -189,6 +189,9 @@ function Game(opts) {
   Object.defineProperty(this, 'keybindings', {get:function() { throw new Error('voxel-engine "keybindings" property removed') }})
   Object.defineProperty(this, 'buttons', {get:function() { throw new Error('voxel-engine "buttons" property removed') }}) // especially for this one (polling interface)
   Object.defineProperty(this, 'interact', {get:function() { throw new Error('voxel-engine "interact" property removed') }})
+
+  var buttons = {}; // TODO: this is a state object (key => boolean), but game-shell has .wasDown(key) => boolean instead
+  this.hookupControls(buttons, opts)
 }
 
 inherits(Game, EventEmitter)
@@ -713,6 +716,16 @@ Game.prototype.initializeTimer = function(rate) {
     self.frameUpdated = true
   }
 }
+
+Game.prototype.hookupControls = function(buttons, opts) {
+  opts = opts || {}
+  opts.controls = opts.controls || {}
+  opts.controls.onfire = this.onFire.bind(this)
+  this.controls = control(buttons, opts.controls)
+  this.items.push(this.controls)
+  this.controlling = null
+}
+
 Game.prototype.handleChunkGeneration = function() {
   var self = this
   this.voxels.on('missingChunk', function(chunkPos) {
