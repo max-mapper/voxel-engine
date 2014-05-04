@@ -121,7 +121,7 @@ function Game(opts) {
   var pluginOpts = opts.pluginOpts || {}
 
   for (var name in BUILTIN_PLUGIN_OPTS) {
-    opts.pluginOpts[name] = opts.pluginOpts[name] || BUILTIN_PLUGIN_OPTS[name]
+    pluginOpts[name] = pluginOpts[name] || BUILTIN_PLUGIN_OPTS[name]
   }
 
   for (var name in pluginOpts) {
