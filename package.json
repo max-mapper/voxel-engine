@@ -13,8 +13,8 @@
     "Mikola Lysenko <mikolalysenko@gmail.com> (https://github.com/mikolalysenko/)"
   ],
   "dependencies": {
-    "voxel-mesher": "^0.9.0",
-    "voxel-shader": "^0.9.0",
+    "voxel-mesher": "^0.10.0",
+    "voxel-shader": "^0.10.0",
     "gl-now": "^1.3.0",
     "ndarray": "^1.0.10",
     "ndarray-fill": "^0.1.0",
