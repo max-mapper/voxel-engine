@@ -210,14 +210,19 @@ Game.prototype.voxelPosition = function(gamePosition) {
 
 var _position = new Array(3)
 Game.prototype.cameraPosition = function() {
-  this.cameraPlugin.getPosition(_position)
+  if (this.cameraPlugin) {
+    this.cameraPlugin.getPosition(_position)
+  }
 
   return _position
 }
 
 var _cameraVector = vector.create();
 Game.prototype.cameraVector = function() {
-  this.cameraPlugin.camera.getCameraVector(_cameraVector)
+  if (this.cameraPlugin) {
+    this.cameraPlugin.camera.getCameraVector(_cameraVector)
+  }
+
   return _cameraVector
 }
 
