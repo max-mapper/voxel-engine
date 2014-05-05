@@ -187,11 +187,10 @@ function Game(opts) {
   // player control
   // game-shell handles controls now TODO: provide some compatibility layer? as not covered by https://github.com/deathcap/voxel-keys
   Object.defineProperty(this, 'keybindings', {get:function() { throw new Error('voxel-engine "keybindings" property removed') }})
-  Object.defineProperty(this, 'buttons', {get:function() { throw new Error('voxel-engine "buttons" property removed') }}) // especially for this one (polling interface)
   Object.defineProperty(this, 'interact', {get:function() { throw new Error('voxel-engine "interact" property removed') }})
 
-  var buttons = {}; // TODO: this is a state object (key => boolean), but game-shell has .wasDown(key) => boolean instead
-  this.hookupControls(buttons, opts)
+  this.proxyButtons() // sets this.buttons TODO: refresh when shell.bindings changes (bind/unbind)
+  this.hookupControls(this.buttons, opts)
 }
 
 inherits(Game, EventEmitter)
@@ -719,6 +718,21 @@ Game.prototype.initializeTimer = function(rate) {
     
     self.frameUpdated = true
   }
+}
+
+// Create the buttons state object (binding => state), proxying to game-shell .wasDown(binding)
+Game.prototype.proxyButtons = function() {
+  var self = this
+
+  self.buttons = {}
+
+  Object.keys(this.shell.bindings).forEach(function(name) {
+    Object.defineProperty(self.buttons, name, {get:
+      function() {
+        return self.shell.wasDown(name)
+      }
+    })
+  })
 }
 
 Game.prototype.hookupControls = function(buttons, opts) {
