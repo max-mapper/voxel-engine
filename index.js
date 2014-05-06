@@ -745,6 +745,15 @@ Game.prototype.proxyButtons = function() {
   })
 }
 
+// cleanup key name - based on https://github.com/mikolalysenko/game-shell/blob/master/shell.js
+var filtered_vkey = function(k) {
+  if(k.charAt(0) === '<' && k.charAt(k.length-1) === '>') {
+    k = k.substring(1, k.length-1)
+  }
+  k = k.replace(/\s/g, "-")
+  return k
+}
+
 Game.prototype.initializeControls = function(opts) {
   // player control - game-shell handles most controls now
 
@@ -755,7 +764,7 @@ Game.prototype.initializeControls = function(opts) {
     var name = keybindings[key]
 
     // translate name for game-shell
-    key = key.replace('<', '').replace('>', '')
+    key = filtered_vkey(key)
 
     this.shell.bind(name, key)
   }
