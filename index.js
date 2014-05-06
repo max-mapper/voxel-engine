@@ -748,11 +748,14 @@ Game.prototype.proxyButtons = function() {
 Game.prototype.initializeControls = function(opts) {
   // player control - game-shell handles most controls now
 
-  // initial keybindings passed in from options, bind in game-shell
+  // initial keybindings passed in from options
   Object.defineProperty(this, 'keybindings', {get:function() { throw new Error('voxel-engine "keybindings" property removed') }})
   var keybindings = opts.keybindings || this.defaultButtons
   for (var key in keybindings) {
     var name = keybindings[key]
+
+    // translate name for game-shell
+    key = key.replace('<', '').replace('>', '')
 
     this.shell.bind(name, key)
   }
