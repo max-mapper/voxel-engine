@@ -183,14 +183,7 @@ function Game(opts) {
 
   //this.paused = true // TODO: should it start paused, then unpause when pointer lock is acquired?
 
-  // initializeControls()
-  // player control
-  // game-shell handles controls now TODO: provide some compatibility layer? as not covered by https://github.com/deathcap/voxel-keys
-  Object.defineProperty(this, 'keybindings', {get:function() { throw new Error('voxel-engine "keybindings" property removed') }})
-  Object.defineProperty(this, 'interact', {get:function() { throw new Error('voxel-engine "interact" property removed') }})
-
-  this.proxyButtons() // sets this.buttons TODO: refresh when shell.bindings changes (bind/unbind)
-  this.hookupControls(this.buttons, opts)
+  this.initializeControls(opts)
 }
 
 inherits(Game, EventEmitter)
@@ -364,6 +357,23 @@ Game.prototype.gravity = [0, -0.0000036, 0]
 Game.prototype.friction = 0.3
 Game.prototype.epilson = 1e-8
 Game.prototype.terminalVelocity = [0.9, 0.1, 0.9]
+
+Game.prototype.defaultButtons = {
+  'W': 'forward'
+, 'A': 'left'
+, 'S': 'backward'
+, 'D': 'right'
+, '<up>': 'forward'
+, '<left>': 'left'
+, '<down>': 'backward'
+, '<right>': 'right'
+, '<mouse 1>': 'fire'
+, '<mouse 3>': 'firealt'
+, '<space>': 'jump'
+, '<shift>': 'crouch'
+, '<control>': 'alt'
+, '<tab>': 'sprint'
+}
 
 // used in methods that have identity function(pos) {}
 Game.prototype.parseVectorArguments = function(args) {
@@ -733,6 +743,24 @@ Game.prototype.proxyButtons = function() {
       }
     })
   })
+}
+
+Game.prototype.initializeControls = function(opts) {
+  // player control - game-shell handles most controls now
+
+  // initial keybindings passed in from options, bind in game-shell
+  Object.defineProperty(this, 'keybindings', {get:function() { throw new Error('voxel-engine "keybindings" property removed') }})
+  var keybindings = opts.keybindings || this.defaultButtons
+  for (var key in keybindings) {
+    var name = keybindings[key]
+
+    this.shell.bind(name, key)
+  }
+
+  Object.defineProperty(this, 'interact', {get:function() { throw new Error('voxel-engine "interact" property removed') }})
+
+  this.proxyButtons() // sets this.buttons TODO: refresh when shell.bindings changes (bind/unbind)
+  this.hookupControls(this.buttons, opts)
 }
 
 Game.prototype.hookupControls = function(buttons, opts) {
