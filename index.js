@@ -118,17 +118,6 @@ function Game(opts) {
     }
   }})
 
-  var pluginOpts = opts.pluginOpts || {}
-
-  for (var name in BUILTIN_PLUGIN_OPTS) {
-    pluginOpts[name] = pluginOpts[name] || BUILTIN_PLUGIN_OPTS[name]
-  }
-
-  for (var name in pluginOpts) {
-    plugins.add(name, pluginOpts[name])
-  }
-  plugins.loadAll()
-
   this.collideVoxels = collisions(
     this.getBlock.bind(this),
     1,
@@ -166,6 +155,23 @@ function Game(opts) {
   //this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
   this.materials = opts.materials
  
+  //this.paused = true // TODO: should it start paused, then unpause when pointer lock is acquired?
+
+  this.initializeControls(opts)
+
+  // setup plugins
+  var pluginOpts = opts.pluginOpts || {}
+
+  for (var name in BUILTIN_PLUGIN_OPTS) {
+    pluginOpts[name] = pluginOpts[name] || BUILTIN_PLUGIN_OPTS[name]
+  }
+
+  for (var name in pluginOpts) {
+    plugins.add(name, pluginOpts[name])
+  }
+  plugins.loadAll()
+
+
   // textures loaded, now can render chunks
   this.stitcher = plugins.get('voxel-stitch')
   this.stitcher.on('updatedSides', function() {
@@ -181,9 +187,7 @@ function Game(opts) {
 
   this.cameraPlugin = plugins.get('game-shell-fps-camera') // TODO: support other plugins implementing same API
 
-  //this.paused = true // TODO: should it start paused, then unpause when pointer lock is acquired?
 
-  this.initializeControls(opts)
 }
 
 inherits(Game, EventEmitter)
