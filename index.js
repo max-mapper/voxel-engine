@@ -21,6 +21,7 @@ var ndarray = require('ndarray')
 var isndarray = require('isndarray')
 
 var createPlugins = require('voxel-plugins')
+var extend = require('extend')
 require('voxel-registry')
 require('voxel-stitch')
 require('voxel-shader')
@@ -41,8 +42,9 @@ function Game(opts) {
   if (!(this instanceof Game)) return new Game(opts)
   var self = this
   if (!opts) opts = {}
+  if (opts.pluginOpts && opts.pluginOpts['voxel-engine']) opts = extend(opts, opts.pluginOpts['voxel-engine'])
   if (process.browser && this.notCapable(opts)) return
-  
+
   // is this a client or a headless server
   this.isClient = Boolean( (typeof opts.isClient !== 'undefined') ? opts.isClient : process.browser )
 
