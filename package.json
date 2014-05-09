@@ -20,7 +20,7 @@
     "ndarray-fill": "^0.1.0",
     "brfs": "^1.0.1",
     "game-shell-fps-camera": "^0.4.0",
-    "voxel-stitch": "^0.6.2",
+    "voxel-stitch": "^0.7.0",
     "voxel-registry": "^0.3.0",
     "voxel-plugins": "^0.3.0",
     "voxel": "git://github.com/deathcap/voxel.git#c2f35f1ea2c3395252aa508423119a85a5571bb4",
