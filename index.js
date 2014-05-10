@@ -97,7 +97,7 @@ function Game(opts) {
     // below other UI widgets in the DOM tree, so by default the z-order will cause
     // the canvas to cover the other widgets - to allow plugins to cover the canvas,
     // we lower the z-index of the canvas below
-    shell.canvas.style.zIndex = '-1'
+    shell.canvas.parentElement.style.zIndex = '-1'
   })
 
   shell.on('gl-error', function(err) {
