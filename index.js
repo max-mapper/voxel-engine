@@ -155,7 +155,7 @@ function Game(opts) {
 
   // materials
   //this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
-  this.materials = opts.materials
+  this.materialNames = opts.materials
  
   //this.paused = true // TODO: should it start paused, then unpause when pointer lock is acquired?
 
