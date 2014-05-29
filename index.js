@@ -216,13 +216,11 @@ Game.prototype.cameraPosition = function() {
   return _position
 }
 
-var _cameraVector = vector.create();
+var _cameraVector = vector.create()
 Game.prototype.cameraVector = function() {
   if (this.cameraPlugin) {
     this.cameraPlugin.camera.getCameraVector(_cameraVector)
-    _cameraVector[0] = -_cameraVector[2]
-    _cameraVector[1] = -_cameraVector[1]
-    _cameraVector[2] = -_cameraVector[0]
+    vector.set(_cameraVector, -_cameraVector[2], -_cameraVector[1], -_cameraVector[0])
   }
 
   return _cameraVector
