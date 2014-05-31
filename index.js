@@ -790,20 +790,6 @@ Game.prototype.hookupControls = function(buttons, opts) {
   this.controls = control(buttons, opts.controls)
   this.items.push(this.controls)
   this.controlling = null
-
-  // control calls controls.target(x), required for controls to function
-  // normally called by voxel-player game.control(player), but requires three.js :(
-  // use a fake object for now TODO
-  var player = {
-    velocity: {x:0, y:0, z:0},
-    position: {x:0, y:0, z:0},
-    atRestY: function() {
-      return true // TODO
-    },
-    rotation: {x:0, y:0, z:0},
-    yaw: 0, pitch: 0, roll: 0
-  }
-  this.control(player)
 }
 
 Game.prototype.handleChunkGeneration = function() {
