@@ -474,15 +474,13 @@ Game.prototype.playerAABB = function(position) {
 
 Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
   var self = this
-  var axes = ['x', 'y', 'z']
-  var vec3 = [vec.x, vec.y, vec.z]
-  this.collideVoxels(bbox, vec3, function hit(axis, tile, coords, dir, edge) {
+  this.collideVoxels(bbox, vec, function hit(axis, tile, coords, dir, edge) {
     if (!tile) return
-    if (Math.abs(vec3[axis]) < Math.abs(edge)) return
-    vec3[axis] = vec[axes[axis]] = edge
-    other.acceleration[axes[axis]] = 0
-    resting[axes[axis]] = dir
-    other.friction[axes[(axis + 1) % 3]] = other.friction[axes[(axis + 2) % 3]] = axis === 1 ? self.friction  : 1
+    if (Math.abs(vec[axis]) < Math.abs(edge)) return
+    vec[axis] = edge
+    other.acceleration[axis] = 0
+    //TODO: fix jittering resting[{0:'x',1:'y',2:'z'}[axis]] = dir // TODO: change to glm vec3 array
+    other.friction[(axis + 1) % 3] = other.friction[(axis + 2) % 3] = axis === 1 ? self.friction  : 1
     return true
   })
 }
