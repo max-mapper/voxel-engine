@@ -479,7 +479,7 @@ Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
     if (Math.abs(vec[axis]) < Math.abs(edge)) return
     vec[axis] = edge
     other.acceleration[axis] = 0
-    resting[{0:'x',1:'y',2:'z'}[axis]] = dir // TODO: change to glm vec3 array
+    resting[['x','y','z'][axis]] = dir // TODO: change to glm vec3 array?
     other.friction[(axis + 1) % 3] = other.friction[(axis + 2) % 3] = axis === 1 ? self.friction  : 1
     return true
   })
