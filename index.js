@@ -626,12 +626,6 @@ Game.prototype.showChunk = function(chunk, optionalPosition) {
 
   if (!mesh) {
     // no voxels
-    // TODO: not quite right - this occurs if all the voxels are the _same_ (a superset of
-    // whether all the voxels are air). If a chunk is solid stone, we still need to render it;
-    // I guess this is why mikolalysenko made the chunks 33,33,33 in voxel-mipmap-demo. We could
-    // leave the edges empty (air) so solid chunks always render (unless entirely air).
-    // But for now, skip these chunks.
-    //console.log('Skipping empty/solid chunk',chunk.position)
     return null
   }
 
@@ -642,8 +636,6 @@ Game.prototype.showChunk = function(chunk, optionalPosition) {
     //if (this.voxels.meshes[chunkIndex].wireMesh) this.scene.remove(this.voxels.meshes[chunkIndex].wireMesh)
   }
   this.voxels.meshes[chunkIndex] = mesh
-  //mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2]) // TODO: chunk position
-  //mesh.addToScene(this.scene)  // TODO: something
   this.emit('renderChunk', chunk)
   return mesh
 }
