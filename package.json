@@ -19,7 +19,7 @@
     "ndarray": "^1.0.10",
     "ndarray-fill": "^0.1.0",
     "brfs": "^1.0.1",
-    "game-shell-fps-camera": "git://github.com/deathcap/game-shell-fps-camera.git#72bbb6e6994f793f5cb865f31e55f905adff0010",
+    "game-shell-fps-camera": "^0.5.0",
     "voxel-stitch": "^0.7.1",
     "voxel-registry": "^0.3.0",
     "voxel-plugins": "^0.3.0",
