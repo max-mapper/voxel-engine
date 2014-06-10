@@ -92,7 +92,8 @@ function Game(opts) {
   shellOpts.clearColor = [
     (this.skyColor >> 16) / 255.0,
     ((this.skyColor >> 8) & 0xff) / 255.0,
-    (this.skyColor & 0xff) / 255.0]
+    (this.skyColor & 0xff) / 255.0,
+    1.0]
   shellOpts.pointerLock = opts.pointerLock !== undefined ? opts.pointerLock : true
   var shell = createShell(shellOpts)
   shell.on('gl-init', function() {
