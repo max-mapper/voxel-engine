@@ -733,7 +733,7 @@ Game.prototype.proxyButtons = function() {
   Object.keys(this.shell.bindings).forEach(function(name) {
     Object.defineProperty(self.buttons, name, {get:
       function() {
-        return self.shell.wasDown(name)
+        return self.shell.pointerLock && self.shell.wasDown(name)
       }
     })
   })
