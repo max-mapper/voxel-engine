@@ -95,14 +95,8 @@ function Game(opts) {
     (this.skyColor & 0xff) / 255.0,
     1.0]
   shellOpts.pointerLock = opts.pointerLock !== undefined ? opts.pointerLock : true
+  shellOpts.element = this.createContainer(opts)
   var shell = createShell(shellOpts)
-  shell.on('gl-init', function() {
-    // since the plugins are loaded before gl-init, the <canvas> element will be
-    // below other UI widgets in the DOM tree, so by default the z-order will cause
-    // the canvas to cover the other widgets - to allow plugins to cover the canvas,
-    // we lower the z-index of the canvas below
-    shell.canvas.parentElement.style.zIndex = '-1'
-  })
 
   shell.on('gl-error', function(err) {
     // normally not reached; notCapable() checks for WebGL compatibility first
@@ -395,6 +389,25 @@ Game.prototype.setConfigurablePositions = function(opts) {
   this.startingPosition = sp || [35, 1024, 35]
   var wo = opts.worldOrigin
   this.worldOrigin = wo || [0, 0, 0]
+}
+
+Game.prototype.createContainer = function(opts) {
+  if (opts.container) return opts.container
+
+  // based on game-shell makeDefaultContainer()
+  var container = document.createElement("div")
+  container.tabindex = 1
+  container.style.position = "absolute"
+  container.style.left = "0px"
+  container.style.right = "0px"
+  container.style.top = "0px"
+  container.style.bottom = "0px"
+  container.style.height = "100%"
+  container.style.overflow = "hidden"
+  document.body.appendChild(container)
+  document.body.style.overflow = "hidden" //Prevent bounce
+  document.body.style.height = "100%"
+  return container
 }
 
 Game.prototype.setDimensions = function(opts) {
