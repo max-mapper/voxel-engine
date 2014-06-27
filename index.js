@@ -1,7 +1,7 @@
 'use strict'
 var voxel = require('voxel')
 var ray = require('voxel-raycast')
-var control = require('voxel-control')
+var control = require('voxel-controls')
 var Stats = require('./lib/stats')
 var Detector = require('./lib/detector')
 var inherits = require('inherits')
@@ -13,7 +13,7 @@ var glMatrix = require('gl-matrix')
 var vector = glMatrix.vec3
 var SpatialEventEmitter = require('spatial-events')
 var regionChange = require('voxel-region-change')
-var physical = require('voxel-physical')
+var physical = require('voxel-physicals')
 var pin = require('pin-it')
 var tic = require('tic')()
 var createShell = require('gl-now')
