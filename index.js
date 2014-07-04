@@ -36,7 +36,7 @@ var BUILTIN_PLUGIN_OPTS = {
   'voxel-shader': {},
   'voxel-mesher': {},
   'game-shell-fps-camera': {},
-};
+}
 
 function Game(opts) {
   if (!(this instanceof Game)) return new Game(opts)
@@ -611,8 +611,8 @@ Game.prototype.showAllChunks = function() {
 
 // Calculate fraction of each voxel type in chunk, for debugging
 var chunkDensity = function(chunk) {
-  var counts = {};
-  var length = chunk.data.length;
+  var counts = {}
+  var length = chunk.data.length
   for (var i = 0; i < length; i += 1) {
     var val = chunk.data[i]
     if (!(val in counts)) counts[val] = 0
