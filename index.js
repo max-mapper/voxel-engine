@@ -376,7 +376,11 @@ Game.prototype.control = function(target) {
 }
 
 Game.prototype.potentialCollisionSet = function() {
-  return [{ collide: this.collideTerrain.bind(this) }]
+  return [{ 
+    collide: this.collideTerrain.bind(this) 
+  }, { 
+    collide: this.collidePlayer.bind(this)
+  }]
 }
 
 /**
@@ -418,6 +422,19 @@ Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
     other.friction[axes[(axis + 1) % 3]] = other.friction[axes[(axis + 2) % 3]] = axis === 1 ? self.friction  : 1
     return true
   })
+}
+
+Game.prototype.collidePlayer = function(item) {
+  // ignore non-debris items
+  if(!item.repr || item.repr() !== 'debris') return
+
+  // aabb is a representation of an item's position and dimensions
+  var playerSpace = this.playerAABB(),
+    itemSpace = item.aabb()
+
+  if(playerSpace.intersects(itemSpace)) {
+    this.emit('collision', item)
+  }
 }
 
 // # Three.js specific methods
@@ -627,7 +644,7 @@ Game.prototype.setTimeout = tic.timeout.bind(tic)
 
 Game.prototype.tick = function(delta) {
   for(var i = 0, len = this.items.length; i < len; ++i) {
-    this.items[i].tick(delta)
+    if(this.items[i]) this.items[i].tick(delta)
   }
   
   if (this.materials) this.materials.tick(delta)
