@@ -16,7 +16,6 @@ var regionChange = require('voxel-region-change')
 var physical = require('voxel-physicals')
 var pin = require('pin-it')
 var tic = require('tic')()
-var createShell = require('gl-now')
 var ndarray = require('ndarray')
 var isndarray = require('isndarray')
 
@@ -92,6 +91,7 @@ function Game(opts) {
   // the game-shell
   if (this.isClient) /*GZ: Do not load on server, as document element is missing*/
   {
+    var createShell = require('gl-now')
     var shellOpts = shellOpts || {}
     shellOpts.clearColor = [
       (this.skyColor >> 16) / 255.0,
