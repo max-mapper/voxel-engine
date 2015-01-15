@@ -470,8 +470,8 @@ Game.prototype.potentialCollisionSet = function() {
  */
 
 Game.prototype.playerPosition = function() {
-  if (!target) return this.cameraPosition()
   var target = this.controls.target()
+  if (!target) return this.cameraPosition()
   var position = target.avatar.position
   return [position.x, position.y, position.z]
 }
