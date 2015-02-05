@@ -16,7 +16,6 @@ var regionChange = require('voxel-region-change')
 var physical = require('voxel-physicals')
 var pin = require('pin-it')
 var tic = require('tic')()
-var createShell = require('gl-now')
 var ndarray = require('ndarray')
 var isndarray = require('isndarray')
 
@@ -87,23 +86,29 @@ function Game(opts) {
   // used to be a three.js PerspectiveCamera set by voxel-view; see also basic-camera but API not likely compatible (TODO: make it compatible?)
   Object.defineProperty(this, 'camera', {get:function() { throw new Error('voxel-engine "camera" property removed') }})
 
+
+
   // the game-shell
-  var shellOpts = shellOpts || {}
-  shellOpts.clearColor = [
-    (this.skyColor >> 16) / 255.0,
-    ((this.skyColor >> 8) & 0xff) / 255.0,
-    (this.skyColor & 0xff) / 255.0,
-    1.0]
-  shellOpts.pointerLock = opts.pointerLock !== undefined ? opts.pointerLock : true
-  shellOpts.element = this.createContainer(opts)
-  var shell = createShell(shellOpts)
-
-  shell.on('gl-error', function(err) {
-    // normally not reached; notCapable() checks for WebGL compatibility first
-    document.body.appendChild(document.createTextNode('Fatal WebGL error: ' + err))
-  })
-
-  this.shell = shell
+  if (this.isClient) /*GZ: Do not load on server, as document element is missing*/
+  {
+    var createShell = require('gl-now')
+    var shellOpts = shellOpts || {}
+    shellOpts.clearColor = [
+      (this.skyColor >> 16) / 255.0,
+      ((this.skyColor >> 8) & 0xff) / 255.0,
+      (this.skyColor & 0xff) / 255.0,
+      1.0]
+    shellOpts.pointerLock = opts.pointerLock !== undefined ? opts.pointerLock : true
+    shellOpts.element = this.createContainer(opts)
+    var shell = createShell(shellOpts)
+  
+    shell.on('gl-error', function(err) {
+      // normally not reached; notCapable() checks for WebGL compatibility first
+      document.body.appendChild(document.createTextNode('Fatal WebGL error: ' + err))
+    })
+  
+    this.shell = shell
+  }
 
   // setup plugins
   var plugins = createPlugins(this, {require: function(name) {
@@ -465,8 +470,8 @@ Game.prototype.potentialCollisionSet = function() {
  */
 
 Game.prototype.playerPosition = function() {
-  if (!target) return this.cameraPosition()
   var target = this.controls.target()
+  if (!target) return this.cameraPosition()
   var position = target.avatar.position
   return [position.x, position.y, position.z]
 }
