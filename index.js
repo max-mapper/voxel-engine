@@ -155,8 +155,7 @@ function Game(opts) {
   if (!this.isClient) return
 
   // materials
-  //this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
-  this.materialNames = opts.materials
+  if ('materials' in opts) throw new Error('opts.materials replaced with voxel-registry registerBlock()') // TODO: bridge?
  
   //this.paused = true // TODO: should it start paused, then unpause when pointer lock is acquired?
 
