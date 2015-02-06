@@ -6,14 +6,13 @@ Learn more at http://voxeljs.com
 
 Write a voxel.js game in browser: http://voxel-creator.jit.su
 
-hello world template repo: http://github.com/maxogden/voxel-hello-world
+hello world template repo: http://github.com/deathcap/voxel-example
 
 # example
 
 ``` js
-var createGame = require('voxel-engine')
+var createGame = require('voxel-example')
 var game = createGame()
-game.appendTo(document.body)
 ```
 
 ### contributing
