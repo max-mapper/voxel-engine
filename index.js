@@ -14,7 +14,6 @@ var vector = glMatrix.vec3
 var SpatialEventEmitter = require('spatial-events')
 var regionChange = require('voxel-region-change')
 var physical = require('voxel-physicals')
-var pin = require('pin-it')
 var tic = require('tic')()
 var ndarray = require('ndarray')
 var isndarray = require('isndarray')
@@ -671,8 +670,6 @@ Game.prototype.addVoxelMarker = function(x, y, z, color) {
   var bbox = aabb([x, y, z], [1, 1, 1])
   return this.addAABBMarker(bbox, color)
 }
-
-Game.prototype.pin = pin
 
 // # Misc internal methods
 

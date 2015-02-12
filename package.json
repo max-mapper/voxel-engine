@@ -27,7 +27,6 @@
     "voxel-controls": "^0.1.0",
     "voxel-physicals": "^0.2.0",
     "voxel-region-change": "^0.1.0",
-    "pin-it": "^0.0.1",
     "aabb-3d": "^0.1.0",
     "inherits": "^2.0.1",
     "gl-matrix": "^2.2.1",
