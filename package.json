@@ -29,7 +29,7 @@
     "voxel-region-change": "^0.1.0",
     "aabb-3d": "^0.1.0",
     "inherits": "^2.0.1",
-    "gl-matrix": "^2.2.1",
+    "gl-vec3": "^1.0.3",
     "spatial-events": "^1.1.0",
     "spatial-trigger": "^0.0.0",
     "collide-3d-tilemap": "^0.0.1",

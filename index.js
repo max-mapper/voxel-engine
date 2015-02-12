@@ -9,8 +9,7 @@ var path = require('path')
 var EventEmitter = require('events').EventEmitter
 var collisions = require('collide-3d-tilemap')
 var aabb = require('aabb-3d')
-var glMatrix = require('gl-matrix')
-var vector = glMatrix.vec3
+var vector = require('gl-vec3')
 var SpatialEventEmitter = require('spatial-events')
 var regionChange = require('voxel-region-change')
 var physical = require('voxel-physicals')
@@ -53,7 +52,7 @@ function Game(opts) {
   this.setDimensions(opts)
   Object.defineProperty(this, 'THREE', {get:function() { throw new Error('voxel-engine "THREE property removed') }})
   this.vector = vector
-  this.glMatrix = glMatrix
+  Object.defineProperty(this, 'glMatrix', {get:function() { throw new Error('voxel-engine "glMatrix" property removed, include your own') }})
   this.arrayType = opts.arrayType || {1:Uint8Array, 2:Uint16Array, 4:Uint32Array}[opts.arrayTypeSize] || Uint8Array
   this.cubeSize = 1 // backwards compat
   this.chunkSize = opts.chunkSize || 32
