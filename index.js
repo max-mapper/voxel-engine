@@ -16,6 +16,7 @@ var physical = require('voxel-physicals')
 var tic = require('tic')()
 var ndarray = require('ndarray')
 var isndarray = require('isndarray')
+var obsolete = require('obsolete')
 
 var createPlugins = require('voxel-plugins')
 var extend = require('extend')
@@ -50,9 +51,9 @@ function Game(opts) {
   this.setConfigurablePositions(opts)
   this.configureChunkLoading(opts)
   this.setDimensions(opts)
-  Object.defineProperty(this, 'THREE', {get:function() { throw new Error('voxel-engine "THREE property removed') }})
+  obsolete(this, 'THREE')
   this.vector = vector
-  Object.defineProperty(this, 'glMatrix', {get:function() { throw new Error('voxel-engine "glMatrix" property removed, include your own') }})
+  obsolete(this, 'glMatrix', 'use your own gl-matrix, gl-vec3, or gl-vec4')
   this.arrayType = opts.arrayType || {1:Uint8Array, 2:Uint16Array, 4:Uint32Array}[opts.arrayTypeSize] || Uint8Array
   this.cubeSize = 1 // backwards compat
   this.chunkSize = opts.chunkSize || 32
@@ -69,20 +70,20 @@ function Game(opts) {
   this.meshType = opts.meshType || 'surfaceMesh'
 
   // was a 'voxel' module meshers object, now using voxel-mesher(ao-mesher)
-  Object.defineProperty(this, 'mesher', {get:function() { throw new Error('voxel-engine "mesher" property removed') }})
+  obsolete(this, 'mesher', 'replaced by voxel-mesher')
 
   this.items = []
   this.voxels = voxel(this)
 
   // was a three.js Scene instance, mainly used for scene.add(), objects, lights TODO: scene graph replacement? or can do without?
-  Object.defineProperty(this, 'scene', {get:function() { throw new Error('voxel-engine "scene" property removed') }})
+  obsolete(this, 'scene')
 
   // hooked up three.js Scene, created three.js PerspectiveCamera, added to element
   // TODO: add this.view.cameraPosition(), this.view.cameraVector()? -> [x,y,z]  to game-shell-fps-camera, very useful
-  Object.defineProperty(this, 'view', {get:function() { throw new Error('voxel-engine "view" property removed') }})
+  obsolete(this, 'view')
 
   // used to be a three.js PerspectiveCamera set by voxel-view; see also basic-camera but API not likely compatible (TODO: make it compatible?)
-  Object.defineProperty(this, 'camera', {get:function() { throw new Error('voxel-engine "camera" property removed') }})
+  obsolete(this, 'camera')
 
 
 
@@ -191,6 +192,10 @@ function Game(opts) {
 }
 
 inherits(Game, EventEmitter)
+
+Game.prototype.toString = function() {
+  return 'voxel-engine'
+}
 
 // # External API
 
@@ -765,7 +770,7 @@ Game.prototype.initializeControls = function(opts) {
   // player control - game-shell handles most controls now
 
   // initial keybindings passed in from options
-  Object.defineProperty(this, 'keybindings', {get:function() { throw new Error('voxel-engine "keybindings" property removed') }})
+  obsolete(this, 'keybindings')
   var keybindings = opts.keybindings || this.defaultButtons
   for (var key in keybindings) {
     var name = keybindings[key]
@@ -776,7 +781,7 @@ Game.prototype.initializeControls = function(opts) {
     this.shell.bind(name, key)
   }
 
-  Object.defineProperty(this, 'interact', {get:function() { throw new Error('voxel-engine "interact" property removed') }})
+  obsolete(this, 'interact')
 
   this.proxyButtons() // sets this.buttons TODO: refresh when shell.bindings changes (bind/unbind)
   this.hookupControls(this.buttons, opts)
