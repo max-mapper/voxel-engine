@@ -213,7 +213,7 @@ emits when you move between voxels. pos has x, y, and z voxel coordinates of the
 
 emits when you move between chunks. pos has x, y, and z chunk coordinates of the chunk you just entered
 
-### `game.on('renderChunk, function(chunk) {})`
+### `game.on('renderChunk', function(chunk) {})`
 
 emits when a chunk is drawn (using the `showChunk` method). `chunk` is the full chunk object, which has the voxel data and a `.position` and `.dims`
 
