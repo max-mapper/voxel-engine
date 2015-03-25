@@ -2,7 +2,6 @@
 var voxel = require('voxel')
 var ray = require('voxel-raycast')
 var control = require('voxel-controls')
-var Stats = require('./lib/stats')
 var Detector = require('./lib/detector')
 var inherits = require('inherits')
 var path = require('path')
@@ -499,15 +498,6 @@ Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
     other.friction[(axis + 1) % 3] = other.friction[(axis + 2) % 3] = axis === 1 ? self.friction  : 1
     return true
   })
-}
-
-// # Three.js specific methods
-
-Game.prototype.addStats = function() {
-  stats = new Stats()
-  stats.domElement.style.position  = 'absolute'
-  stats.domElement.style.bottom  = '0px'
-  document.body.appendChild( stats.domElement )
 }
 
 // # Chunk related methods
