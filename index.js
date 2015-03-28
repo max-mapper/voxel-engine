@@ -187,7 +187,7 @@ function Game(opts) {
 
   this.cameraPlugin = plugins.get('game-shell-fps-camera') // TODO: support other plugins implementing same API
 
-
+  this.emit('engine-init', this);
 }
 
 inherits(Game, EventEmitter)
