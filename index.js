@@ -280,6 +280,12 @@ Game.prototype.raycastVoxels = function(start, direction, maxDistance, epilson) 
   var adjacentPosition = [0, 0, 0]
   var voxelPosition = this.voxelPosition(hitPosition)
   vector.add(adjacentPosition, voxelPosition, hitNormal)
+
+  if (Math.abs(hitNormal[0] + hitNormal[1] + hitNormal[2]) !== 1) {
+    hitNormal[0] = 0
+    hitNormal[1] = 1
+    hitNormal[2] = 0
+  }
   
   return {
     position: hitPosition,
