@@ -1,36 +1,47 @@
+'use strict'
 var voxel = require('voxel')
-var voxelMesh = require('voxel-mesh')
 var ray = require('voxel-raycast')
-var texture = require('voxel-texture')
-var control = require('voxel-control')
-var voxelView = require('voxel-view')
-var THREE = require('three')
-var Stats = require('./lib/stats')
+var control = require('voxel-controls')
 var Detector = require('./lib/detector')
 var inherits = require('inherits')
 var path = require('path')
 var EventEmitter = require('events').EventEmitter
-if (process.browser) var interact = require('interact')
-var requestAnimationFrame = require('raf')
 var collisions = require('collide-3d-tilemap')
 var aabb = require('aabb-3d')
-var glMatrix = require('gl-matrix')
-var vector = glMatrix.vec3
+var vector = require('gl-vec3')
 var SpatialEventEmitter = require('spatial-events')
 var regionChange = require('voxel-region-change')
-var kb = require('kb-controls')
-var physical = require('voxel-physical')
-var pin = require('pin-it')
+var physical = require('voxel-physicals')
 var tic = require('tic')()
+var ndarray = require('ndarray')
+var isndarray = require('isndarray')
+var obsolete = require('obsolete')
+
+var createPlugins = require('voxel-plugins')
+var extend = require('extend')
+require('voxel-registry')
+require('voxel-stitch')
+require('voxel-shader')
+require('voxel-mesher')
+require('game-shell-fps-camera')
 
 module.exports = Game
+
+var BUILTIN_PLUGIN_OPTS = {
+  'voxel-registry': {},
+  'voxel-stitch': {},
+  'voxel-shader': {},
+  'voxel-mesher': {},
+  'game-shell-fps-camera': {},
+}
 
 function Game(opts) {
   if (!(this instanceof Game)) return new Game(opts)
   var self = this
   if (!opts) opts = {}
+  if (opts.pluginOpts && opts.pluginOpts['voxel-engine']) opts = extend(opts, opts.pluginOpts['voxel-engine'])
   if (process.browser && this.notCapable(opts)) return
-  
+
   // is this a client or a headless server
   this.isClient = Boolean( (typeof opts.isClient !== 'undefined') ? opts.isClient : process.browser )
 
@@ -39,12 +50,13 @@ function Game(opts) {
   this.setConfigurablePositions(opts)
   this.configureChunkLoading(opts)
   this.setDimensions(opts)
-  this.THREE = THREE
+  obsolete(this, 'THREE')
   this.vector = vector
-  this.glMatrix = glMatrix
-  this.arrayType = opts.arrayType || Uint8Array
+  obsolete(this, 'glMatrix', 'use your own gl-matrix, gl-vec3, or gl-vec4')
+  this.arrayType = opts.arrayType || {1:Uint8Array, 2:Uint16Array, 4:Uint32Array}[opts.arrayTypeSize] || Uint8Array
   this.cubeSize = 1 // backwards compat
   this.chunkSize = opts.chunkSize || 32
+  this.chunkPad = opts.chunkPad || 4
   
   // chunkDistance and removeDistance should not be set to the same thing
   // as it causes lag when you go back and forth on a chunk boundary
@@ -55,25 +67,58 @@ function Game(opts) {
   this.antialias = opts.antialias
   this.playerHeight = opts.playerHeight || 1.62
   this.meshType = opts.meshType || 'surfaceMesh'
-  this.mesher = opts.mesher || voxel.meshers.culled
-  this.materialType = opts.materialType || THREE.MeshLambertMaterial
-  this.materialParams = opts.materialParams || {}
+
+  // was a 'voxel' module meshers object, now using voxel-mesher(ao-mesher)
+  obsolete(this, 'mesher', 'replaced by voxel-mesher')
+
   this.items = []
   this.voxels = voxel(this)
-  this.scene = new THREE.Scene()
-  this.view = opts.view || new voxelView(THREE, {
-    width: this.width,
-    height: this.height,
-    skyColor: this.skyColor,
-    antialias: this.antialias
-  })
-  this.view.bindToScene(this.scene)
-  this.camera = this.view.getCamera()
-  if (!opts.lightsDisabled) this.addLights(this.scene)
+
+  // was a three.js Scene instance, mainly used for scene.add(), objects, lights TODO: scene graph replacement? or can do without?
+  obsolete(this, 'scene')
+
+  // hooked up three.js Scene, created three.js PerspectiveCamera, added to element
+  // TODO: add this.view.cameraPosition(), this.view.cameraVector()? -> [x,y,z]  to game-shell-fps-camera, very useful
+  obsolete(this, 'view')
+
+  // used to be a three.js PerspectiveCamera set by voxel-view; see also basic-camera but API not likely compatible (TODO: make it compatible?)
+  obsolete(this, 'camera')
+
+
+
+  // the game-shell
+  if (this.isClient) /*GZ: Do not load on server, as document element is missing*/
+  {
+    var createShell = require('gl-now')
+    var shellOpts = shellOpts || {}
+    shellOpts.clearColor = [
+      (this.skyColor >> 16) / 255.0,
+      ((this.skyColor >> 8) & 0xff) / 255.0,
+      (this.skyColor & 0xff) / 255.0,
+      1.0]
+    shellOpts.pointerLock = opts.pointerLock !== undefined ? opts.pointerLock : true
+    shellOpts.element = this.createContainer(opts)
+    var shell = createShell(shellOpts)
   
-  this.fogScale = opts.fogScale || 32
-  if (!opts.fogDisabled) this.scene.fog = new THREE.Fog( this.skyColor, 0.00025, this.worldWidth() * this.fogScale )
+    shell.on('gl-error', function(err) {
+      // normally not reached; notCapable() checks for WebGL compatibility first
+      document.body.appendChild(document.createTextNode('Fatal WebGL error: ' + err))
+    })
   
+    this.shell = shell
+  }
+
+  // setup plugins
+  var plugins = createPlugins(this, {require: function(name) {
+    // we provide the built-in plugins ourselves; otherwise check caller's require, if any
+    // TODO: allow caller to override built-ins? better way to do this?
+    if (name in BUILTIN_PLUGIN_OPTS) {
+      return require(name)
+    } else {
+      return opts.require ? opts.require(name) : require(name)
+    }
+  }})
+
   this.collideVoxels = collisions(
     this.getBlock.bind(this),
     1,
@@ -94,41 +139,62 @@ function Game(opts) {
   this.chunksNeedsUpdate = {}
   // contains new chunks yet to be generated. Handled by game.loadPendingChunks
   this.pendingChunks = []
-
-  this.materials = texture({
-    game: this,
-    texturePath: opts.texturePath || './textures/',
-    materialType: opts.materialType || THREE.MeshLambertMaterial,
-    materialParams: opts.materialParams || {},
-    materialFlatColor: opts.materialFlatColor === true
-  })
-
-  this.materialNames = opts.materials || [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt']
   
+  if (this.isClient) {
+    if (opts.exposeGlobal) window.game = window.g = this
+  }
+
+ 
   self.chunkRegion.on('change', function(newChunk) {
     self.removeFarChunks()
   })
 
-  if (this.isClient) this.materials.load(this.materialNames)
-
-  if (this.generateChunks) this.handleChunkGeneration()
-
   // client side only after this point
   if (!this.isClient) return
-  
-  this.paused = true
-  this.initializeRendering(opts)
- 
-  this.showAllChunks()
 
-  setTimeout(function() {
-    self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : true
-  }, 2000)
+  // materials
+  if ('materials' in opts) throw new Error('opts.materials replaced with voxel-registry registerBlock()') // TODO: bridge?
+ 
+  //this.paused = true // TODO: should it start paused, then unpause when pointer lock is acquired?
 
   this.initializeControls(opts)
+
+  // setup plugins
+  var pluginOpts = opts.pluginOpts || {}
+
+  for (var name in BUILTIN_PLUGIN_OPTS) {
+    pluginOpts[name] = pluginOpts[name] || BUILTIN_PLUGIN_OPTS[name]
+  }
+
+  for (var name in pluginOpts) {
+    plugins.add(name, pluginOpts[name])
+  }
+  plugins.loadAll()
+
+
+  // textures loaded, now can render chunks
+  this.stitcher = plugins.get('voxel-stitch')
+  this.stitcher.on('updatedSides', function() {
+    if (self.generateChunks) self.handleChunkGeneration()
+    self.showAllChunks()
+
+    // TODO: fix async chunk gen, loadPendingChunks() may load 1 even if this.pendingChunks empty
+    setTimeout(function() {
+      self.asyncChunkGeneration = 'asyncChunkGeneration' in opts ? opts.asyncChunkGeneration : true
+    }, 2000)
+  })
+  this.mesherPlugin = plugins.get('voxel-mesher')
+
+  this.cameraPlugin = plugins.get('game-shell-fps-camera') // TODO: support other plugins implementing same API
+
+  this.emit('engine-init', this);
 }
 
 inherits(Game, EventEmitter)
+
+Game.prototype.toString = function() {
+  return 'voxel-engine'
+}
 
 // # External API
 
@@ -142,12 +208,22 @@ Game.prototype.voxelPosition = function(gamePosition) {
   return v
 }
 
+var _position = new Array(3)
 Game.prototype.cameraPosition = function() {
-  return this.view.cameraPosition()
+  if (this.cameraPlugin) {
+    this.cameraPlugin.getPosition(_position)
+  }
+
+  return _position
 }
 
+var _cameraVector = vector.create()
 Game.prototype.cameraVector = function() {
-  return this.view.cameraVector()
+  if (this.cameraPlugin) {
+    this.cameraPlugin.getVector(_cameraVector)
+  }
+
+  return _cameraVector
 }
 
 Game.prototype.makePhysical = function(target, envelope, blocksCreation) {
@@ -204,6 +280,12 @@ Game.prototype.raycastVoxels = function(start, direction, maxDistance, epilson) 
   var adjacentPosition = [0, 0, 0]
   var voxelPosition = this.voxelPosition(hitPosition)
   vector.add(adjacentPosition, voxelPosition, hitNormal)
+
+  if (Math.abs(hitNormal[0] + hitNormal[1] + hitNormal[2]) !== 1) {
+    hitNormal[0] = 0
+    hitNormal[1] = 1
+    hitNormal[2] = 0
+  }
   
   return {
     position: hitPosition,
@@ -280,7 +362,7 @@ Game.prototype.createAdjacent = function(hit, val) {
 }
 
 Game.prototype.appendTo = function (element) {
-  this.view.appendTo(element)
+  // no-op; game-shell to append itself
 }
 
 // # Defaults/options parsing
@@ -304,6 +386,7 @@ Game.prototype.defaultButtons = {
 , '<space>': 'jump'
 , '<shift>': 'crouch'
 , '<control>': 'alt'
+, '<tab>': 'sprint'
 }
 
 // used in methods that have identity function(pos) {}
@@ -318,6 +401,25 @@ Game.prototype.setConfigurablePositions = function(opts) {
   this.startingPosition = sp || [35, 1024, 35]
   var wo = opts.worldOrigin
   this.worldOrigin = wo || [0, 0, 0]
+}
+
+Game.prototype.createContainer = function(opts) {
+  if (opts.container) return opts.container
+
+  // based on game-shell makeDefaultContainer()
+  var container = document.createElement("div")
+  container.tabindex = 1
+  container.style.position = "absolute"
+  container.style.left = "0px"
+  container.style.right = "0px"
+  container.style.top = "0px"
+  container.style.bottom = "0px"
+  container.style.height = "100%"
+  container.style.overflow = "hidden"
+  document.body.appendChild(container)
+  document.body.style.overflow = "hidden" //Prevent bounce
+  document.body.style.height = "100%"
+  return container
 }
 
 Game.prototype.setDimensions = function(opts) {
@@ -337,11 +439,8 @@ Game.prototype.setDimensions = function(opts) {
 Game.prototype.notCapable = function(opts) {
   var self = this
   if( !Detector().webgl ) {
-    this.view = {
-      appendTo: function(el) {
-        el.appendChild(self.notCapableMessage())
-      }
-    }
+    if (!this.reportedNotCapable) document.body.appendChild(self.notCapableMessage())
+    this.reportedNotCapable = true // only once
     return true
   }
   return false
@@ -356,16 +455,6 @@ Game.prototype.notCapableMessage = function() {
   a.href = "http://get.webgl.org"
   wrapper.appendChild(a)
   return wrapper
-}
-
-Game.prototype.onWindowResize = function() {
-  var width = window.innerWidth
-  var height = window.innerHeight
-  if (this.container) {
-    width = this.container.clientWidth
-    height = this.container.clientHeight
-  }
-  this.view.resizeWindow(width, height)
 }
 
 // # Physics/collision related methods
@@ -389,9 +478,8 @@ Game.prototype.potentialCollisionSet = function() {
 
 Game.prototype.playerPosition = function() {
   var target = this.controls.target()
-  var position = target
-    ? target.avatar.position
-    : this.camera.localToWorld(this.camera.position.clone())
+  if (!target) return this.cameraPosition()
+  var position = target.avatar.position
   return [position.x, position.y, position.z]
 }
 
@@ -407,35 +495,15 @@ Game.prototype.playerAABB = function(position) {
 
 Game.prototype.collideTerrain = function(other, bbox, vec, resting) {
   var self = this
-  var axes = ['x', 'y', 'z']
-  var vec3 = [vec.x, vec.y, vec.z]
-  this.collideVoxels(bbox, vec3, function hit(axis, tile, coords, dir, edge) {
+  this.collideVoxels(bbox, vec, function hit(axis, tile, coords, dir, edge) {
     if (!tile) return
-    if (Math.abs(vec3[axis]) < Math.abs(edge)) return
-    vec3[axis] = vec[axes[axis]] = edge
-    other.acceleration[axes[axis]] = 0
-    resting[axes[axis]] = dir
-    other.friction[axes[(axis + 1) % 3]] = other.friction[axes[(axis + 2) % 3]] = axis === 1 ? self.friction  : 1
+    if (Math.abs(vec[axis]) < Math.abs(edge)) return
+    vec[axis] = edge
+    other.acceleration[axis] = 0
+    resting[['x','y','z'][axis]] = dir // TODO: change to glm vec3 array?
+    other.friction[(axis + 1) % 3] = other.friction[(axis + 2) % 3] = axis === 1 ? self.friction  : 1
     return true
   })
-}
-
-// # Three.js specific methods
-
-Game.prototype.addStats = function() {
-  stats = new Stats()
-  stats.domElement.style.position  = 'absolute'
-  stats.domElement.style.bottom  = '0px'
-  document.body.appendChild( stats.domElement )
-}
-
-Game.prototype.addLights = function(scene) {
-  var ambientLight, directionalLight
-  ambientLight = new THREE.AmbientLight(0xcccccc)
-  scene.add(ambientLight)
-  var light	= new THREE.DirectionalLight( 0xffffff , 1)
-  light.position.set( 1, 1, 0.5 ).normalize()
-  scene.add( light )
 }
 
 // # Chunk related methods
@@ -444,9 +512,9 @@ Game.prototype.configureChunkLoading = function(opts) {
   var self = this
   if (!opts.generateChunks) return
   if (!opts.generate) {
-    this.generate = function(x,y,z) {
-      return x*x+y*y+z*z <= 15*15 ? 1 : 0 // sphere world
-    }
+    this.generate = voxel.generator.Sphere
+  } else if (typeof opts.generate === 'string') {
+    this.generate = voxel.generator[opts.generate]
   } else {
     this.generate = opts.generate
   }
@@ -486,21 +554,13 @@ Game.prototype.removeFarChunks = function(playerPosition) {
     if (!chunk) return
     var chunkPosition = chunk.position
     if (mesh) {
-      if (mesh.surfaceMesh) {
-        self.scene.remove(mesh.surfaceMesh)
-        mesh.surfaceMesh.geometry.dispose()
+      // dispose of the gl-vao meshes
+      for (var key in mesh.vertexArrayObjects) {
+        mesh.vertexArrayObjects[key].dispose()
       }
-      if (mesh.wireMesh) {
-        mesh.wireMesh.geometry.dispose()
-        self.scene.remove(mesh.wireMesh)
-      }
-      delete mesh.data
-      delete mesh.geometry
-      delete mesh.meshed
-      delete mesh.surfaceMesh
-      delete mesh.wireMesh
     }
     delete self.voxels.chunks[chunkIndex]
+    delete self.voxels.meshes[chunkIndex]
     self.emit('removeChunk', chunkPosition)
   })
   self.voxels.requestMissingChunks(playerPosition)
@@ -552,24 +612,46 @@ Game.prototype.showAllChunks = function() {
   }
 }
 
-Game.prototype.showChunk = function(chunk) {
+// Calculate fraction of each voxel type in chunk, for debugging
+var chunkDensity = function(chunk) {
+  var counts = {}
+  var length = chunk.data.length
+  for (var i = 0; i < length; i += 1) {
+    var val = chunk.data[i]
+    if (!(val in counts)) counts[val] = 0
+
+    counts[val] += 1
+  }
+
+  var densities = {}
+  for (var val in counts) {
+    densities[val] = counts[val] / length
+  }
+  return densities
+}
+
+Game.prototype.showChunk = function(chunk, optionalPosition) {
+  if (optionalPosition) chunk.position = optionalPosition
+
   var chunkIndex = chunk.position.join('|')
   var bounds = this.voxels.getBounds.apply(this.voxels, chunk.position)
-  var scale = new THREE.Vector3(1, 1, 1)
-  var mesh = voxelMesh(chunk, this.mesher, scale, this.THREE)
+  //console.log('showChunk',chunkIndex,'density=',JSON.stringify(chunkDensity(chunk)))
+
+  var voxelArray = isndarray(chunk) ? chunk : ndarray(chunk.voxels, chunk.dims)
+  var mesh = this.mesherPlugin.createVoxelMesh(this.shell.gl, voxelArray, this.stitcher.voxelSideTextureIDs, this.stitcher.voxelSideTextureSizes, chunk.position, this.chunkPad)
+
+  if (!mesh) {
+    // no voxels
+    return null
+  }
+
   this.voxels.chunks[chunkIndex] = chunk
   if (this.voxels.meshes[chunkIndex]) {
-    if (this.voxels.meshes[chunkIndex].surfaceMesh) this.scene.remove(this.voxels.meshes[chunkIndex].surfaceMesh)
-    if (this.voxels.meshes[chunkIndex].wireMesh) this.scene.remove(this.voxels.meshes[chunkIndex].wireMesh)
+    // TODO: remove mesh if exists
+    //if (this.voxels.meshes[chunkIndex].surfaceMesh) this.scene.remove(this.voxels.meshes[chunkIndex].surfaceMesh)
+    //if (this.voxels.meshes[chunkIndex].wireMesh) this.scene.remove(this.voxels.meshes[chunkIndex].wireMesh)
   }
   this.voxels.meshes[chunkIndex] = mesh
-  if (this.isClient) {
-    if (this.meshType === 'wireMesh') mesh.createWireMesh()
-    else mesh.createSurfaceMesh(this.materials.material)
-    this.materials.paint(mesh)
-  }
-  mesh.setPosition(bounds[0][0], bounds[0][1], bounds[0][2])
-  mesh.addToScene(this.scene)
   this.emit('renderChunk', chunk)
   return mesh
 }
@@ -577,20 +659,11 @@ Game.prototype.showChunk = function(chunk) {
 // # Debugging methods
 
 Game.prototype.addMarker = function(position) {
-  var geometry = new THREE.SphereGeometry( 0.1, 10, 10 )
-  var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } )
-  var mesh = new THREE.Mesh( geometry, material )
-  mesh.position.copy(position)
-  this.scene.add(mesh)
+  throw new Error('voxel-engine addMarker not yet implemented TODO: figure out how to fit this into the rendering pipeline')
 }
 
 Game.prototype.addAABBMarker = function(aabb, color) {
-  var geometry = new THREE.CubeGeometry(aabb.width(), aabb.height(), aabb.depth())
-  var material = new THREE.MeshBasicMaterial({ color: color || 0xffffff, wireframe: true, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
-  var mesh = new THREE.Mesh(geometry, material)
-  mesh.position.set(aabb.x0() + aabb.width() / 2, aabb.y0() + aabb.height() / 2, aabb.z0() + aabb.depth() / 2)
-  this.scene.add(mesh)
-  return mesh
+  throw new Error('voxel-engine addAABBMarker not yet implemented TODO')
 }
 
 Game.prototype.addVoxelMarker = function(x, y, z, color) {
@@ -598,25 +671,7 @@ Game.prototype.addVoxelMarker = function(x, y, z, color) {
   return this.addAABBMarker(bbox, color)
 }
 
-Game.prototype.pin = pin
-
 // # Misc internal methods
-
-Game.prototype.onControlChange = function(gained, stream) {
-  this.paused = false
-
-  if (!gained && !this.optout) {
-    this.buttons.disable()
-    return
-  }
-
-  this.buttons.enable()
-  stream.pipe(this.controls.createWriteRotationStream())
-}
-
-Game.prototype.onControlOptOut = function() {
-  this.optout = true
-}
 
 Game.prototype.onFire = function(state) {
   this.emit('fire', this.controlling, state)
@@ -630,7 +685,7 @@ Game.prototype.tick = function(delta) {
     this.items[i].tick(delta)
   }
   
-  if (this.materials) this.materials.tick(delta)
+  //if (this.materials) this.materials.tick(delta)
 
   if (this.pendingChunks.length) this.loadPendingChunks()
   if (Object.keys(this.chunksNeedsUpdate).length > 0) this.updateDirtyChunks()
@@ -639,7 +694,7 @@ Game.prototype.tick = function(delta) {
 
   this.emit('tick', delta)
   
-  if (!this.controls) return
+  //if (!this.controls) return // this.controls removed; still load chunks
   var playerPos = this.playerPosition()
   this.spatial.emit('position', playerPos, playerPos)
 }
@@ -648,6 +703,7 @@ Game.prototype.render = function(delta) {
   this.view.render(this.scene)
 }
 
+// TODO: merge with game-shell render loop?
 Game.prototype.initializeTimer = function(rate) {
   var self = this
   var accum = 0
@@ -682,36 +738,48 @@ Game.prototype.initializeTimer = function(rate) {
   }
 }
 
-Game.prototype.initializeRendering = function(opts) {
+// Create the buttons state object (binding => state), proxying to game-shell .wasDown(binding)
+Game.prototype.proxyButtons = function() {
   var self = this
 
-  if (!opts.statsDisabled) self.addStats()
+  self.buttons = {}
 
-  window.addEventListener('resize', self.onWindowResize.bind(self), false)
-
-  requestAnimationFrame(window).on('data', function(dt) {
-    self.emit('prerender', dt)
-    self.render(dt)
-    self.emit('postrender', dt)
-  })
-  if (typeof stats !== 'undefined') {
-    self.on('postrender', function() {
-      stats.update()
+  Object.keys(this.shell.bindings).forEach(function(name) {
+    Object.defineProperty(self.buttons, name, {get:
+      function() {
+        return self.shell.pointerLock && self.shell.wasDown(name)
+      }
     })
+  })
+}
+
+// cleanup key name - based on https://github.com/mikolalysenko/game-shell/blob/master/shell.js
+var filtered_vkey = function(k) {
+  if(k.charAt(0) === '<' && k.charAt(k.length-1) === '>') {
+    k = k.substring(1, k.length-1)
   }
+  k = k.replace(/\s/g, "-")
+  return k
 }
 
 Game.prototype.initializeControls = function(opts) {
-  // player control
-  this.keybindings = opts.keybindings || this.defaultButtons
-  this.buttons = kb(document.body, this.keybindings)
-  this.buttons.disable()
-  this.optout = false
-  this.interact = interact(opts.interactElement || this.view.element, opts.interactMouseDrag)
-  this.interact
-      .on('attain', this.onControlChange.bind(this, true))
-      .on('release', this.onControlChange.bind(this, false))
-      .on('opt-out', this.onControlOptOut.bind(this))
+  // player control - game-shell handles most controls now
+
+  // initial keybindings passed in from options
+  obsolete(this, 'keybindings')
+  var keybindings = opts.keybindings || this.defaultButtons
+  for (var key in keybindings) {
+    var name = keybindings[key]
+
+    // translate name for game-shell
+    key = filtered_vkey(key)
+
+    this.shell.bind(name, key)
+  }
+
+  obsolete(this, 'interact')
+
+  this.proxyButtons() // sets this.buttons TODO: refresh when shell.bindings changes (bind/unbind)
   this.hookupControls(this.buttons, opts)
 }
 
