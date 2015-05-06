@@ -4,8 +4,6 @@
 
 Learn more at http://voxeljs.com
 
-Write a voxel.js game in browser: http://voxel-creator.jit.su
-
 hello world template repo: http://github.com/maxogden/voxel-hello-world
 
 # example
