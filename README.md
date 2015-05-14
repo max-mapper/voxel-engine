@@ -6,6 +6,8 @@ Learn more at http://voxeljs.com
 
 Write a voxel.js game in browser: http://voxel-creator.jit.su
 
+<a href="https://nodei.co/npm/voxel-engine/"><img src="https://nodei.co/npm/voxel-engine.png"></a>
+
 hello world template repo: http://github.com/maxogden/voxel-hello-world
 
 # example
