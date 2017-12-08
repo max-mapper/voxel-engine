@@ -264,6 +264,11 @@ Loading textures onto the texture atlas.
 
 Both of these textures will be loaded into the texture atlas and expanded creating 2 voxel block types.
 
+To create a material with different textures for each face of the block, you can pass an array of textures with its indices corresponding to block faces as follows (viewing form the top):
+   0 
+ 4 X 5 (2top/3bottom)
+   1 
+
 ### Texture-less worlds with flat colors
 
 You can specify hex colors to use as materials, just pass these options when creating a game:
